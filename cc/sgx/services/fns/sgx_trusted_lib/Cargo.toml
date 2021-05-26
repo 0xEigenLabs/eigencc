@@ -1,0 +1,51 @@
+[package]
+name = "fns_enclave"
+version = "0.1.0"
+description = "Function node service, trusted gateway in front of the actual worker."
+license = "Apache-2.0"
+edition = "2018"
+
+[lib]
+name = "fns_enclave"
+crate-type = ["staticlib"]
+
+[features]
+default = []
+mesalock_sgx = ["sgx_tstd", "eigen_core/mesalock_sgx", "fns_proto/mesalock_sgx"]
+cov = ["sgx_cov"]
+
+[dependencies]
+cfg-if               = { version = "0.1.9" }
+lazy_static          = { version = "1.0.2", features = ["spin_no_std"] }
+serde                = { version = "1.0.92" }
+serde_derive         = { version = "1.0.92" }
+serde_json           = { version = "1.0.39" }
+base64               = { version = "0.10.1" }
+itertools            = { version = "0.8.0", default-features = false }
+log                  = { version = "0.4.7", features = ["max_level_trace"] }
+env_logger           = { version = "0.7.1" }
+image                = { version = "0.22.1" }
+ring                 = { version = "0.16.5" }
+uuid                 = { version = "0.8.1", features = ["v4"] }
+
+fns_proto            = { path = "../proto", optional = true }
+
+sgx_cov              = { version = "1.1.0", optional = true }
+sgx_tstd             = { version = "1.1.0", features = ["net", "backtrace"], optional = true }
+sgx_types            = { version = "1.1.0" }
+sgx_tcrypto 	     = { version = "1.1.0" }
+sgx_tseal            = { version = "1.1.0" }
+sgx_tse              = { version = "1.1.0" }
+
+hex 		     = { version = "0.4.0" }
+num-bigint           = { version = "0.2.3" }
+chrono               = { version = "0.4.7" }
+bytes = { version = ">= 0.4.12"} # unix app depends on 0.4.12, while sgx lib depends on 0.5.0
+
+prost       = { version = "0.6.0" }
+prost-types = { version = "0.6.0" }
+
+
+eigen_core         = { path = "../../../eigen_core" }
+utils       = { path = "../../../utils" }
+config      = { path = "../../../config" }

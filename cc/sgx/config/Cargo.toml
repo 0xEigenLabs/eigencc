@@ -1,0 +1,19 @@
+[package]
+name = "config"
+version = "0.1.0"
+description = "Build and runtime configurations."
+license = "Apache-2.0"
+edition = "2018"
+
+[features]
+default = []
+mesalock_sgx = ["sgx_tstd"]
+eigen_unit_test = []
+
+[dependencies]
+lazy_static  = { version = "1.0.2", features = ["spin_no_std"] }
+serde        = "1.0.93"
+serde_derive = "1.0.93"
+sgx_tstd     = { version = "1.1.0", optional = true }
+toml         = "0.5.1"
+log          = { version = "0.4.6" }

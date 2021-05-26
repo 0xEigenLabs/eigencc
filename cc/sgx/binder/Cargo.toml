@@ -1,0 +1,27 @@
+[package]
+name = "binder"
+version = "0.1.0"
+description = "Abstract communication interfaces between IntelSGX untrusted/trusted worlds."
+license = "Apache-2.0"
+edition = "2018"
+
+[lib]
+name = "binder"
+path = "src/lib.rs"
+
+[features]
+default = ["eigen_core/ipc"]
+
+[dependencies]
+sgx_urts   =  "1.1.0" 
+sgx_types  =  "1.1.0" 
+
+eigen_core = { path = "../eigen_core", features = ["ipc"]}
+
+log = { version = "0.4.6" }
+env_logger = "0.7.1"
+
+serde        = "1.0.92" 
+serde_derive = "1.0.92"
+serde_json   = "1.0.39"
+

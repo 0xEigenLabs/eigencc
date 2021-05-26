@@ -1,0 +1,21 @@
+[workspace]
+
+members = [
+  "services/fns/sgx_app",
+  "tests/unit_test/sgx_app",
+]
+
+exclude = [
+  "eigen_core",
+  "config",
+]
+
+[patch.crates-io]
+# eigen_core
+eigen_core    = { path = "./eigen_core" }
+binder = { path = "./binder" }
+
+# We cannot remove these crates, because proto crates depend on them
+sgx_cov   = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }
+sgx_urts  = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }
+sgx_types = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }

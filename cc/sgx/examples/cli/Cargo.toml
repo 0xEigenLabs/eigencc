@@ -1,0 +1,15 @@
+[package]
+name = "cli"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lazy_static = { version = "1.3.0" }
+structopt = "0.2"
+serde = "1.0.92"
+serde_derive = "1.0.92"
+serde_json = "1.0.39"
+sdk = { path = "../../sdk" }
+fns_proto = { path = "../../services/fns/proto" }

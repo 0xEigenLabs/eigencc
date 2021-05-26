@@ -1,0 +1,23 @@
+[package]
+name = "unit_test"
+version = "0.1.0"
+description = "Unit tests of MesaTEE"
+license = "Apache-2.0"
+build = "build.rs"
+edition = "2018"
+
+[features]
+default = [
+  "config/eigen_unit_test",
+  "eigen_core/eigen_unit_test",
+]
+
+[dependencies]
+sgx_types       = "1.1.0"
+sgx_urts        = "1.1.0"
+eigen_core    = { path = "../../../eigen_core" }
+binder = { path = "../../../binder" }
+config = { path = "../../../config" }
+ctrlc           = "3.1.2"
+log             = { version = "0.4.6" }
+env_logger      = "0.7.1"

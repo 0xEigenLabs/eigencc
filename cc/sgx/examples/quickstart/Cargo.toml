@@ -1,0 +1,12 @@
+[package]
+name = "quickstart"
+version = "0.1.0"
+description = "Quick-start example with EigenTEE."
+license = "Apache-2.0"
+edition = "2018"
+
+[dependencies]
+structopt = "0.2"
+serde = "1.0.92"
+sdk = { path = "../../sdk" }
+lazy_static = { version = "1.1.0" }

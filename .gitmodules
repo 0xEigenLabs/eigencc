@@ -1,0 +1,19 @@
+[submodule "third_party/crates-sgx"]
+	path = cc/sgx/third_party/crates-sgx
+	url = https://github.com/mesalock-linux/crates-sgx.git
+	ignore = dirty
+[submodule "third_party/rust-sgx-sdk"]
+	path = cc/sgx/third_party/rust-sgx-sdk
+	url = https://github.com/baidu/rust-sgx-sdk.git
+[submodule "third_party/crates-io"]
+	path = cc/sgx/third_party/crates-io
+	url = https://github.com/mesalock-linux/crates-io.git
+	ignore = dirty
+[submodule "third_party/SEAL"]
+	path = fl/third_party/SEAL
+	url = https://github.com/ieigen/SEAL.git 
+	ignore = dirty
+[submodule "third_party/charm"]
+	path = fl/third_party/charm
+	url = https://github.com/ieigen/charm.git 
+	ignore = dirty

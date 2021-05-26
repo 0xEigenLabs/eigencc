@@ -1,0 +1,25 @@
+[workspace]
+
+# every member should take its own line,
+# and for those to exclude from cmake build, just append the '# ignore'
+# annotation suffix
+members = [
+  "examples/cli",
+  "examples/quickstart",
+  "sdk", # ignore
+  "sdk/c_sdk", # ignore
+]
+
+exclude = [
+  "eigen_core",
+]
+
+[patch.crates-io]
+# eigen_core
+eigen_core = { path = "./eigen_core" }
+sdk = { path = "./sdk" }
+
+# We cannot remove these crates, because proto crates depend on them
+sgx_cov = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }
+sgx_urts = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }
+sgx_types = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }
