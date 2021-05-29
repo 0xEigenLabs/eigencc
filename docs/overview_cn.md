@@ -1,7 +1,7 @@
 # Eigen Network Tech介绍
 
 ## 简介
-Eigen是针对Layer2的隐私计算基础设施，解决web3.0时代用户数据和计算的隐私保护问题。功能包括：
+Eigen是针对Layer2的隐私计算基础设施，解决web3.0时代用户数据和计算的隐私保护问题, 功能包括：
 * 结合DID技术，我们赋予设备以身份，设备成为数据控制的主体，实现端上数据主权自控
 * 隐私智能合约：保护智能合约数据的隐私安全
 * 通用隐私计算：提供隐私计算算子，基于隐私算子，用户可以在智能合约里面完成数据使用权和所属权的交易，使用权的交易让数据可用不可见，所属权的交易让用户可以快速的将自己的数字资产NFT化
@@ -29,11 +29,11 @@ Eigen Network提供Semi-honest Security以及Malicious Security两种安全保�
 
 ## L2 rollup
 ### 协议介绍
-Optimistic Rollup（ORU）是目前最流行的以太坊L2解决方案，它将交易和状态更新放发布在主链上，将资源密集型计算和存储放在rollup层。智能合约部署在layer 1（如，以太坊主网）上，区块生产者会监听特定的p2p网络交易，并将其汇总为一个大数据，附上验证签名后上链。
+Optimistic Rollup（ORU）是目前最流行的以太坊L2解决方案，它将交易和状态更新发布在主链上，将资源密集型计算和存储放在rollup层。智能合约部署在Layer 1（如以太坊主网）上，区块生产者会监听特定的p2p网络交易，并将其汇总为一个大数据，附上验证签名后上链。
 
-其主要的思想是欺诈证明 (fraud proofs)：这类 rollup 会追踪所有历史状态根以及每个 batch 的哈希值。如果任何人发现某个 batch 的后状态根不正确，他可以向区块链发布一个证明，证明该 batch 计算错误。合约会对证明进行验证，并且对该 batch 及其之后的 batches 进行回滚。
+其主要的思想是欺诈证明 (fraud proofs)：这类 rollup 会追踪所有历史状态根以及每个batch的哈希值。如果任何人发现某个batch后的状态根不正确，他可以向区块链发布一个证明，证明该batch计算错误。合约会对证明进行验证，并且对该 batch 及其之后的 batches 进行回滚。
 
-Optimistic rollup目前主要是Arbitrum, Optimism等方案。
+Optimistic Rollup目前主要是Arbitrum, Optimism等方案。
 
 
 ## 隐私计算原语
