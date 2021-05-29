@@ -1,4 +1,4 @@
-# Eigen Network介绍
+# Eigen Network Tech介绍
 
 ## 简介
 Eigen是针对Layer2的隐私计算基础设施，解决web3.0时代用户数据和计算的隐私保护问题。功能包括：
@@ -27,15 +27,14 @@ Eigen Network提供Semi-honest Security以及Malicious Security两种安全保�
 
 ## 原理介绍
 
-## L2 optimism rollup
+## L2 rollup
 ### 协议介绍
-Optimism Rollup（ORU）是目前最流行的以太坊L2解决方案，它将交易和状态更新放发布在主链上，将资源密集型计算和存储放在rollup层。智能合约部署在layer 1（如，以太坊主网）上，区块生产者会监听特定的p2p网络交易，并将其汇总为一个大数据，附上验证签名后上链。
+Optimistical Rollup（ORU）是目前最流行的以太坊L2解决方案，它将交易和状态更新放发布在主链上，将资源密集型计算和存储放在rollup层。智能合约部署在layer 1（如，以太坊主网）上，区块生产者会监听特定的p2p网络交易，并将其汇总为一个大数据，附上验证签名后上链。
 
 其主要的思想是欺诈证明 (fraud proofs)：这类 rollup 会追踪所有历史状态根以及每个 batch 的哈希值。如果任何人发现某个 batch 的后状态根不正确，他可以向区块链发布一个证明，证明该 batch 计算错误。合约会对证明进行验证，并且对该 batch 及其之后的 batches 进行回滚。
 
-Optimism rollup是当前“正统”意义的L2上支持智能合约的方案。
+Optimistical rollup目前主要是Arbitrum, Optimism等方案。
 
-### 节点接入
 
 ## 隐私计算原语
 TBD
