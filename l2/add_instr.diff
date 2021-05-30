@@ -137,7 +137,7 @@ index b43e0cf9f..54857e2cf 100644
  				default:
  					solAssert(false, "unsupported member function");
 diff --git a/libsolidity/codegen/ir/IRGeneratorForStatements.cpp b/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
-index a7ef82784..ec0094805 100644
+index a7ef82784..1e06493dc 100644
 --- a/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
 +++ b/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
 @@ -1267,6 +1267,8 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
@@ -153,8 +153,8 @@ index a7ef82784..ec0094805 100644
  			{FunctionType::Kind::ECRecover, std::make_tuple(1, 0)},
  			{FunctionType::Kind::SHA256, std::make_tuple(2, 0)},
  			{FunctionType::Kind::RIPEMD160, std::make_tuple(3, 12)},
-+			{FunctionType::Kind::ECALL, std::make_tuple(4, 0)},
-+			{FunctionType::Kind::ERETURN, std::make_tuple(5, 0)},
++			{FunctionType::Kind::ECALL, std::make_tuple(21, 0)},
++			{FunctionType::Kind::ERETURN, std::make_tuple(22, 0)},
  		};
  		auto [ address, offset ] = precompiles[functionType->kind()];
  		TypePointers argumentTypes;
