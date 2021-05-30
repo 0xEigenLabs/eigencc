@@ -10,8 +10,9 @@ contract Hello {
         name = 'Hello world!';
     }
  
-    function hello() view public returns (address, string memory) {
+    function hello() public returns (address, string memory) {
         bytes32 aa = ecall("2121");
+        log1('new_inst', aa);
         return (msg.sender, name);
     }
 }

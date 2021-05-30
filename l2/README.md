@@ -26,3 +26,16 @@ cd arbitrum/node_modules/solc/
 ./solcjs --bin hello.sol
 ```
 
+3. Run by geth
+
+```
+git clone https://github.com/ethereum/go-ethereum.git
+cd go-ethereum
+git apply geth.diff
+make
+
+geth --datadir "./node1" --networkid 72 --port 30301 --rpc --rpcport "7545" --rpcapi web3,eth,personal,miner,net,txpool  --allow-insecure-unlock console
+```
+
+4. Deploy contract by truffle in `new_instr`
+
