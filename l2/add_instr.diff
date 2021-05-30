@@ -1,0 +1,208 @@
+diff --git a/libsolidity/analysis/GlobalContext.cpp b/libsolidity/analysis/GlobalContext.cpp
+index 885ae49a7..9e987ae99 100644
+--- a/libsolidity/analysis/GlobalContext.cpp
++++ b/libsolidity/analysis/GlobalContext.cpp
+@@ -64,6 +64,8 @@ int magicVariableToID(std::string const& _name)
+ 	else if (_name == "tx") return -26;
+ 	else if (_name == "type") return -27;
+ 	else if (_name == "this") return -28;
++	else if (_name == "ecall") return -29;
++	else if (_name == "ereturn") return -30;
+ 	else
+ 		solAssert(false, "Unknown magic variable: \"" + _name + "\".");
+ }
+@@ -98,6 +100,8 @@ inline vector<shared_ptr<MagicVariableDeclaration const>> constructMagicVariable
+ 		magicVarDecl("ripemd160", TypeProvider::function(strings{"bytes memory"}, strings{"bytes20"}, FunctionType::Kind::RIPEMD160, false, StateMutability::Pure)),
+ 		magicVarDecl("selfdestruct", TypeProvider::function(strings{"address payable"}, strings{}, FunctionType::Kind::Selfdestruct)),
+ 		magicVarDecl("sha256", TypeProvider::function(strings{"bytes memory"}, strings{"bytes32"}, FunctionType::Kind::SHA256, false, StateMutability::Pure)),
++		magicVarDecl("ecall", TypeProvider::function(strings{"bytes memory"}, strings{"bytes32"}, FunctionType::Kind::ECALL, false, StateMutability::Pure)),
++		magicVarDecl("ereturn", TypeProvider::function(strings{"bytes memory"}, strings{"bytes32"}, FunctionType::Kind::ERETURN, false, StateMutability::Pure)),
+ 		magicVarDecl("sha3", TypeProvider::function(strings{"bytes memory"}, strings{"bytes32"}, FunctionType::Kind::KECCAK256, false, StateMutability::Pure)),
+ 		magicVarDecl("suicide", TypeProvider::function(strings{"address payable"}, strings{}, FunctionType::Kind::Selfdestruct)),
+ 		magicVarDecl("tx", TypeProvider::magic(MagicType::Kind::Transaction)),
+diff --git a/libsolidity/analysis/TypeChecker.cpp b/libsolidity/analysis/TypeChecker.cpp
+index f0b174d19..b9c75a073 100644
+--- a/libsolidity/analysis/TypeChecker.cpp
++++ b/libsolidity/analysis/TypeChecker.cpp
+@@ -2021,6 +2021,8 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
+ 			else if (
+ 				_functionType->kind() == FunctionType::Kind::KECCAK256 ||
+ 				_functionType->kind() == FunctionType::Kind::SHA256 ||
++				_functionType->kind() == FunctionType::Kind::ECALL ||
++				_functionType->kind() == FunctionType::Kind::ERETURN ||
+ 				_functionType->kind() == FunctionType::Kind::RIPEMD160
+ 			)
+ 				return {
+@@ -2134,6 +2136,8 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
+ 				else if (
+ 					_functionType->kind() == FunctionType::Kind::KECCAK256 ||
+ 					_functionType->kind() == FunctionType::Kind::SHA256 ||
++					_functionType->kind() == FunctionType::Kind::ECALL ||
++					_functionType->kind() == FunctionType::Kind::ERETURN ||
+ 					_functionType->kind() == FunctionType::Kind::RIPEMD160
+ 				)
+ 					return {
+diff --git a/libsolidity/ast/Types.cpp b/libsolidity/ast/Types.cpp
+index ebe935502..f962ec288 100644
+--- a/libsolidity/ast/Types.cpp
++++ b/libsolidity/ast/Types.cpp
+@@ -3035,6 +3035,8 @@ string FunctionType::richIdentifier() const
+ 	case Kind::Revert: id += "revert"; break;
+ 	case Kind::ECRecover: id += "ecrecover"; break;
+ 	case Kind::SHA256: id += "sha256"; break;
++	case Kind::ECALL: id += "ecall"; break;
++	case Kind::ERETURN: id += "ereturn"; break;
+ 	case Kind::RIPEMD160: id += "ripemd160"; break;
+ 	case Kind::Log0: id += "log0"; break;
+ 	case Kind::Log1: id += "log1"; break;
+@@ -3545,6 +3547,8 @@ bool FunctionType::isBareCall() const
+ 	case Kind::BareStaticCall:
+ 	case Kind::ECRecover:
+ 	case Kind::SHA256:
++	case Kind::ECALL:
++	case Kind::ERETURN:
+ 	case Kind::RIPEMD160:
+ 		return true;
+ 	default:
+@@ -3604,6 +3608,8 @@ bool FunctionType::isPure() const
+ 		m_kind == Kind::KECCAK256 ||
+ 		m_kind == Kind::ECRecover ||
+ 		m_kind == Kind::SHA256 ||
++		m_kind == Kind::ECALL ||
++		m_kind == Kind::ERETURN ||
+ 		m_kind == Kind::RIPEMD160 ||
+ 		m_kind == Kind::AddMod ||
+ 		m_kind == Kind::MulMod ||
+@@ -3738,6 +3744,8 @@ bool FunctionType::padArguments() const
+ 	case Kind::BareDelegateCall:
+ 	case Kind::BareStaticCall:
+ 	case Kind::SHA256:
++	case Kind::ECALL:
++	case Kind::ERETURN:
+ 	case Kind::RIPEMD160:
+ 	case Kind::KECCAK256:
+ 	case Kind::ABIEncodePacked:
+diff --git a/libsolidity/ast/Types.h b/libsolidity/ast/Types.h
+index 9b32475ca..600730dc4 100644
+--- a/libsolidity/ast/Types.h
++++ b/libsolidity/ast/Types.h
+@@ -1097,6 +1097,8 @@ public:
+ 		Revert, ///< REVERT
+ 		ECRecover, ///< CALL to special contract for ecrecover
+ 		SHA256, ///< CALL to special contract for sha256
++		ECALL, ///< CALL to user-defined method
++		ERETURN, ///< CALL to get return from ECALL
+ 		RIPEMD160, ///< CALL to special contract for ripemd160
+ 		Log0,
+ 		Log1,
+@@ -1294,6 +1296,8 @@ public:
+ 		{
+ 		case FunctionType::Kind::KECCAK256:
+ 		case FunctionType::Kind::SHA256:
++		case FunctionType::Kind::ECALL:
++		case FunctionType::Kind::ERETURN:
+ 		case FunctionType::Kind::RIPEMD160:
+ 		case FunctionType::Kind::BareCall:
+ 		case FunctionType::Kind::BareCallCode:
+diff --git a/libsolidity/codegen/ExpressionCompiler.cpp b/libsolidity/codegen/ExpressionCompiler.cpp
+index b43e0cf9f..558bcb44a 100644
+--- a/libsolidity/codegen/ExpressionCompiler.cpp
++++ b/libsolidity/codegen/ExpressionCompiler.cpp
+@@ -917,13 +917,17 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
+ 		}
+ 		case FunctionType::Kind::ECRecover:
+ 		case FunctionType::Kind::SHA256:
++		case FunctionType::Kind::ECALL:
++		case FunctionType::Kind::ERETURN:
+ 		case FunctionType::Kind::RIPEMD160:
+ 		{
+ 			_functionCall.expression().accept(*this);
+ 			static map<FunctionType::Kind, u256> const contractAddresses{
+ 				{FunctionType::Kind::ECRecover, 1},
+ 				{FunctionType::Kind::SHA256, 2},
+-				{FunctionType::Kind::RIPEMD160, 3}
++				{FunctionType::Kind::RIPEMD160, 3},
++				{FunctionType::Kind::ECALL, 4},
++				{FunctionType::Kind::ERETURN, 5}
+ 			};
+ 			m_context << contractAddresses.at(function.kind());
+ 			for (unsigned i = function.sizeOnStack(); i > 0; --i)
+@@ -1372,6 +1376,8 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
+ 				case FunctionType::Kind::Log4:
+ 				case FunctionType::Kind::ECRecover:
+ 				case FunctionType::Kind::SHA256:
++				case FunctionType::Kind::ECALL:
++				case FunctionType::Kind::ERETURN:
+ 				case FunctionType::Kind::RIPEMD160:
+ 				default:
+ 					solAssert(false, "unsupported member function");
+diff --git a/libsolidity/codegen/ir/IRGeneratorForStatements.cpp b/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
+index a7ef82784..ec0094805 100644
+--- a/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
++++ b/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
+@@ -1267,6 +1267,8 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
+ 	case FunctionType::Kind::ECRecover:
+ 	case FunctionType::Kind::RIPEMD160:
+ 	case FunctionType::Kind::SHA256:
++	case FunctionType::Kind::ECALL:
++	case FunctionType::Kind::ERETURN:
+ 	{
+ 		solAssert(!_functionCall.annotation().tryCall, "");
+ 		solAssert(!functionType->valueSet(), "");
+@@ -1277,6 +1279,8 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
+ 			{FunctionType::Kind::ECRecover, std::make_tuple(1, 0)},
+ 			{FunctionType::Kind::SHA256, std::make_tuple(2, 0)},
+ 			{FunctionType::Kind::RIPEMD160, std::make_tuple(3, 12)},
++			{FunctionType::Kind::ECALL, std::make_tuple(4, 0)},
++			{FunctionType::Kind::ERETURN, std::make_tuple(5, 0)},
+ 		};
+ 		auto [ address, offset ] = precompiles[functionType->kind()];
+ 		TypePointers argumentTypes;
+@@ -1700,6 +1704,8 @@ void IRGeneratorForStatements::endVisit(MemberAccess const& _memberAccess)
+ 				case FunctionType::Kind::Log4:
+ 				case FunctionType::Kind::ECRecover:
+ 				case FunctionType::Kind::SHA256:
++				case FunctionType::Kind::ECALL:
++				case FunctionType::Kind::ERETURN:
+ 				case FunctionType::Kind::RIPEMD160:
+ 				default:
+ 					solAssert(false, "unsupported member function");
+diff --git a/libsolidity/formal/BMC.cpp b/libsolidity/formal/BMC.cpp
+index 363910edd..92577e920 100644
+--- a/libsolidity/formal/BMC.cpp
++++ b/libsolidity/formal/BMC.cpp
+@@ -369,6 +369,8 @@ void BMC::endVisit(FunctionCall const& _funCall)
+ 	case FunctionType::Kind::KECCAK256:
+ 	case FunctionType::Kind::ECRecover:
+ 	case FunctionType::Kind::SHA256:
++	case FunctionType::Kind::ECALL:
++	case FunctionType::Kind::ERETURN:
+ 	case FunctionType::Kind::RIPEMD160:
+ 	case FunctionType::Kind::BlockHash:
+ 	case FunctionType::Kind::AddMod:
+diff --git a/libsolidity/formal/CHC.cpp b/libsolidity/formal/CHC.cpp
+index 2615cf9d7..16f0db77a 100644
+--- a/libsolidity/formal/CHC.cpp
++++ b/libsolidity/formal/CHC.cpp
+@@ -456,6 +456,8 @@ void CHC::endVisit(FunctionCall const& _funCall)
+ 	case FunctionType::Kind::KECCAK256:
+ 	case FunctionType::Kind::ECRecover:
+ 	case FunctionType::Kind::SHA256:
++	case FunctionType::Kind::ECALL:
++	case FunctionType::Kind::ERETURN:
+ 	case FunctionType::Kind::RIPEMD160:
+ 	case FunctionType::Kind::BlockHash:
+ 	case FunctionType::Kind::AddMod:
+diff --git a/libsolidity/formal/SMTEncoder.cpp b/libsolidity/formal/SMTEncoder.cpp
+index b101a3147..a3aec8a40 100644
+--- a/libsolidity/formal/SMTEncoder.cpp
++++ b/libsolidity/formal/SMTEncoder.cpp
+@@ -625,6 +625,8 @@ void SMTEncoder::endVisit(FunctionCall const& _funCall)
+ 	case FunctionType::Kind::KECCAK256:
+ 	case FunctionType::Kind::ECRecover:
+ 	case FunctionType::Kind::SHA256:
++	case FunctionType::Kind::ECALL:
++	case FunctionType::Kind::ERETURN:
+ 	case FunctionType::Kind::RIPEMD160:
+ 	case FunctionType::Kind::BlockHash:
+ 	case FunctionType::Kind::AddMod:
