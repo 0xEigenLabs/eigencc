@@ -15,17 +15,22 @@ class TestABE(unittest.TestCase):
         if debug:
             print("Attributes =>", attrs); print("Policy =>", access_policy)
 
+        # 1. CA generates pk and mk, and sends the pk to data provider
         (pk, mk) = cpabe.setup()
 
+        # 2. CA generates sk, and sends it to data consumer
         sk = cpabe.keygen(pk, mk, attrs)
         print("sk :=>", sk)
 
         rand_msg = groupObj.random(GT)
         if debug: print("msg =>", rand_msg)
+
+        # 3. data provider encrypts the secret
         ct = cpabe.encrypt(pk, rand_msg, access_policy)
         if debug: print("\n\nCiphertext...\n")
         groupObj.debug(ct)
 
+        # 4. data consumer decrypts the secret
         rec_msg = cpabe.decrypt(pk, sk, ct)
         if debug: print("\n\nDecrypt...\n")
         if debug: print("Rec msg =>", rec_msg)
