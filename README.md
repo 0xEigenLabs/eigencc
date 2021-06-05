@@ -7,3 +7,8 @@
 
 ## EigenFL
 [EigenFL](./fl) Federated Machine Learning
+
+
+# We are hiring!
+
+If you are interesting in building anything about DeFi on privacy computing, plz join us!
