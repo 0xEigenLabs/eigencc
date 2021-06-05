@@ -1,41 +1,117 @@
 diff --git a/core/vm/contracts.go b/core/vm/contracts.go
-index 9210f5486..0879df92f 100644
+index 9210f5486c5745799381065d661d80bd464f9680..fc9259f1fd77121c839879360c5b5c91301f40ba 100644
 --- a/core/vm/contracts.go
 +++ b/core/vm/contracts.go
-@@ -49,6 +49,9 @@ var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
+@@ -32,6 +32,8 @@ import (
+ 
+ 	//lint:ignore SA1019 Needed for precompile
+ 	"golang.org/x/crypto/ripemd160"
++
++	"github.com/ethereum/go-ethereum/log"
+ )
+ 
+ // PrecompiledContract is the basic interface for native Go contracts. The implementation
+@@ -49,47 +51,56 @@ var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
  	common.BytesToAddress([]byte{2}): &sha256hash{},
  	common.BytesToAddress([]byte{3}): &ripemd160hash{},
  	common.BytesToAddress([]byte{4}): &dataCopy{},
-+    // for DEMO
-+	common.BytesToAddress([]byte{21}): &sha256hash{},
-+	common.BytesToAddress([]byte{22}): &sha256hash{},
++	// for DEMO
++	common.BytesToAddress([]byte{21}): &justTest{},
++	common.BytesToAddress([]byte{22}): &justTest{},
  }
  
  // PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
-@@ -62,6 +65,8 @@ var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
- 	common.BytesToAddress([]byte{6}): &bn256AddByzantium{},
- 	common.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
- 	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
-+	common.BytesToAddress([]byte{21}): &sha256hash{},
-+	common.BytesToAddress([]byte{22}): &sha256hash{},
+ // contracts used in the Byzantium release.
+ var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
+-	common.BytesToAddress([]byte{1}): &ecrecover{},
+-	common.BytesToAddress([]byte{2}): &sha256hash{},
+-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
+-	common.BytesToAddress([]byte{4}): &dataCopy{},
+-	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
+-	common.BytesToAddress([]byte{6}): &bn256AddByzantium{},
+-	common.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
+-	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
++	common.BytesToAddress([]byte{1}):  &ecrecover{},
++	common.BytesToAddress([]byte{2}):  &sha256hash{},
++	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
++	common.BytesToAddress([]byte{4}):  &dataCopy{},
++	common.BytesToAddress([]byte{5}):  &bigModExp{eip2565: false},
++	common.BytesToAddress([]byte{6}):  &bn256AddByzantium{},
++	common.BytesToAddress([]byte{7}):  &bn256ScalarMulByzantium{},
++	common.BytesToAddress([]byte{8}):  &bn256PairingByzantium{},
++	common.BytesToAddress([]byte{21}): &justTest{},
++	common.BytesToAddress([]byte{22}): &justTest{},
  }
  
  // PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
-@@ -76,6 +81,8 @@ var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
- 	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
- 	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
- 	common.BytesToAddress([]byte{9}): &blake2F{},
-+	common.BytesToAddress([]byte{21}): &sha256hash{},
-+	common.BytesToAddress([]byte{22}): &sha256hash{},
+ // contracts used in the Istanbul release.
+ var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
+-	common.BytesToAddress([]byte{1}): &ecrecover{},
+-	common.BytesToAddress([]byte{2}): &sha256hash{},
+-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
+-	common.BytesToAddress([]byte{4}): &dataCopy{},
+-	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
+-	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
+-	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
+-	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
+-	common.BytesToAddress([]byte{9}): &blake2F{},
++	common.BytesToAddress([]byte{1}):  &ecrecover{},
++	common.BytesToAddress([]byte{2}):  &sha256hash{},
++	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
++	common.BytesToAddress([]byte{4}):  &dataCopy{},
++	common.BytesToAddress([]byte{5}):  &bigModExp{eip2565: false},
++	common.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
++	common.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
++	common.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
++	common.BytesToAddress([]byte{9}):  &blake2F{},
++	common.BytesToAddress([]byte{21}): &justTest{},
++	common.BytesToAddress([]byte{22}): &justTest{},
  }
  
  // PrecompiledContractsBerlin contains the default set of pre-compiled Ethereum
-@@ -90,6 +97,8 @@ var PrecompiledContractsBerlin = map[common.Address]PrecompiledContract{
- 	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
- 	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
- 	common.BytesToAddress([]byte{9}): &blake2F{},
-+	common.BytesToAddress([]byte{21}): &sha256hash{},
-+	common.BytesToAddress([]byte{22}): &sha256hash{},
+ // contracts used in the Berlin release.
+ var PrecompiledContractsBerlin = map[common.Address]PrecompiledContract{
+-	common.BytesToAddress([]byte{1}): &ecrecover{},
+-	common.BytesToAddress([]byte{2}): &sha256hash{},
+-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
+-	common.BytesToAddress([]byte{4}): &dataCopy{},
+-	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: true},
+-	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
+-	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
+-	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
+-	common.BytesToAddress([]byte{9}): &blake2F{},
++	common.BytesToAddress([]byte{1}):  &ecrecover{},
++	common.BytesToAddress([]byte{2}):  &sha256hash{},
++	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
++	common.BytesToAddress([]byte{4}):  &dataCopy{},
++	common.BytesToAddress([]byte{5}):  &bigModExp{eip2565: true},
++	common.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
++	common.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
++	common.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
++	common.BytesToAddress([]byte{9}):  &blake2F{},
++	common.BytesToAddress([]byte{21}): &justTest{},
++	common.BytesToAddress([]byte{22}): &justTest{},
  }
  
  // PrecompiledContractsBLS contains the set of pre-compiled Ethereum
+@@ -210,6 +221,20 @@ func (c *sha256hash) Run(input []byte) ([]byte, error) {
+ 	return h[:], nil
+ }
+ 
++// justTest implemented as a null contract (Just for Demo Test).
++type justTest struct{}
++
++// The two methods below is just to show the new added instructions are applied.
++// Just log an ERROR message to show this.
++func (c *justTest) RequiredGas(input []byte) uint64 {
++	log.Error("[justTest] RequiredGas is called")
++	return 0
++}
++func (c *justTest) Run(input []byte) ([]byte, error) {
++	log.Error("[justTest] Run is called")
++	return input, nil
++}
++
+ // RIPEMD160 implemented as a native contract.
+ type ripemd160hash struct{}
+ 
