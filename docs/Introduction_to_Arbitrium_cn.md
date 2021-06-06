@@ -1,6 +1,8 @@
-# Arbitrium简介[WIP]
+# Arbitrium简介
 
 [TOC]
+
+NOTE: 文章还处于WIP状态，章节的排序可能需要做相应调整。
 
 ## 为什么使用Arbitrum？
 Arbitrum是一种用于以太坊的L2扩容解决方案，能够带来以下特别的独特的收益：
@@ -47,3 +49,17 @@ Challenge合约及相关合约负责跟踪和解决Validator之间关于哪个Ro
 Aggregators与节点在以太坊中扮演的角色一样，客户端程序可以使用标准API对Aggregator进行RPC调用，以与Arbitrum链交互。Aggregator随后会调用EthBridge合约，并产生一个事务结果到客户端，就如同一个以太坊节点做的一样。
 大部分客户端会用Aggregator提交它们的事务到Arbitrum链，尽管这并不是必须的。Aggragator的个数不存在限制，也没有限制哪些节点可以成为Aggregator。
 为了提升效率，一般来说Aggregator会打包多个客户端的事务到一个消息中以提交到Arbitrum链上。
+
+## 一个事务在Arbitrium中的执行
+当一个客户端调用了一个Arbitrium上合约时且获得一个结果时，将会发生：
+  1. 客户端软件对一个Aggregator发起一个RPC调用，请求Aggregator提交一个事务
+  2. Aggregator有选择性地将该事务与其他用户的事务一起被打包到Arbitrium消息中
+  3. Aggragator调用EthBridge以发送这个Arbitrium消息到Arbitrum链上的ArbOS
+  4. 这个Arbitrium消息放入到一个以太坊区块中，也放入该消息到Arbitrumn链上的InBox中，此时该事务的结果已经确定
+  5. 该Aggregator也将返回事务的结果到客户端
+
+此时，整个事务的结果已经被完全确定了，但是一些额外的步骤将会发生，以确定这个结果被检测到且被完全确认：
+  1. 链上的一个Validator看见了InBox中的消息到来，因此会在ArbOS中构建一个断言，该断言会收到这个调用消息并分发这个调用到被调用的合约代码中，合约代码会被执行，ArbOS也会发出一个交易凭证
+  2. 该Validator提交一个包含此断言的以太坊事务到EthBridge
+  3. 该断言事务会出现在一个以太坊区块中，其他的Validators会看见它并验证其正确性
+  4. 最终这个断言会被Arbitrum Rollup协议所接受，此时，任何提款或其他该事务导致的L1副作用将会在L1上发生
