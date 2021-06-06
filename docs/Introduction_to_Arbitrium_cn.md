@@ -42,3 +42,8 @@ InBox合约确保传入消息中的某些信息是准确的：发送者被正确
 相应的，还有一个OutBox合约，用于管理链的输出：例如，一条来自Arbitrum的消息，应该（最终）在以太坊上发生的消息（特别是转账）。当Rollup块被确认，该Rollup块中生成的输出将放入outbox。
 Rollup合约及相关的合约负责管理Rollup协议。它们跟踪Arbitrium链的状态：提议、接受和/或拒绝的Rollup块，以及谁在哪个Rollup节点上有stake。
 Challenge合约及相关合约负责跟踪和解决Validator之间关于哪个Rollup块是正确的争议。
+
+## Arrgegators在Arbitrum中扮演的角色
+Aggregators与节点在以太坊中扮演的角色一样，客户端程序可以使用标准API对Aggregator进行RPC调用，以与Arbitrum链交互。Aggregator随后会调用EthBridge合约，并产生一个事务结果到客户端，就如同一个以太坊节点做的一样。
+大部分客户端会用Aggregator提交它们的事务到Arbitrum链，尽管这并不是必须的。Aggragator的个数不存在限制，也没有限制哪些节点可以成为Aggregator。
+为了提升效率，一般来说Aggregator会打包多个客户端的事务到一个消息中以提交到Arbitrum链上。
