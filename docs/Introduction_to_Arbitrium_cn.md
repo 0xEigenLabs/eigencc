@@ -33,3 +33,12 @@ ArbOS上方被称为EVM兼容层，因为ArbOS为智能合约提供了与EVM兼�
 例如，Validator即在下方运行，因为它们参与rollup 协议，而rollup协议由EthBridge在分界线下管理的，以确保确认AVM的正确执行。
 再例如，Arbitrum节点所有的操作都在分界线上方运行，因为它们在本地运行AVM的一个副本，并假设分界线下机制将确保它们在本地计算的相同结果，并最终将由它们不监视的线下机制确认。
 大多数用户，大多数时候，都会用分界线以上的视角，他们将Arbitrium链当作另一个链进行交互，而不必操心分界线下不出错的实施细节。
+
+## EthBridge
+EthBridge是一组管理Arbitrium链的以太坊智能合约。EthBridge记录链的InBox内容、链状态的HASH以及有关输出的信息。EthBridge是关于Arbitrum链中发生的事情的最终权威来源。
+EthBridge是建立Arbitrium安全性基石。EthBridge运行在以太坊上，因此它是透明的，并且可以去信任（trustless）地执行。
+InBox合约管理链的inbox。Inbox用于记录Inbox中每个消息的HASH。调用Inbox的send类方法的其中之一将在Arbitrum链的Inbox中插入一条消息。
+InBox合约确保传入消息中的某些信息是准确的：发送者被正确地记录，以太坊块号和时间戳被正确地记录在消息中。
+相应的，还有一个OutBox合约，用于管理链的输出：例如，一条来自Arbitrum的消息，应该（最终）在以太坊上发生的消息（特别是转账）。当Rollup块被确认，该Rollup块中生成的输出将放入outbox。
+Rollup合约及相关的合约负责管理Rollup协议。它们跟踪Arbitrium链的状态：提议、接受和/或拒绝的Rollup块，以及谁在哪个Rollup节点上有stake。
+Challenge合约及相关合约负责跟踪和解决Validator之间关于哪个Rollup块是正确的争议。
