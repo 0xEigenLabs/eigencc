@@ -1,0 +1,86 @@
+diff --git a/packages/arb-avm-cpp/avm/include/avm/machinestate/machineoperation.hpp b/packages/arb-avm-cpp/avm/include/avm/machinestate/machineoperation.hpp
+index 87fc1e730..e12cba488 100644
+--- a/packages/arb-avm-cpp/avm/include/avm/machinestate/machineoperation.hpp
++++ b/packages/arb-avm-cpp/avm/include/avm/machinestate/machineoperation.hpp
+@@ -84,6 +84,7 @@ void ec_recover(MachineState& m);
+ void ec_add(MachineState& m);
+ void ec_mul(MachineState& m);
+ void ec_pairing(MachineState& m);
++void ecall(MachineState& m);
+ uint64_t ec_pairing_variable_gas_cost(const MachineState& m);
+ BlockReason breakpoint(MachineState&);
+ void log(MachineState& m);
+diff --git a/packages/arb-avm-cpp/avm/src/machinestate/machineoperation.cpp b/packages/arb-avm-cpp/avm/src/machinestate/machineoperation.cpp
+index d65d5e41b..9ef331477 100644
+--- a/packages/arb-avm-cpp/avm/src/machinestate/machineoperation.cpp
++++ b/packages/arb-avm-cpp/avm/src/machinestate/machineoperation.cpp
+@@ -828,6 +828,13 @@ void ec_pairing(MachineState& m) {
+     ++m.pc;
+ }
+ 
++void ecall(MachineState& m) {
++    m.stack.prepForMod(1);
++    // m.addProcessedLog(std::move(m.stack[0]));
++    m.stack.popClear();
++    ++m.pc;
++}
++
+ uint64_t ec_pairing_variable_gas_cost(const MachineState& m) {
+     // The fixed cost of the the pairing opcode is applied elsewhere
+     uint64_t gas_cost = 0;
+diff --git a/packages/arb-avm-cpp/avm/src/machinestate/machinestate.cpp b/packages/arb-avm-cpp/avm/src/machinestate/machinestate.cpp
+index 599bd1cab..55fa35342 100644
+--- a/packages/arb-avm-cpp/avm/src/machinestate/machinestate.cpp
++++ b/packages/arb-avm-cpp/avm/src/machinestate/machinestate.cpp
+@@ -896,6 +896,15 @@ BlockReason MachineState::runOp(OpCode opcode) {
+         case OpCode::ECPAIRING:
+             machineoperation::ec_pairing(*this);
+             break;
++        /*****************/
++        /* External Call */
++        /*****************/
++        case OpCode::ECALL:
++            std::cerr << "Going to call `ecall' <"
++                      << InstructionNames.at(opcode) << ">" << std::hex
++                      << static_cast<int>(opcode);
++            machineoperation::ecall(*this);
++            break;
+         default:
+             std::cerr << "Unhandled opcode <" << InstructionNames.at(opcode)
+                       << ">" << std::hex << static_cast<int>(opcode);
+diff --git a/packages/arb-avm-cpp/avm_values/include/avm_values/opcodes.hpp b/packages/arb-avm-cpp/avm_values/include/avm_values/opcodes.hpp
+index 2b7feb01b..5e5b8904e 100644
+--- a/packages/arb-avm-cpp/avm_values/include/avm_values/opcodes.hpp
++++ b/packages/arb-avm-cpp/avm_values/include/avm_values/opcodes.hpp
+@@ -89,6 +89,7 @@ enum class OpCode : uint8_t {
+ 
+     BREAKPOINT = 0x60,
+     LOG,
++    ECALL,
+ 
+     SEND = 0x70,
+     INBOX_PEEK,
+@@ -183,6 +184,7 @@ const std::unordered_map<OpCode, std::string> InstructionNames = {
+ 
+     {OpCode::BREAKPOINT, "breakpoint"},
+     {OpCode::LOG, "log"},
++    {OpCode::ECALL, "ecall"},
+ 
+     {OpCode::SEND, "send"},
+     {OpCode::INBOX_PEEK, "inboxpeek"},
+@@ -283,6 +285,7 @@ const std::unordered_map<OpCode, std::vector<MarshalLevel>>
+ 
+         {OpCode::BREAKPOINT, {}},
+         {OpCode::LOG, {MarshalLevel::STUB}},
++        {OpCode::ECALL, {MarshalLevel::STUB}},
+ 
+         {OpCode::SEND, {MarshalLevel::SINGLE, MarshalLevel::SINGLE}},
+         {OpCode::INBOX_PEEK, {MarshalLevel::SINGLE}},
+@@ -472,6 +475,7 @@ const std::unordered_map<OpCode, uint64_t> InstructionArbGasCost = {
+ 
+     {OpCode::BREAKPOINT, 100},
+     {OpCode::LOG, 100},
++    {OpCode::ECALL, 1},
+ 
+     {OpCode::SEND, 100},
+     {OpCode::INBOX_PEEK, 40},
