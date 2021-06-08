@@ -7,10 +7,11 @@
 ### Compile
 
 ```
+$ git clone --recursive https://github.com/ieigen/ieigen.git
 $ cd cc/sgx 
 $ docker run --name fns --net=host -v$(pwd):/app -w /app -it $IMAGE bash
-# mkdir -p build && cd build
-# cmake -DTEST_MODE=ON .. && make
+$ mkdir -p build && cd build
+$ cmake -DTEST_MODE=ON .. && make
 ```
 
 Build $IMAGE image by [Dockerfile](./sgx/dcap/Dockerfile)
@@ -19,20 +20,19 @@ Build $IMAGE image by [Dockerfile](./sgx/dcap/Dockerfile)
 
 use EPID:
 ```
-# cd /app/release/services
-# export IAS_SPID=xxxx
-# export IAS_KEY=xxx
-# ./fns
+$ cd /app/release/services
+$ export IAS_SPID=xxxx
+$ export IAS_KEY=xxx
+$ cd /teaclave/release/services
+$ ./fns
 ```
-use DCAP: 
-
+open another terminal,
 ```
-# cd release/dcap && ./eigen_dcap_server
-# eigen_tools 
-TBD
+$ cd /teaclave/release/examples
+$ ./quickstart echo -m 'Hello' -e enclave_info.toml
+[+] Invoke echo function
+Hello, Eigen
 ```
-
 
 ## ARM TrustZone on FPGA 
-
 TBD

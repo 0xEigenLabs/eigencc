@@ -59,6 +59,6 @@ impl Worker for EchoWorker {
             .input
             .take()
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
-        Ok(input.msg + "duanbing ")
+        Ok(input.msg + ", Eigen")
     }
 }
