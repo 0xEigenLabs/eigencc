@@ -20,4 +20,16 @@ one context. Finally, all the inputs and outputs from the `ecall`s  will be comp
 
 6. Store the cipher results into the EVM storage.
 
+### How AES key update
+
+If people leak their AES key, we should enable them to upgrade the AES key. Since AES key have been used to encrypt the secrets in the contract, 
+Leaking means we lost the confidentiality of the cipher. We provide an re-encrypt function exposed by ecall. 
+
+### The function exposed by ecall
+
+1. load
+2. store
+3. recrypt
+4. unary operations: not, or, and, xor
+5. binary operations: add, sub, mul
 
