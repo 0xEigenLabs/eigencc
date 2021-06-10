@@ -11,4 +11,4 @@
 
 # We are hiring!
 
-If you are interesting in building anything about DeFi on privacy computing, plz join us!
+If you are interesting in building privacy computing DApps on ETH Layer2, Welcome to join us!
