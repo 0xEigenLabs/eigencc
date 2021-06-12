@@ -25,11 +25,33 @@ one context. Finally, all the inputs and outputs from the `ecall`s  will be comp
 If people leak their AES key, we should enable them to upgrade the AES key. Since AES key have been used to encrypt the secrets in the contract, 
 Leaking means we lost the confidentiality of the cipher. We provide an re-encrypt function exposed by ecall. 
 
-### The function exposed by ecall
+### The Privacy Operaters
 
-1. load
-2. store
-3. recrypt
-4. unary operations: not, or, and, xor
-5. binary operations: add, sub, mul
+1. unary operations: not, or, and, xor
+2. binary operations: add, sub, mul
+3. recrypt: update the AES key, and re-encrypt the secrets
+4. where(cond, x, y): if cond is true, return x, else return y;
 
+### The Core Structs
+
+1. Context
+```
+struct Context {
+    string ctx_id;
+    int32 version; // AES key version
+    mapping(bytes=>bytes) value; // value is cipher, key can be address or any other unique id
+}
+```
+
+### Use case
+
+* Privacy [ERC20](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/ERC20.sol): The balance of each address is hided
+```
+contract PrivacyERC20 {
+    use EigenPriv for *;
+    Context ctx;
+    function PrivacyToken() public view returns () {
+        
+    }
+}
+```
