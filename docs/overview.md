@@ -7,7 +7,7 @@ Secret: the records including everything you create in the blockchain network;
 
 ### How it work
 
-1. EigenCC issues a key pair, seals the private key on the disk, then distributes the public key to every participants;
+1. EigenCC issues a key pair, seals the private key on the disk, then distributes the public key to each relevant client;
 
 2. Client generates an AES key to encrypt it's secret, then encrypt the AES key by public key from step 1;
 
