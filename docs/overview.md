@@ -12,7 +12,7 @@ Secret: the records including everything you create in the blockchain network;
 
 2. Client generates an AES key to encrypt it's secret, then encrypt the AES key by public key from step 1;
 
-3. Client makes a transaction with cipher and AES key, and submits the transaction to EVM contract on L2 Geth;
+3. Client makes a transaction with cipher as the input of PrivacyERC20, and submits the transaction to EVM contract on L2 Geth;
 ![Image](https://github.com/ieigen/ieigen/raw/robert/docs/images/submit%20encrypted%20transaction.png)
 
 4. The EVM contract on L2 Geth will initialize a context with the encrypted AES key, then there maybe exist multiple `ecall` in one contract method, which all are share 
