@@ -31,7 +31,6 @@ index 8b755038f..1fd6607a3 100644
  		// enough stack items available to perform the operation.
  		op = contract.GetOp(pc)
  		operation := in.cfg.JumpTable[op]
-+        //log.Error("bing", "op: ", fmt.Sprintf("%#v",op), "stack len", stack.len(), "minSTack", operation.minStack)
  		if operation == nil {
  			return nil, &ErrInvalidOpCode{opcode: op}
  		}
