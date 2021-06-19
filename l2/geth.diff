@@ -1,39 +1,27 @@
 diff --git a/core/vm/instructions.go b/core/vm/instructions.go
-index 3277674ee..d2c8ef9cc 100644
+index 3277674ee..2475f4db8 100644
 --- a/core/vm/instructions.go
 +++ b/core/vm/instructions.go
-@@ -17,6 +17,8 @@
- package vm
- 
+@@ -19,6 +19,7 @@ package vm
  import (
-+    "github.com/ethereum/go-ethereum/log"
-+
  	"github.com/ethereum/go-ethereum/common"
  	"github.com/ethereum/go-ethereum/core/types"
++	"github.com/ethereum/go-ethereum/log"
  	"github.com/ethereum/go-ethereum/params"
-@@ -231,6 +233,11 @@ func opSAR(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte
+ 	"github.com/holiman/uint256"
+ 	"golang.org/x/crypto/sha3"
+@@ -231,6 +232,11 @@ func opSAR(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte
  	return nil, nil
  }
  
 +func opEcall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
-+    log.Error("121222222222222 opecall")
-+    return opSha3(pc, interpreter, scope)
++	log.Error("[INFO] OP ECALL is called")
++	return opSha3(pc, interpreter, scope)
 +}
 +
  func opSha3(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
  	offset, size := scope.Stack.pop(), scope.Stack.peek()
  	data := scope.Memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
-diff --git a/core/vm/interpreter.go b/core/vm/interpreter.go
-index 8b755038f..1fd6607a3 100644
---- a/core/vm/interpreter.go
-+++ b/core/vm/interpreter.go
-@@ -219,6 +219,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
- 		// enough stack items available to perform the operation.
- 		op = contract.GetOp(pc)
- 		operation := in.cfg.JumpTable[op]
- 		if operation == nil {
- 			return nil, &ErrInvalidOpCode{opcode: op}
- 		}
 diff --git a/core/vm/jump_table.go b/core/vm/jump_table.go
 index 329ad77cb..64147383d 100644
 --- a/core/vm/jump_table.go
@@ -54,21 +42,25 @@ index 329ad77cb..64147383d 100644
  			execute:     opAddress,
  			constantGas: GasQuickStep,
 diff --git a/core/vm/opcodes.go b/core/vm/opcodes.go
-index 286307ae9..9d4c35a80 100644
+index 286307ae9..8f4e774f0 100644
 --- a/core/vm/opcodes.go
 +++ b/core/vm/opcodes.go
-@@ -71,6 +71,7 @@ const (
+@@ -70,7 +70,8 @@ const (
+ 	SHR
  	SAR
  
- 	SHA3 OpCode = 0x20
-+    ECALL OpCode = 0x21
+-	SHA3 OpCode = 0x20
++	SHA3  OpCode = 0x20
++	ECALL OpCode = 0x21
  )
  
  // 0x30 range - closure state.
-@@ -253,6 +254,7 @@ var opCodeToString = map[OpCode]string{
+@@ -252,7 +253,8 @@ var opCodeToString = map[OpCode]string{
+ 	MULMOD: "MULMOD",
  
  	// 0x20 range - crypto.
- 	SHA3: "SHA3",
+-	SHA3: "SHA3",
++	SHA3:  "SHA3",
 +	ECALL: "ECALL",
  
  	// 0x30 range - closure state.
@@ -77,7 +69,7 @@ index 286307ae9..9d4c35a80 100644
  	"ADDMOD":         ADDMOD,
  	"MULMOD":         MULMOD,
  	"SHA3":           SHA3,
-+	"ECALL":           ECALL,
++	"ECALL":          ECALL,
  	"ADDRESS":        ADDRESS,
  	"BALANCE":        BALANCE,
  	"ORIGIN":         ORIGIN,

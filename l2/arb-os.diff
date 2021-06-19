@@ -1,0 +1,150 @@
+diff --git a/src/compile/miniconstants.rs b/src/compile/miniconstants.rs
+index f22c5ef2c..7bf6a126d 100644
+--- a/src/compile/miniconstants.rs
++++ b/src/compile/miniconstants.rs
+@@ -131,6 +131,7 @@ pub fn init_constant_table() -> HashMap<String, Uint256> {
+         ("AVM_xset", 0x54),
+         ("AVM_breakpoint", 0x60),
+         ("AVM_log", 0x61),
++        ("AVM_ecall", 0x62),
+         ("AVM_send", 0x70),
+         ("AVM_inboxpeek", 0x71),
+         ("AVM_inbox", 0x72),
+@@ -220,13 +221,13 @@ pub fn init_constant_table() -> HashMap<String, Uint256> {
+         ("PluggableModuleID_rollupTracker", 0),
+         ("PluggableModuleID_precompile_0x05", 1),
+         // retry buffer
+-        ("RetryBuffer_DefaultLifetimeSeconds", 60*60*24*7),
++        ("RetryBuffer_DefaultLifetimeSeconds", 60 * 60 * 24 * 7),
+         // gas cost values for re-entrancy protection
+         ("EVMWriteL1GasCost", 5000),
+         ("EVMNonZeroBalanceCallStipend", 2300),
+         ("ArbitrumNonZeroBalanceCallStipend", 20000),
+         // misc
+-        ("TwoToThe32", 1<<32),
++        ("TwoToThe32", 1 << 32),
+         ("SecondsPerBlockNumerator", 2),
+         ("SecondsPerBlockDenominator", 1),
+         ("DefaultSpeedLimitPerSecond", 100_000_000),
+diff --git a/src/mavm.rs b/src/mavm.rs
+index 82fd66a62..5fe436c1e 100644
+--- a/src/mavm.rs
++++ b/src/mavm.rs
+@@ -7,10 +7,10 @@ use crate::run::upload::CodeUploader;
+ use crate::stringtable::StringId;
+ use crate::uint256::Uint256;
+ use ethers_core::utils::keccak256;
+-use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
++use serde::de::Visitor;
++use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+ use serde_repr::{Deserialize_repr, Serialize_repr};
+ use std::{collections::HashMap, fmt, rc::Rc};
+-use serde::de::Visitor;
+ 
+ #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy, Serialize, Deserialize)]
+ pub enum Label {
+@@ -395,8 +395,12 @@ impl<'de> Visitor<'de> for BufferVisitor {
+         formatter.write_str("Expected hex string")
+     }
+     fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+-    where E: de::Error {
+-        Ok(Buffer::from_bytes(hex::decode(v).map_err(|_| E::custom("Could not buffer as hex string".to_string()))?))
++    where
++        E: de::Error,
++    {
++        Ok(Buffer::from_bytes(hex::decode(v).map_err(|_| {
++            E::custom("Could not buffer as hex string".to_string())
++        })?))
+     }
+ }
+ 
+@@ -405,7 +409,10 @@ impl Serialize for Buffer {
+     where
+         S: Serializer,
+     {
+-        serializer.serialize_str(&*format!("{}",hex::encode(self.as_bytes(self.size as usize))))
++        serializer.serialize_str(&*format!(
++            "{}",
++            hex::encode(self.as_bytes(self.size as usize))
++        ))
+     }
+ }
+ 
+@@ -444,7 +451,11 @@ impl BufferNode {
+         } else if v.len() == 0 {
+             BufferNode::new_empty_internal(height, capacity)
+         } else if v.len() as u128 <= capacity / 2 {
+-            let left = Rc::new(BufferNode::_internal_from_bytes(height - 1, capacity / 2, v));
++            let left = Rc::new(BufferNode::_internal_from_bytes(
++                height - 1,
++                capacity / 2,
++                v,
++            ));
+             let right = Rc::new(BufferNode::new_empty_internal(height - 1, capacity / 2));
+             BufferNode::Internal(BufferInternal {
+                 height,
+@@ -938,6 +949,7 @@ pub enum AVMOpcode {
+     Xset,
+     Breakpoint = 0x60,
+     Log,
++    Ecall,
+     Send = 0x70,
+     InboxPeek,
+     Inbox,
+@@ -1048,6 +1060,7 @@ impl Opcode {
+             "inboxpeek" => Opcode::AVMOpcode(AVMOpcode::InboxPeek),
+             "jump" => Opcode::AVMOpcode(AVMOpcode::Jump),
+             "log" => Opcode::AVMOpcode(AVMOpcode::Log),
++            "ecall" => Opcode::AVMOpcode(AVMOpcode::Ecall),
+             "send" => Opcode::AVMOpcode(AVMOpcode::Send),
+             "errcodept" => Opcode::AVMOpcode(AVMOpcode::ErrCodePoint),
+             "pushinsn" => Opcode::AVMOpcode(AVMOpcode::PushInsn),
+@@ -1151,6 +1164,7 @@ impl AVMOpcode {
+             AVMOpcode::GetPC => "getpc",
+             AVMOpcode::Breakpoint => "breakpoint",
+             AVMOpcode::Log => "log",
++            AVMOpcode::Ecall => "ecall",
+             AVMOpcode::Send => "send",
+             AVMOpcode::ErrCodePoint => "errcodept",
+             AVMOpcode::PushInsn => "pushinsn",
+@@ -1235,6 +1249,7 @@ impl AVMOpcode {
+             0x54 => Some(AVMOpcode::Xset),
+             0x60 => Some(AVMOpcode::Breakpoint),
+             0x61 => Some(AVMOpcode::Log),
++            0x62 => Some(AVMOpcode::Ecall),
+             0x70 => Some(AVMOpcode::Send),
+             0x71 => Some(AVMOpcode::InboxPeek),
+             0x72 => Some(AVMOpcode::Inbox),
+@@ -1323,6 +1338,7 @@ impl AVMOpcode {
+             AVMOpcode::Xset => 0x54,
+             AVMOpcode::Breakpoint => 0x60,
+             AVMOpcode::Log => 0x61,
++            AVMOpcode::Ecall => 0x62,
+             AVMOpcode::Send => 0x70,
+             AVMOpcode::InboxPeek => 0x71,
+             AVMOpcode::Inbox => 0x72,
+diff --git a/src/run/emulator.rs b/src/run/emulator.rs
+index 86d8b8d0f..ac33c7bb5 100644
+--- a/src/run/emulator.rs
++++ b/src/run/emulator.rs
+@@ -1226,6 +1226,7 @@ impl Machine {
+                 AVMOpcode::Xset => 41,
+                 AVMOpcode::Breakpoint => 100,
+                 AVMOpcode::Log => 100,
++                AVMOpcode::Ecall => 1,
+                 AVMOpcode::Send => 100,
+                 AVMOpcode::InboxPeek => 40,
+                 AVMOpcode::Inbox => 40,
+@@ -1911,6 +1912,12 @@ impl Machine {
+                         self.incr_pc();
+                         Ok(true)
+                     }
++                    AVMOpcode::Ecall => {
++                        let val = self.stack.pop(&self.state)?;
++                        self.runtime_env.push_log(val);
++                        self.incr_pc();
++                        Ok(true)
++                    }
+                     AVMOpcode::ErrSet => {
+                         let cp = self.stack.pop_codepoint(&self.state)?;
+                         self.err_codepoint = cp;
