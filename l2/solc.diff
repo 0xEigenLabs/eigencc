@@ -1,0 +1,356 @@
+diff --git a/libevmasm/GasMeter.cpp b/libevmasm/GasMeter.cpp
+index eb259ba62..dc5c659ce 100644
+--- a/libevmasm/GasMeter.cpp
++++ b/libevmasm/GasMeter.cpp
+@@ -104,6 +104,11 @@ GasMeter::GasConsumption GasMeter::estimateMax(AssemblyItem const& _item, bool _
+ 			gas += memoryGas(0, -1);
+ 			gas += wordGas(GasCosts::keccak256WordGas, m_state->relativeStackElement(-1));
+ 			break;
++		case Instruction::ECALL:
++			gas = GasCosts::keccak256Gas;
++			gas += memoryGas(0, -1);
++			gas += wordGas(GasCosts::keccak256WordGas, m_state->relativeStackElement(-1));
++			break;
+ 		case Instruction::CALLDATACOPY:
+ 		case Instruction::CODECOPY:
+ 		case Instruction::RETURNDATACOPY:
+diff --git a/libevmasm/Instruction.cpp b/libevmasm/Instruction.cpp
+index 55af2340a..563d43954 100644
+--- a/libevmasm/Instruction.cpp
++++ b/libevmasm/Instruction.cpp
+@@ -61,6 +61,7 @@ std::map<std::string, Instruction> const solidity::evmasm::c_instructions =
+ 	{ "MULMOD", Instruction::MULMOD },
+ 	{ "SIGNEXTEND", Instruction::SIGNEXTEND },
+ 	{ "KECCAK256", Instruction::KECCAK256 },
++	{ "ECALL", Instruction::ECALL },
+ 	{ "ADDRESS", Instruction::ADDRESS },
+ 	{ "BALANCE", Instruction::BALANCE },
+ 	{ "ORIGIN", Instruction::ORIGIN },
+@@ -207,6 +208,7 @@ static std::map<Instruction, InstructionInfo> const c_instructionInfo =
+ 	{ Instruction::MULMOD,		{ "MULMOD",			0, 3, 1, false, Tier::Mid } },
+ 	{ Instruction::SIGNEXTEND,	{ "SIGNEXTEND",		0, 2, 1, false, Tier::Low } },
+ 	{ Instruction::KECCAK256,	{ "KECCAK256",			0, 2, 1, true, Tier::Special } },
++	{ Instruction::ECALL ,	{ "ECALL",			0, 2, 1, true, Tier::Special } },
+ 	{ Instruction::ADDRESS,		{ "ADDRESS",		0, 0, 1, false, Tier::Base } },
+ 	{ Instruction::BALANCE,		{ "BALANCE",		0, 1, 1, false, Tier::Balance } },
+ 	{ Instruction::ORIGIN,		{ "ORIGIN",			0, 0, 1, false, Tier::Base } },
+diff --git a/libevmasm/Instruction.h b/libevmasm/Instruction.h
+index 5c8eeb3ee..184cffbb3 100644
+--- a/libevmasm/Instruction.h
++++ b/libevmasm/Instruction.h
+@@ -62,6 +62,7 @@ enum class Instruction: uint8_t
+ 	SAR,				///< bitwise SAR operation
+ 
+ 	KECCAK256 = 0x20,		///< compute KECCAK-256 hash
++	ECALL = 0x21,		///<  external call
+ 
+ 	ADDRESS = 0x30,		///< get address of currently executing account
+ 	BALANCE,			///< get balance of the given account
+diff --git a/libevmasm/KnownState.cpp b/libevmasm/KnownState.cpp
+index ec6c50702..b0444c60f 100644
+--- a/libevmasm/KnownState.cpp
++++ b/libevmasm/KnownState.cpp
+@@ -154,6 +154,12 @@ KnownState::StoreOperation KnownState::feedItem(AssemblyItem const& _item, bool
+ 					applyKeccak256(arguments.at(0), arguments.at(1), _item.location())
+ 				);
+ 				break;
++			case Instruction::ECALL:
++				setStackElement(
++					m_stackHeight + static_cast<int>(_item.deposit()),
++					applyKeccak256(arguments.at(0), arguments.at(1), _item.location())
++				);
++				break;
+ 			default:
+ 				bool invMem = SemanticInformation::invalidatesMemory(_item.instruction());
+ 				bool invStor = SemanticInformation::invalidatesStorage(_item.instruction());
+diff --git a/libevmasm/SemanticInformation.cpp b/libevmasm/SemanticInformation.cpp
+index 3d4ead64f..2e9780789 100644
+--- a/libevmasm/SemanticInformation.cpp
++++ b/libevmasm/SemanticInformation.cpp
+@@ -64,7 +64,8 @@ bool SemanticInformation::breaksCSEAnalysisBlock(AssemblyItem const& _item, bool
+ 			return false;
+ 		if (!_msizeImportant && (
+ 			_item.instruction() == Instruction::MLOAD ||
+-			_item.instruction() == Instruction::KECCAK256
++			_item.instruction() == Instruction::KECCAK256 ||
++            _item.instruction() == Instruction::ECALL
+ 		))
+ 			return false;
+ 		//@todo: We do not handle the following memory instructions for now:
+@@ -217,6 +218,7 @@ bool SemanticInformation::movable(Instruction _instruction)
+ 	switch (_instruction)
+ 	{
+ 	case Instruction::KECCAK256:
++	case Instruction::ECALL:
+ 	case Instruction::BALANCE:
+ 	case Instruction::SELFBALANCE:
+ 	case Instruction::EXTCODESIZE:
+@@ -243,7 +245,8 @@ bool SemanticInformation::sideEffectFree(Instruction _instruction)
+ 
+ bool SemanticInformation::sideEffectFreeIfNoMSize(Instruction _instruction)
+ {
+-	if (_instruction == Instruction::KECCAK256 || _instruction == Instruction::MLOAD)
++	if (_instruction == Instruction::KECCAK256 || _instruction == Instruction::MLOAD ||
++            _instruction == Instruction::ECALL)
+ 		return true;
+ 	else
+ 		return sideEffectFree(_instruction);
+diff --git a/libevmasm/SimplificationRule.h b/libevmasm/SimplificationRule.h
+index 6ce9a9e7c..dc5f1204b 100644
+--- a/libevmasm/SimplificationRule.h
++++ b/libevmasm/SimplificationRule.h
+@@ -106,6 +106,7 @@ struct EVMBuiltins
+ 	static auto constexpr MULMOD = PatternGenerator<Instruction::MULMOD>{};
+ 	static auto constexpr SIGNEXTEND = PatternGenerator<Instruction::SIGNEXTEND>{};
+ 	static auto constexpr KECCAK256 = PatternGenerator<Instruction::KECCAK256>{};
++	static auto constexpr ECALL = PatternGenerator<Instruction::ECALL>{};
+ 	static auto constexpr ADDRESS = PatternGenerator<Instruction::ADDRESS>{};
+ 	static auto constexpr BALANCE = PatternGenerator<Instruction::BALANCE>{};
+ 	static auto constexpr ORIGIN = PatternGenerator<Instruction::ORIGIN>{};
+diff --git a/libsolidity/analysis/GlobalContext.cpp b/libsolidity/analysis/GlobalContext.cpp
+index 885ae49a7..469775c83 100644
+--- a/libsolidity/analysis/GlobalContext.cpp
++++ b/libsolidity/analysis/GlobalContext.cpp
+@@ -64,6 +64,7 @@ int magicVariableToID(std::string const& _name)
+ 	else if (_name == "tx") return -26;
+ 	else if (_name == "type") return -27;
+ 	else if (_name == "this") return -28;
++	else if (_name == "ecall") return -29;
+ 	else
+ 		solAssert(false, "Unknown magic variable: \"" + _name + "\".");
+ }
+@@ -98,6 +99,7 @@ inline vector<shared_ptr<MagicVariableDeclaration const>> constructMagicVariable
+ 		magicVarDecl("ripemd160", TypeProvider::function(strings{"bytes memory"}, strings{"bytes20"}, FunctionType::Kind::RIPEMD160, false, StateMutability::Pure)),
+ 		magicVarDecl("selfdestruct", TypeProvider::function(strings{"address payable"}, strings{}, FunctionType::Kind::Selfdestruct)),
+ 		magicVarDecl("sha256", TypeProvider::function(strings{"bytes memory"}, strings{"bytes32"}, FunctionType::Kind::SHA256, false, StateMutability::Pure)),
++		magicVarDecl("ecall", TypeProvider::function(strings{"bytes memory"}, strings{"bytes32"}, FunctionType::Kind::ECALL, false, StateMutability::Pure)),
+ 		magicVarDecl("sha3", TypeProvider::function(strings{"bytes memory"}, strings{"bytes32"}, FunctionType::Kind::KECCAK256, false, StateMutability::Pure)),
+ 		magicVarDecl("suicide", TypeProvider::function(strings{"address payable"}, strings{}, FunctionType::Kind::Selfdestruct)),
+ 		magicVarDecl("tx", TypeProvider::magic(MagicType::Kind::Transaction)),
+diff --git a/libsolidity/analysis/TypeChecker.cpp b/libsolidity/analysis/TypeChecker.cpp
+index f0b174d19..2433c262d 100644
+--- a/libsolidity/analysis/TypeChecker.cpp
++++ b/libsolidity/analysis/TypeChecker.cpp
+@@ -2021,6 +2021,7 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
+ 			else if (
+ 				_functionType->kind() == FunctionType::Kind::KECCAK256 ||
+ 				_functionType->kind() == FunctionType::Kind::SHA256 ||
++				_functionType->kind() == FunctionType::Kind::ECALL ||
+ 				_functionType->kind() == FunctionType::Kind::RIPEMD160
+ 			)
+ 				return {
+@@ -2134,6 +2135,7 @@ void TypeChecker::typeCheckFunctionGeneralChecks(
+ 				else if (
+ 					_functionType->kind() == FunctionType::Kind::KECCAK256 ||
+ 					_functionType->kind() == FunctionType::Kind::SHA256 ||
++					_functionType->kind() == FunctionType::Kind::ECALL ||
+ 					_functionType->kind() == FunctionType::Kind::RIPEMD160
+ 				)
+ 					return {
+diff --git a/libsolidity/ast/Types.cpp b/libsolidity/ast/Types.cpp
+index ebe935502..ec45b8aa6 100644
+--- a/libsolidity/ast/Types.cpp
++++ b/libsolidity/ast/Types.cpp
+@@ -3031,6 +3031,7 @@ string FunctionType::richIdentifier() const
+ 	case Kind::Send: id += "send"; break;
+ 	case Kind::Transfer: id += "transfer"; break;
+ 	case Kind::KECCAK256: id += "keccak256"; break;
++	case Kind::ECALL: id += "ecall"; break;
+ 	case Kind::Selfdestruct: id += "selfdestruct"; break;
+ 	case Kind::Revert: id += "revert"; break;
+ 	case Kind::ECRecover: id += "ecrecover"; break;
+@@ -3545,6 +3546,7 @@ bool FunctionType::isBareCall() const
+ 	case Kind::BareStaticCall:
+ 	case Kind::ECRecover:
+ 	case Kind::SHA256:
++	case Kind::ECALL:
+ 	case Kind::RIPEMD160:
+ 		return true;
+ 	default:
+@@ -3602,6 +3604,7 @@ bool FunctionType::isPure() const
+ 	//       the callgraph analyzer is in place
+ 	return
+ 		m_kind == Kind::KECCAK256 ||
++		m_kind == Kind::ECALL ||
+ 		m_kind == Kind::ECRecover ||
+ 		m_kind == Kind::SHA256 ||
+ 		m_kind == Kind::RIPEMD160 ||
+@@ -3740,6 +3743,7 @@ bool FunctionType::padArguments() const
+ 	case Kind::SHA256:
+ 	case Kind::RIPEMD160:
+ 	case Kind::KECCAK256:
++	case Kind::ECALL:
+ 	case Kind::ABIEncodePacked:
+ 		return false;
+ 	default:
+diff --git a/libsolidity/ast/Types.h b/libsolidity/ast/Types.h
+index 9b32475ca..418bdf0dd 100644
+--- a/libsolidity/ast/Types.h
++++ b/libsolidity/ast/Types.h
+@@ -1093,6 +1093,7 @@ public:
+ 		Send, ///< CALL, but without data and gas
+ 		Transfer, ///< CALL, but without data and throws on error
+ 		KECCAK256, ///< KECCAK256
++		ECALL, ///< CALL to user-defined method
+ 		Selfdestruct, ///< SELFDESTRUCT
+ 		Revert, ///< REVERT
+ 		ECRecover, ///< CALL to special contract for ecrecover
+@@ -1293,6 +1294,7 @@ public:
+ 		switch (m_kind)
+ 		{
+ 		case FunctionType::Kind::KECCAK256:
++		case FunctionType::Kind::ECALL:
+ 		case FunctionType::Kind::SHA256:
+ 		case FunctionType::Kind::RIPEMD160:
+ 		case FunctionType::Kind::BareCall:
+diff --git a/libsolidity/codegen/CompilerUtils.cpp b/libsolidity/codegen/CompilerUtils.cpp
+index dfc7cd233..388693027 100644
+--- a/libsolidity/codegen/CompilerUtils.cpp
++++ b/libsolidity/codegen/CompilerUtils.cpp
+@@ -1296,6 +1296,8 @@ void CompilerUtils::moveToStackVariable(VariableDeclaration const& _variable)
+ {
+ 	unsigned const stackPosition = m_context.baseToCurrentStackOffset(m_context.baseStackOffsetOfVariable(_variable));
+ 	unsigned const size = _variable.annotation().type->sizeOnStack();
++    printf("moveToStackVariable %d >= %d\n",
++            stackPosition, size);
+ 	solAssert(stackPosition >= size, "Variable size and position mismatch.");
+ 	// move variable starting from its top end in the stack
+ 	if (stackPosition - size + 1 > 16)
+diff --git a/libsolidity/codegen/ContractCompiler.cpp b/libsolidity/codegen/ContractCompiler.cpp
+index 225628a6c..f462f610f 100644
+--- a/libsolidity/codegen/ContractCompiler.cpp
++++ b/libsolidity/codegen/ContractCompiler.cpp
+@@ -1221,6 +1221,10 @@ bool ContractCompiler::visit(VariableDeclarationStatement const& _variableDeclar
+ 			if (VariableDeclaration const* varDecl = declarations[j].get())
+ 			{
+ 				utils.convertType(*valueTypes[j], *varDecl->annotation().type);
++                std::cout << "visit befor moveToStackVariable" <<
++                    varDecl->isLocalVariable() <<
++                    varDecl->isReturnParameter() <<
++                    std::endl;
+ 				utils.moveToStackVariable(*varDecl);
+ 			}
+ 			else
+diff --git a/libsolidity/codegen/ExpressionCompiler.cpp b/libsolidity/codegen/ExpressionCompiler.cpp
+index b43e0cf9f..af672adb0 100644
+--- a/libsolidity/codegen/ExpressionCompiler.cpp
++++ b/libsolidity/codegen/ExpressionCompiler.cpp
+@@ -792,6 +792,24 @@ bool ExpressionCompiler::visit(FunctionCall const& _functionCall)
+ 			}
+ 			break;
+ 		}
++        case FunctionType::Kind::ECALL:
++        {
++			solAssert(arguments.size() == 1, "");
++			solAssert(!function.padArguments(), "");
++			TypePointer const& argType = arguments.front()->annotation().type;
++			solAssert(argType, "");
++			arguments.front()->accept(*this);
++
++            std::cout << "push ecall" << std::endl;
++			//ArrayUtils(m_context).retrieveLength(*TypeProvider::bytesMemory());
++			//m_context << Instruction::SWAP1 << u256(0x20) << Instruction::ADD;
++			utils().fetchFreeMemoryPointer();
++			utils().packedEncode({argType}, TypePointers());
++			utils().toSizeAfterFreeMemoryPointer();
++			m_context << Instruction::ECALL;
++
++			break;
++        }
+ 		case FunctionType::Kind::KECCAK256:
+ 		{
+ 			solAssert(arguments.size() == 1, "");
+@@ -1372,6 +1390,7 @@ bool ExpressionCompiler::visit(MemberAccess const& _memberAccess)
+ 				case FunctionType::Kind::Log4:
+ 				case FunctionType::Kind::ECRecover:
+ 				case FunctionType::Kind::SHA256:
++				case FunctionType::Kind::ECALL:
+ 				case FunctionType::Kind::RIPEMD160:
+ 				default:
+ 					solAssert(false, "unsupported member function");
+diff --git a/libsolidity/codegen/ir/IRGeneratorForStatements.cpp b/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
+index a7ef82784..f4c64fe33 100644
+--- a/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
++++ b/libsolidity/codegen/ir/IRGeneratorForStatements.cpp
+@@ -1069,6 +1069,26 @@ void IRGeneratorForStatements::endVisit(FunctionCall const& _functionCall)
+ 		}
+ 		break;
+ 	}
++	case FunctionType::Kind::ECALL:
++	{
++		solAssert(arguments.size() == 1, "");
++
++		ArrayType const* arrayType = TypeProvider::bytesMemory();
++
++			auto array = convert(*arguments[0], *arrayType);
++
++			define(_functionCall) <<
++				"ecall(" <<
++				m_utils.arrayDataAreaFunction(*arrayType) <<
++				"(" <<
++				array.commaSeparatedList() <<
++				"), " <<
++				m_utils.arrayLengthFunction(*arrayType) <<
++				"(" <<
++				array.commaSeparatedList() <<
++				"))\n";
++		break;
++	}
+ 	case FunctionType::Kind::ArrayPop:
+ 	{
+ 		auto const& memberAccessExpression = dynamic_cast<MemberAccess const&>(_functionCall.expression()).expression();
+diff --git a/libsolidity/formal/BMC.cpp b/libsolidity/formal/BMC.cpp
+index 363910edd..33cca79bb 100644
+--- a/libsolidity/formal/BMC.cpp
++++ b/libsolidity/formal/BMC.cpp
+@@ -367,6 +367,7 @@ void BMC::endVisit(FunctionCall const& _funCall)
+ 		internalOrExternalFunctionCall(_funCall);
+ 		break;
+ 	case FunctionType::Kind::KECCAK256:
++	case FunctionType::Kind::ECALL:
+ 	case FunctionType::Kind::ECRecover:
+ 	case FunctionType::Kind::SHA256:
+ 	case FunctionType::Kind::RIPEMD160:
+diff --git a/libsolidity/formal/CHC.cpp b/libsolidity/formal/CHC.cpp
+index 2615cf9d7..e2ae2f69b 100644
+--- a/libsolidity/formal/CHC.cpp
++++ b/libsolidity/formal/CHC.cpp
+@@ -454,6 +454,7 @@ void CHC::endVisit(FunctionCall const& _funCall)
+ 	case FunctionType::Kind::BareDelegateCall:
+ 	case FunctionType::Kind::Creation:
+ 	case FunctionType::Kind::KECCAK256:
++	case FunctionType::Kind::ECALL:
+ 	case FunctionType::Kind::ECRecover:
+ 	case FunctionType::Kind::SHA256:
+ 	case FunctionType::Kind::RIPEMD160:
+diff --git a/libsolidity/formal/SMTEncoder.cpp b/libsolidity/formal/SMTEncoder.cpp
+index b101a3147..42cef1ede 100644
+--- a/libsolidity/formal/SMTEncoder.cpp
++++ b/libsolidity/formal/SMTEncoder.cpp
+@@ -623,6 +623,7 @@ void SMTEncoder::endVisit(FunctionCall const& _funCall)
+ 	case FunctionType::Kind::Creation:
+ 		break;
+ 	case FunctionType::Kind::KECCAK256:
++	case FunctionType::Kind::ECALL:
+ 	case FunctionType::Kind::ECRecover:
+ 	case FunctionType::Kind::SHA256:
+ 	case FunctionType::Kind::RIPEMD160:
+diff --git a/test/tools/yulInterpreter/EVMInstructionInterpreter.cpp b/test/tools/yulInterpreter/EVMInstructionInterpreter.cpp
+index e5acf3948..dd6095819 100644
+--- a/test/tools/yulInterpreter/EVMInstructionInterpreter.cpp
++++ b/test/tools/yulInterpreter/EVMInstructionInterpreter.cpp
+@@ -180,6 +180,14 @@ u256 EVMInstructionInterpreter::eval(
+ 		uint64_t size = uint64_t(arg[1] & uint64_t(-1));
+ 		return u256(keccak256(readMemory(offset, size)));
+ 	}
++    case Instruction::ECALL:
++    {
++		if (!accessMemory(arg[0], arg[1]))
++			return u256("0x1234cafe1234cafe1234cafe") + arg[0];
++		uint64_t offset = uint64_t(arg[0] & uint64_t(-1));
++		uint64_t size = uint64_t(arg[1] & uint64_t(-1));
++		return u256(keccak256(readMemory(offset, size)));
++    }
+ 	case Instruction::ADDRESS:
+ 		return m_state.address;
+ 	case Instruction::BALANCE:

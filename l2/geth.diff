@@ -1,117 +1,83 @@
-diff --git a/core/vm/contracts.go b/core/vm/contracts.go
-index 9210f5486c5745799381065d661d80bd464f9680..fc9259f1fd77121c839879360c5b5c91301f40ba 100644
---- a/core/vm/contracts.go
-+++ b/core/vm/contracts.go
-@@ -32,6 +32,8 @@ import (
+diff --git a/core/vm/instructions.go b/core/vm/instructions.go
+index 3277674ee..d2c8ef9cc 100644
+--- a/core/vm/instructions.go
++++ b/core/vm/instructions.go
+@@ -17,6 +17,8 @@
+ package vm
  
- 	//lint:ignore SA1019 Needed for precompile
- 	"golang.org/x/crypto/ripemd160"
+ import (
++    "github.com/ethereum/go-ethereum/log"
 +
-+	"github.com/ethereum/go-ethereum/log"
+ 	"github.com/ethereum/go-ethereum/common"
+ 	"github.com/ethereum/go-ethereum/core/types"
+ 	"github.com/ethereum/go-ethereum/params"
+@@ -231,6 +233,11 @@ func opSAR(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte
+ 	return nil, nil
+ }
+ 
++func opEcall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
++    log.Error("121222222222222 opecall")
++    return opSha3(pc, interpreter, scope)
++}
++
+ func opSha3(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
+ 	offset, size := scope.Stack.pop(), scope.Stack.peek()
+ 	data := scope.Memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
+diff --git a/core/vm/interpreter.go b/core/vm/interpreter.go
+index 8b755038f..1fd6607a3 100644
+--- a/core/vm/interpreter.go
++++ b/core/vm/interpreter.go
+@@ -219,6 +219,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
+ 		// enough stack items available to perform the operation.
+ 		op = contract.GetOp(pc)
+ 		operation := in.cfg.JumpTable[op]
+ 		if operation == nil {
+ 			return nil, &ErrInvalidOpCode{opcode: op}
+ 		}
+diff --git a/core/vm/jump_table.go b/core/vm/jump_table.go
+index 329ad77cb..64147383d 100644
+--- a/core/vm/jump_table.go
++++ b/core/vm/jump_table.go
+@@ -360,6 +360,14 @@ func newFrontierInstructionSet() JumpTable {
+ 			maxStack:    maxStack(2, 1),
+ 			memorySize:  memorySha3,
+ 		},
++		ECALL: {
++			execute:     opEcall,
++			constantGas: params.Sha3Gas,
++			dynamicGas:  gasSha3,
++			minStack:    minStack(2, 1),
++			maxStack:    maxStack(2, 1),
++			memorySize:  memorySha3,
++		},
+ 		ADDRESS: {
+ 			execute:     opAddress,
+ 			constantGas: GasQuickStep,
+diff --git a/core/vm/opcodes.go b/core/vm/opcodes.go
+index 286307ae9..9d4c35a80 100644
+--- a/core/vm/opcodes.go
++++ b/core/vm/opcodes.go
+@@ -71,6 +71,7 @@ const (
+ 	SAR
+ 
+ 	SHA3 OpCode = 0x20
++    ECALL OpCode = 0x21
  )
  
- // PrecompiledContract is the basic interface for native Go contracts. The implementation
-@@ -49,47 +51,56 @@ var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
- 	common.BytesToAddress([]byte{2}): &sha256hash{},
- 	common.BytesToAddress([]byte{3}): &ripemd160hash{},
- 	common.BytesToAddress([]byte{4}): &dataCopy{},
-+	// for DEMO
-+	common.BytesToAddress([]byte{21}): &justTest{},
-+	common.BytesToAddress([]byte{22}): &justTest{},
- }
+ // 0x30 range - closure state.
+@@ -253,6 +254,7 @@ var opCodeToString = map[OpCode]string{
  
- // PrecompiledContractsByzantium contains the default set of pre-compiled Ethereum
- // contracts used in the Byzantium release.
- var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
--	common.BytesToAddress([]byte{1}): &ecrecover{},
--	common.BytesToAddress([]byte{2}): &sha256hash{},
--	common.BytesToAddress([]byte{3}): &ripemd160hash{},
--	common.BytesToAddress([]byte{4}): &dataCopy{},
--	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
--	common.BytesToAddress([]byte{6}): &bn256AddByzantium{},
--	common.BytesToAddress([]byte{7}): &bn256ScalarMulByzantium{},
--	common.BytesToAddress([]byte{8}): &bn256PairingByzantium{},
-+	common.BytesToAddress([]byte{1}):  &ecrecover{},
-+	common.BytesToAddress([]byte{2}):  &sha256hash{},
-+	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
-+	common.BytesToAddress([]byte{4}):  &dataCopy{},
-+	common.BytesToAddress([]byte{5}):  &bigModExp{eip2565: false},
-+	common.BytesToAddress([]byte{6}):  &bn256AddByzantium{},
-+	common.BytesToAddress([]byte{7}):  &bn256ScalarMulByzantium{},
-+	common.BytesToAddress([]byte{8}):  &bn256PairingByzantium{},
-+	common.BytesToAddress([]byte{21}): &justTest{},
-+	common.BytesToAddress([]byte{22}): &justTest{},
- }
+ 	// 0x20 range - crypto.
+ 	SHA3: "SHA3",
++	ECALL: "ECALL",
  
- // PrecompiledContractsIstanbul contains the default set of pre-compiled Ethereum
- // contracts used in the Istanbul release.
- var PrecompiledContractsIstanbul = map[common.Address]PrecompiledContract{
--	common.BytesToAddress([]byte{1}): &ecrecover{},
--	common.BytesToAddress([]byte{2}): &sha256hash{},
--	common.BytesToAddress([]byte{3}): &ripemd160hash{},
--	common.BytesToAddress([]byte{4}): &dataCopy{},
--	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: false},
--	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
--	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
--	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
--	common.BytesToAddress([]byte{9}): &blake2F{},
-+	common.BytesToAddress([]byte{1}):  &ecrecover{},
-+	common.BytesToAddress([]byte{2}):  &sha256hash{},
-+	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
-+	common.BytesToAddress([]byte{4}):  &dataCopy{},
-+	common.BytesToAddress([]byte{5}):  &bigModExp{eip2565: false},
-+	common.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
-+	common.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
-+	common.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
-+	common.BytesToAddress([]byte{9}):  &blake2F{},
-+	common.BytesToAddress([]byte{21}): &justTest{},
-+	common.BytesToAddress([]byte{22}): &justTest{},
- }
- 
- // PrecompiledContractsBerlin contains the default set of pre-compiled Ethereum
- // contracts used in the Berlin release.
- var PrecompiledContractsBerlin = map[common.Address]PrecompiledContract{
--	common.BytesToAddress([]byte{1}): &ecrecover{},
--	common.BytesToAddress([]byte{2}): &sha256hash{},
--	common.BytesToAddress([]byte{3}): &ripemd160hash{},
--	common.BytesToAddress([]byte{4}): &dataCopy{},
--	common.BytesToAddress([]byte{5}): &bigModExp{eip2565: true},
--	common.BytesToAddress([]byte{6}): &bn256AddIstanbul{},
--	common.BytesToAddress([]byte{7}): &bn256ScalarMulIstanbul{},
--	common.BytesToAddress([]byte{8}): &bn256PairingIstanbul{},
--	common.BytesToAddress([]byte{9}): &blake2F{},
-+	common.BytesToAddress([]byte{1}):  &ecrecover{},
-+	common.BytesToAddress([]byte{2}):  &sha256hash{},
-+	common.BytesToAddress([]byte{3}):  &ripemd160hash{},
-+	common.BytesToAddress([]byte{4}):  &dataCopy{},
-+	common.BytesToAddress([]byte{5}):  &bigModExp{eip2565: true},
-+	common.BytesToAddress([]byte{6}):  &bn256AddIstanbul{},
-+	common.BytesToAddress([]byte{7}):  &bn256ScalarMulIstanbul{},
-+	common.BytesToAddress([]byte{8}):  &bn256PairingIstanbul{},
-+	common.BytesToAddress([]byte{9}):  &blake2F{},
-+	common.BytesToAddress([]byte{21}): &justTest{},
-+	common.BytesToAddress([]byte{22}): &justTest{},
- }
- 
- // PrecompiledContractsBLS contains the set of pre-compiled Ethereum
-@@ -210,6 +221,20 @@ func (c *sha256hash) Run(input []byte) ([]byte, error) {
- 	return h[:], nil
- }
- 
-+// justTest implemented as a null contract (Just for Demo Test).
-+type justTest struct{}
-+
-+// The two methods below is just to show the new added instructions are applied.
-+// Just log an ERROR message to show this.
-+func (c *justTest) RequiredGas(input []byte) uint64 {
-+	log.Error("[justTest] RequiredGas is called")
-+	return 0
-+}
-+func (c *justTest) Run(input []byte) ([]byte, error) {
-+	log.Error("[justTest] Run is called")
-+	return input, nil
-+}
-+
- // RIPEMD160 implemented as a native contract.
- type ripemd160hash struct{}
- 
+ 	// 0x30 range - closure state.
+ 	ADDRESS:        "ADDRESS",
+@@ -425,6 +427,7 @@ var stringToOp = map[string]OpCode{
+ 	"ADDMOD":         ADDMOD,
+ 	"MULMOD":         MULMOD,
+ 	"SHA3":           SHA3,
++	"ECALL":           ECALL,
+ 	"ADDRESS":        ADDRESS,
+ 	"BALANCE":        BALANCE,
+ 	"ORIGIN":         ORIGIN,
