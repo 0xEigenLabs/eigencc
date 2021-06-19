@@ -1,5 +1,5 @@
 diff --git a/core/vm/instructions.go b/core/vm/instructions.go
-index 3277674ee..01dcde2f0 100644
+index 3277674ee..d2c8ef9cc 100644
 --- a/core/vm/instructions.go
 +++ b/core/vm/instructions.go
 @@ -17,6 +17,8 @@
@@ -16,13 +16,25 @@ index 3277674ee..01dcde2f0 100644
  }
  
 +func opEcall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
-+    log.Info("121222222222222 opecall")
-+    return nil, nil
++    log.Error("121222222222222 opecall")
++    return opSha3(pc, interpreter, scope)
 +}
 +
  func opSha3(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
  	offset, size := scope.Stack.pop(), scope.Stack.peek()
  	data := scope.Memory.GetPtr(int64(offset.Uint64()), int64(size.Uint64()))
+diff --git a/core/vm/interpreter.go b/core/vm/interpreter.go
+index 8b755038f..1fd6607a3 100644
+--- a/core/vm/interpreter.go
++++ b/core/vm/interpreter.go
+@@ -219,6 +219,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
+ 		// enough stack items available to perform the operation.
+ 		op = contract.GetOp(pc)
+ 		operation := in.cfg.JumpTable[op]
++        //log.Error("bing", "op: ", fmt.Sprintf("%#v",op), "stack len", stack.len(), "minSTack", operation.minStack)
+ 		if operation == nil {
+ 			return nil, &ErrInvalidOpCode{opcode: op}
+ 		}
 diff --git a/core/vm/jump_table.go b/core/vm/jump_table.go
 index 329ad77cb..64147383d 100644
 --- a/core/vm/jump_table.go

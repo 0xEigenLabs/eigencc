@@ -1,0 +1,83 @@
+{
+  "name": "ethereumjs-wallet",
+  "version": "1.0.1",
+  "description": "Utilities for handling Ethereum keys",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "ethereumjs-config-build",
+    "prepublishOnly": "",
+    "docs:build": "typedoc --out docs --mode file --readme none --theme markdown --mdEngine github --excludeNotExported src",
+    "coverage": "ethereumjs-config-coverage",
+    "format": "ethereumjs-config-format",
+    "format:fix": "ethereumjs-config-format-fix",
+    "lint": "ethereumjs-config-lint",
+    "lint:fix": "ethereumjs-config-lint-fix",
+    "test": "npm run build && nyc --reporter=lcov mocha --require ts-node/register --require source-map-support/register ./test/**/*.ts",
+    "test:browser": "karma start karma.conf.js",
+    "tsc": "ethereumjs-config-tsc",
+    "tslint": "ethereumjs-config-tslint",
+    "tslint:fix": "ethereumjs-config-tslint-fix"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run lint"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ethereumjs/ethereumjs-wallet.git"
+  },
+  "keywords": [
+    "ethereum",
+    "wallets",
+    "keys"
+  ],
+  "author": "Alex Beregszaszi <alex@rtfs.hu>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ethereumjs/ethereumjs-wallet/issues"
+  },
+  "homepage": "https://github.com/ethereumjs/ethereumjs-wallet",
+  "dependencies": {
+    "aes-js": "^3.1.1",
+    "bs58check": "^2.1.2",
+    "ethereum-cryptography": "^0.1.3",
+    "ethereumjs-util": "^7.0.2",
+    "randombytes": "^2.0.6",
+    "scrypt-js": "^3.0.1",
+    "utf8": "^3.0.0",
+    "uuid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@ethereumjs/config-nyc": "^1.1.1",
+    "@ethereumjs/config-prettier": "^1.1.1",
+    "@ethereumjs/config-tsc": "^1.1.1",
+    "@ethereumjs/config-tslint": "^1.1.1",
+    "@types/bn.js": "^4.11.5",
+    "@types/lodash.zip": "^4.2.6",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.0.10",
+    "ethers": "^4.0.33",
+    "husky": "^2.1.0",
+    "karma": "^5.0.2",
+    "karma-chrome-launcher": "^2.0.0",
+    "karma-firefox-launcher": "^1.0.0",
+    "karma-mocha": "^2.0.0",
+    "karma-typescript": "^5.0.2",
+    "lodash.zip": "^4.2.0",
+    "mocha": "^7.1.2",
+    "nyc": "^15.0.1",
+    "prettier": "^1.15.3",
+    "source-map-support": "^0.5.12",
+    "ts-node": "^8.9.1",
+    "tslint": "^5.12.0",
+    "typedoc": "^0.14.2",
+    "typedoc-plugin-markdown": "^1.2.0",
+    "typescript": "^3.8.3",
+    "typestrict": "^1.0.2"
+  }
+}

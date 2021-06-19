@@ -1,0 +1,35 @@
+Arguments: 
+  /usr/local/bin/node /usr/local/bin/yarn build
+
+PATH: 
+  /Users/bytedance/miniconda3/bin:/Users/bytedance/miniconda3/condabin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/puppetlabs/bin:/usr/local/munki:/Users/bytedance/.cargo/bin
+
+Yarn version: 
+  1.22.10
+
+Node version: 
+  12.0.0
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/bytedance/Project/ieigen/l2/new_instr/package.json: Unexpected token } in JSON at position 60
+      at JSON.parse (<anonymous>)
+      at /usr/local/lib/node_modules/yarn/lib/cli.js:1625:59
+      at Generator.next (<anonymous>)
+      at step (/usr/local/lib/node_modules/yarn/lib/cli.js:310:30)
+      at /usr/local/lib/node_modules/yarn/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "devDependencies": {
+      "@truffle/hdwallet-provider"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
