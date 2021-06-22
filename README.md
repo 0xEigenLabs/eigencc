@@ -11,4 +11,4 @@
 
 # We are hiring!
 
-If you are interesting in building privacy computing DApps on ETH Layer2, Welcome to join us!
+If you are interesting in privacy computing and blockchain, Welcome to join us!
