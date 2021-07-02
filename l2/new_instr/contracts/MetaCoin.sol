@@ -2,38 +2,38 @@
 pragma solidity >=0.4.25;
 
 import "./ConvertLib.sol";
+import "./ArbSys.sol";
 
 // This is just a simple example of a coin-like contract.
 // It is not standards compatible and cannot be expected to talk to other
 // coin/token contracts. If you want to create a standards-compliant
 // token, see: https://github.com/ConsenSys/Tokens. Cheers!
 
+
 contract MetaCoin {
-	mapping (address => uint) balances;
 
-	event Transfer(address indexed _from, address indexed _to, uint256 _value);
+  mapping (address => uint) balances;
 
-	constructor() public {
-		balances[tx.origin] = 10000;
-        bytes32 encrypt = ecall("21121212221");
-        log1("enc", encrypt);
-	}
+  event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
-	function sendCoin(address receiver, uint amount) public returns(bool sufficient) {
-        bytes32 encrypt = ecall("21121212221");
-        log1("enc", encrypt);
-		if (balances[msg.sender] < amount) return false;
-		balances[msg.sender] -= amount;
-		balances[receiver] += amount;
-		emit Transfer(msg.sender, receiver, amount);
-		return true;
-	}
+  constructor() public {
+    balances[tx.origin] = 10000;
+  }
 
-	function getBalanceInEth(address addr) public view returns(uint){
-		return ConvertLib.convert(getBalance(addr),2);
-	}
+  function sendCoin(address receiver, uint amount) public payable returns(bool sufficient) {
+    bytes32 res = ArbSys(address(100)).eigenCall(bytes('Hello from ieigen!'));
+    if (balances[msg.sender] < amount) return false;
+    balances[msg.sender] -= amount;
+    balances[receiver] += amount;
+    emit Transfer(msg.sender, receiver, amount);
+    return true;
+  }
 
-	function getBalance(address addr) public view returns(uint) {
-		return balances[addr];
-	}
+  function getBalanceInEth(address addr) public view returns(uint){
+    return ConvertLib.convert(getBalance(addr),2);
+  }
+
+  function getBalance(address addr) public view returns(uint) {
+    return balances[addr];
+  }
 }
