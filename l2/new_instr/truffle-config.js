@@ -18,11 +18,18 @@
  *
  */
 
-const HDWalletProvider = require('@truffle/hdwallet-provider');
+// const HDWalletProvider = require('@truffle/hdwallet-provider');
 // const infuraKey = "fj4jll3k.....";
 //
 // const fs = require('fs');
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
+const wrapProvider = require('arb-ethers-web3-bridge').wrapProvider
+const HDWalletProvider = require('@truffle/hdwallet-provider')
+
+const mnemonic =
+  'jar deny prosper gasp flush glass core corn alarm treat leg smart'
+const arbProviderUrl = 'http://localhost:8547/'
+
 
 module.exports = {
   /**
@@ -49,6 +56,17 @@ module.exports = {
         from: '0x4F5FD0eA6724DfBf825714c2742A37E0c0d6D7d9',
         provider: () => new HDWalletProvider("total mail avocado lava vast trade gap police vibrant lounge disorder shine",
             "http://127.0.0.1:7545"),
+    },
+    arbitrum: {
+      provider: function () {
+        // return wrapped provider:
+        return wrapProvider(
+          new HDWalletProvider(mnemonic, arbProviderUrl)
+        )
+      },
+      port: 8547,
+      network_id: '*',
+      gasPrice: 0,
     },
     // Another network with more advanced options...
     // advanced: {
