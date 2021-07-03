@@ -1,6 +1,6 @@
-# EigenLedger
+# EigenRollup
 
-We launch our network on [Layer 2 of Ethereum](https://github.com/ethereum-optimism/optimism), and extend the EVM and [solc](https://github.com/ieigen/solidity) to support privacy computing operators.
+EigenRoll provides a privacy-preserving smart contract on mixed layer 2 Rollup protocols of current main public blockchain, such as Ethereum. EigenRollup initiailly implements the protocal by refering to Arbitrum.   
 
 ## [WIP] Add New Instructions for private computing
 
