@@ -15,7 +15,7 @@ interface ArbSys {
     * @return eigenCall returns value
      */
     
-    function eigenCall(bytes calldata) external pure returns (bytes32);
+    function eigenCall(uint256 arg1, uint256 arg2, uint256 arg3, uint256 arg4) external pure returns (uint256, uint256, uint256, uint256);
 
     /**
     * @notice Get Arbitrum block number (distinct from L1 block number; Arbitrum genesis block has block number 0)
