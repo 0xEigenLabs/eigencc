@@ -21,7 +21,8 @@ contract MetaCoin {
   }
 
   function sendCoin(address receiver, uint amount) public payable returns(bool sufficient) {
-    bytes32 res = ArbSys(address(100)).eigenCall(bytes('Hello from ieigen!'));
+    (uint256 out1, uint256 out2, uint256 out3, uint256 out4) = ArbSys(address(100)).eigenCall(11, 22, 33, 44);
+    ArbSys(address(100)).eigenCall(out1, out2, out3, out4);
     if (balances[msg.sender] < amount) return false;
     balances[msg.sender] -= amount;
     balances[receiver] += amount;
