@@ -34,5 +34,8 @@ $ ./quickstart echo -m 'Hello' -e enclave_info.toml
 Hello, Eigen
 ```
 
+### Develop an new confidential service
+[EigenCC Privacy Operators](../docs/operators.md)
+
 ## ARM TrustZone on FPGA 
 TBD
