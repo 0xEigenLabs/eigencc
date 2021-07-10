@@ -19,7 +19,7 @@ pub struct EchoWorker {
 * `input` : arguments of service;
 
 2. Define the service input
-An input is a structure containing the arguments of each service call. the [EchoWorkerInput](../cc/sgx/services/fns/sgx_trusted_lib/src/trusted_worker/demo_func.rs:39)
+An input is a structure containing the arguments of each service call. the [EchoWorkerInput](../cc/sgx/services/fns/sgx_trusted_lib/src/trusted_worker/demo_func.rs#L39)
 recepts a `String` value. Usually, we need preprocessing for the input before being fed into service execution.
 
 3. Define service side logic
