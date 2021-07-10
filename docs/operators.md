@@ -15,11 +15,11 @@ pub struct EchoWorker {
 ```
 
 * `worker_id` must be unique globally, an integer beginning at 0, increased by service.
-* `func_name` is the service name, and also the second argument of [eigen_create_task](../cc/sgx/sdk/c_sdk/include/eigen/eigentee.h:70)
+* `func_name` is the service name, and also the second argument of [eigen_create_task](../cc/sgx/sdk/c_sdk/include/eigen/eigentee.h#L70)
 * `input` : arguments of service;
 
 2. Define the service input
-An input is a structure containing the arguments of each service call. the [EchoWorkerInput](../cc/sgx/services/fns/sgx_trusted_lib/src/trusted_worker/demo_func.rs:39)
+An input is a structure containing the arguments of each service call. the [EchoWorkerInput](../cc/sgx/services/fns/sgx_trusted_lib/src/trusted_worker/demo_func.rs#L39)
 recepts a `String` value. Usually, we need preprocessing for the input before being fed into service execution.
 
 3. Define service side logic
