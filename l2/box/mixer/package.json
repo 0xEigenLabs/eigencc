@@ -1,0 +1,29 @@
+{
+  "name": "mixer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "generate": "python scripts/big_prime_generator.py && cd circuit && node generate_leaf_existence_input.js",
+    "call_mixer": "node scripts/call_mixer.js",
+    "call_mimc": "node scripts/call_mimc.js",
+    "deploy_mimc": "mocha scripts/deploy_mimc.js --exit"
+  },
+  "keywords": [],
+  "author": "",
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^1.4.1",
+    "bignumber": "^1.1.0",
+    "bn.js": "^5.0.0",
+    "chai": "^4.3.4",
+    "circom": "0.5.45",
+    "ffjavascript": "^0.2.37",
+    "ganache-cli": "^6.12.2",
+    "markdown-toc": "^1.2.0",
+    "original-require": "^1.0.1",
+    "snarkjs": "^0.4.6",
+    "truffle-contract": "^4.0.31",
+    "web3": "^1.4.0"
+  },
+  "license": "ISC"
+}
