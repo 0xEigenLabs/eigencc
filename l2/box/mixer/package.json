@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "generate": "python scripts/big_prime_generator.py && cd circuit && node generate_leaf_existence_input.js",
+    "generate": "python scripts/big_num_generator.py && cd circuit && node generate_leaf_existence_input.js",
     "call_mixer": "node scripts/call_mixer.js",
     "call_mimc": "node scripts/call_mimc.js",
     "deploy_mimc": "mocha scripts/deploy_mimc.js --exit"

@@ -2,20 +2,20 @@
 const fs = require("fs");
 const mimcjs = require("../../circomlib/src/mimc7.js");
 
-const nullifierHash = mimcjs.hash(255,0)
+let secret = "10";
+const nullifierHash = mimcjs.hash(255, secret)
 
 // root，paths2_root，paths2_root_pos could be stored on blockchain
 // private: nullifierHash, leaf_index, secret
 
-let secret = "0";
-let rawdata = fs.readFileSync('/tmp/.primes.json');
-let primes = JSON.parse(rawdata)
+let rawdata = fs.readFileSync('/tmp/.nums.json');
+let nums = JSON.parse(rawdata)
 
 let leaf = mimcjs.hash(secret, "0");
-let root = mimcjs.hash(leaf, primes[0]);
+let root = mimcjs.hash(leaf, nums[0]);
 
 for (var i = 1; i < 8; i++) {
-    root = mimcjs.hash(root, primes[i])
+    root = mimcjs.hash(root, nums[i])
 }
 
 const inputs = {
@@ -23,7 +23,7 @@ const inputs = {
     "nullifierHash":nullifierHash.toString(),
 
     "secret": secret,
-    "paths2_root": primes,
+    "paths2_root": nums,
     "paths2_root_pos":[
     	1,
     	1,
