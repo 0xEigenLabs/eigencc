@@ -39,7 +39,7 @@ To run Arbitrum locally, you need several things:
   yarn demo:deploy
   ```
 
-3. Deploy contract by truffle in `new_instr`
+3. Deploy contract by truffle in `eigen_call_sample`
 
 ```bash
 # Install some dependencies

@@ -15,3 +15,15 @@
 
 # These files should not be commited
 **/.DS_Store
+
+
+l2/*/node_modules
+l2/*/build
+l2/*/yarn.lock
+l2/*/dist
+
+l2/*/package-lock.json
+l2/*/yarn-error.log
+l2/*/db.sqlite
+
+
