@@ -55,5 +55,5 @@ app.put("/store", async function (req, res) {
 })
 
 app.listen(3000, function() {
-    console.log("KMS listening on port 3000!");
+    console.log("PKCS listening on port 3000!");
 })
