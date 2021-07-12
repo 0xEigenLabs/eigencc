@@ -51,7 +51,7 @@ app.put("/store", async function (req, res) {
         return res.json(util.Err(1, "missing dig or pk"))
     }
     var result = db_.updateOrAdd(old_digest, digest, pk);
-    res.json({"message": "ok", "data": result})
+    res.json(util.Succ(result))
 })
 
 app.listen(3000, function() {
