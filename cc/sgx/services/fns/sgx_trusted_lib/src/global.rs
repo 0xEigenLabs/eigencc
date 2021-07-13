@@ -15,6 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 use crate::trusted_worker::EchoWorker;
+use crate::trusted_worker::RegisterWorker;
 use crate::worker::WorkerInfoQueue;
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
@@ -22,6 +23,9 @@ use std::prelude::v1::*;
 pub fn register_trusted_worker_statically() {
     for _i in 0..10 {
         let worker = Box::new(EchoWorker::new());
+        let _ = WorkerInfoQueue::register(worker);
+
+        let worker = Box::new(RegisterWorker::new());
         let _ = WorkerInfoQueue::register(worker);
     }
 }
