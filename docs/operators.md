@@ -37,6 +37,13 @@ pub use service_source_file_name::service_struct_name;
 ```
 to [mod.rs](../cc/sgx/services/fns/sgx_trusted_lib/src/trusted_worker/mod.rs)
 
+and add
+```
+let worker = Box::new(service_struct_name::new());
+let _ = WorkerInfoQueue::register(worker);
+```
+to the [global.rs](../cc/sgx/services/fns/sgx_trusted_lib/src//global.rs).
+
 5. Define client side logic
 
 Call the  service by c or rust [SDK](../cc/sgx/sdk/c_sdk/include/eigen/eigentee.h).

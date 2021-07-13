@@ -63,7 +63,7 @@ fn main() -> Result<()> {
 fn run_function_node_service(tee: Arc<TeeBinder>) -> Result<()> {
     info!("Running as FNS Server ...");
 
-    //  let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8082);
+    //let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8082);
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 8082);
     let listener = TcpListener::bind(addr)?;
     let port = addr.port();

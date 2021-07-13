@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "asn1.js": "^5.4.1",
+    "ecies-geth": "^1.5.2",
     "elliptic": "^6.5.4"
   }
 }
