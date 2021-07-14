@@ -64,10 +64,6 @@ impl Worker for RegisterWorker {
     }
 
     fn execute(&mut self, _context: WorkerContext) -> Result<String> {
-        let _input = self
-            .input
-            .take()
-            .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
         // generate pk and sk
         let ec_handle = SgxEccHandle::new();
         ec_handle.open()?;
@@ -88,7 +84,7 @@ impl Worker for RegisterWorker {
             Ok(key) => {
                 let mut res_bytes: Vec<u8> = key.to_vec();
                 res_bytes.extend_from_slice(&pub_key_bytes);
-                Ok(str::from_utf8(&res_bytes)?.to_string())
+                Ok(base64::encode(&res_bytes))
             },
             Err(e) => {
                 warn!("Hash failed {:?}", e);
