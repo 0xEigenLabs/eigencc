@@ -9,7 +9,7 @@ exports.Err = function(errno, message) {
 }
 
 exports.has_value = function(variable) {
-    if (typeof(variable) == "undefined") {
+    if (variable == undefined) {
         return false
     }
     if (variable.trim() == "") {

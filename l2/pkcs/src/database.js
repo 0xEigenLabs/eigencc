@@ -11,13 +11,13 @@ const sequelize = new Sequelize({
   storage: './db.sqlite'
 });
 
-const pk_db = sequelize.define('pk_st', {
+const pkdb = sequelize.define('pk_st', {
   digest: Sequelize.STRING(64),
   public_key: Sequelize.STRING
 });
 
 sequelize.sync().then(function() {
-    return pk_db.create({
+    return pkdb.create({
         digest: 'eigen__',
         public_key: 'eigne__'
     });
@@ -25,28 +25,28 @@ sequelize.sync().then(function() {
     console.log(row.get({
         plain: true
     }));
-    pk_db.destroy({where:{digest: row.digest}})
+    pkdb.destroy({where:{digest: row.digest}})
 }).catch(function (err) {
   console.log('Unable to connect to the database:', err);
 });
 
 exports.add = function(digest, pk) {
-  return pk_db.create({
+  return pkdb.create({
       digest: digest,
       public_key: pk
   })
 };
 
 exports.findByDigest = function(dig) {
-  return pk_db.findOne({where: {digest: dig}})
+  return pkdb.findOne({where: {digest: dig}})
 };
 
 exports.findAll = function() {
-    return pk_db.findAll();
+    return pkdb.findAll();
 }
 
 exports.updateOrAdd = function(old_dig, new_dig, new_pk){
-    pk_db.findOne({where: {digest: old_dig
+    pkdb.findOne({where: {digest: old_dig
     }}).then(function(row){
         console.log(row)
         if (row === null) {
