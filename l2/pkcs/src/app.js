@@ -1,28 +1,28 @@
 const express = require('express')
 const log4js = require("./log");
-var logger_ = log4js.logger("APP")
-var db_ = require("./database.js")
+var logger = log4js.logger("APP")
+var db = require("./database.js")
 var util = require("./util.js")
 
 const app = express()
 app.use(log4js.useLog());
 
 
-var bodyParser_ = require('body-parser');
-app.use(bodyParser_.json());
+var bodyParser = require('body-parser');
+app.use(bodyParser.json());
 
 // query key
 app.get('/stores', async function (req, res) {
-    return res.json(util.Succ(await db_.findAll()))
+    return res.json(util.Succ(await db.findAll()))
 })
 
 app.get('/store', async function (req, res) {
     var digest = req.query.digest
     if (!util.has_value(digest)) {
-        logger_.error("digest is empty")
+        logger.error("digest is empty")
         return res.json(util.Err(1, "digest missing"))
     }
-    var result = await db_.findByDigest(digest);
+    var result = await db.findByDigest(digest);
     if (!result) {
         return res.json(util.Succ({}))
     }
@@ -37,7 +37,7 @@ app.post("/store", async function (req, res) {
         return res.json(util.Err(1, "missing dig or pk"))
     }
 
-    var result = db_.updateOrAdd(digest, digest, pk);
+    var result = db.updateOrAdd(digest, digest, pk);
     res.json(util.Succ(result))
 })
 
@@ -50,7 +50,7 @@ app.put("/store", async function (req, res) {
         !util.has_value(old_digest)) {
         return res.json(util.Err(1, "missing dig or pk"))
     }
-    var result = db_.updateOrAdd(old_digest, digest, pk);
+    var result = db.updateOrAdd(old_digest, digest, pk);
     res.json(util.Succ(result))
 })
 

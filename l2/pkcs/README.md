@@ -1,5 +1,10 @@
 # Simple PK Cache Service
+Simple local public key cache service on sqlite, with ecies inside.
 
+## Test
+`yarn test`
+
+## Usage
 ```
 nohup yarn start &
 
@@ -15,4 +20,3 @@ curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/store" -d 
 
 # TODO
 1. Access control
-2. Code format
