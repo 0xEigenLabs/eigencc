@@ -3,32 +3,29 @@
 
 const crypto = require('crypto');
 const assert = require('assert');
+var EC = require("elliptic").ec;
+var ec = new EC("p256");
 const empty_buffer = Buffer.allocUnsafe ? Buffer.allocUnsafe(0) : Buffer.from([]);
-const SALT_LEN = 32;
 const AUTH_TAG_LEN = 16;
 const IV_LEN = 12;
 
 // E
 function symmetricEncrypt(cypherName, iv, key, plaintext) {
     let cipher = crypto.createCipheriv(cypherName, key, iv);
-    var encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
-
+    var encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
     let tag  = cipher.getAuthTag()
-    var salt = crypto.randomBytes(SALT_LEN);
-    return Buffer.concat([salt, iv, tag, encrypted]).toString('base64');
+    return Buffer.concat([iv, tag, encrypted]);
 }
 
 // E-1
-function symmetricDecrypt(cypherName, key, ciphertext) {
-    var bData = Buffer.from(ciphertext, 'base64');
+function symmetricDecrypt(cypherName, key, cipherText) {
     // convert data to buffers
-    let salt = bData.slice(0, SALT_LEN);
-    let iv = bData.slice(SALT_LEN, SALT_LEN + IV_LEN);
-    let tag = bData.slice(SALT_LEN + IV_LEN, SALT_LEN + IV_LEN + AUTH_TAG_LEN);
-    let text = bData.slice(SALT_LEN + IV_LEN + AUTH_TAG_LEN);
-    let cipher = crypto.createDecipheriv(cypherName, key, iv);
-    cipher.setAuthTag(tag);
-    let dec = cipher.update(text, 'binary', 'utf8') + cipher.final('utf8');
+    let iv = cipherText.slice(0, IV_LEN);
+    let tag = cipherText.slice(IV_LEN, IV_LEN + AUTH_TAG_LEN);
+    let text = cipherText.slice(IV_LEN + AUTH_TAG_LEN);
+    let decipher = crypto.createDecipheriv(cypherName, key, iv);
+    decipher.setAuthTag(tag);
+    let dec = decipher.update(text) + decipher.final();
     return dec;
 }
 exports.aes_enc = symmetricEncrypt
@@ -91,11 +88,11 @@ function makeUpOptions(options) {
 exports.encrypt = function (publicKey, message, options) {
     options = makeUpOptions(options);
 
-    const ecdh = crypto.createECDH(options.curveName);
+    const ephemPrivateKey = ec.genKeyPair();
     // R
-    const R = ecdh.generateKeys(null, options.keyFormat);
+    const ephemPublicKey = Buffer.from(ephemPrivateKey.getPublic("arr"));
     // S
-    const sharedSecret = ecdh.computeSecret(publicKey);
+    const sharedSecret = Buffer.from(ephemPrivateKey.derive(publicKey).toArray());
 
     // uses KDF to derive a symmetric encryption and a MAC keys:
     // Ke || Km = KDF(S || S1)
@@ -127,22 +124,24 @@ exports.encrypt = function (publicKey, message, options) {
         ),
     );
     // outputs R || c || d
-    return Buffer.concat([R, bufCipherText, tag]);
+    return Buffer.concat([ephemPublicKey, bufCipherText, tag]);
 };
 
-exports.decrypt = function (ecdh, message, options) {
+exports.decrypt = function (keyPair, message, options) {
     options = makeUpOptions(options);
 
-    const publicKeyLength = ecdh.getPublicKey(null, options.keyFormat).length;
+    const publicKeyLength = keyPair.getPublic("arr").length;
     // R
     const R = message.slice(0, publicKeyLength);
+    let keyPair2 = ec.keyFromPublic(R);
+    let publicKey = keyPair2.getPublic();
     // c
     const cipherText = message.slice(publicKeyLength, message.length - options.macLength);
     // d
     const messageTag = message.slice(message.length - options.macLength);
 
     // S
-    const sharedSecret = ecdh.computeSecret(R);
+    const sharedSecret = Buffer.from(keyPair.derive(publicKey).toArray());
 
     // derives keys the same way as Alice did:
     // Ke || Km = KDF(S || S1)
