@@ -20,3 +20,7 @@ mod demo_func;
 pub use demo_func::EchoWorker;
 mod register_func;
 pub use register_func::RegisterWorker;
+mod operator_add;
+pub use operator_add::AddWorker;
+mod operator_sub;
+pub use operator_sub::SubWorker;
