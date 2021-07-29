@@ -6,6 +6,7 @@
 
 ### Requirements
 Rust SGX SDK: 1.1.3
+
 Rust Version: rustup default nightly-2020-10-25
 
 ### Compile
