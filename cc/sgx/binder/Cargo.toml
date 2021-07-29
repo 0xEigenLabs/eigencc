@@ -13,8 +13,8 @@ path = "src/lib.rs"
 default = ["eigen_core/ipc"]
 
 [dependencies]
-sgx_urts   =  "1.1.0" 
-sgx_types  =  "1.1.0" 
+sgx_urts   =  "1.1.3" 
+sgx_types  =  "1.1.3" 
 
 eigen_core = { path = "../eigen_core", features = ["ipc"]}
 

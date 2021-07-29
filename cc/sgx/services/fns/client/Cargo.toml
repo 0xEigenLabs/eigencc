@@ -7,5 +7,5 @@ edition = "2018"
 
 [dependencies]
 cfg-if          = { version = "0.1.9" }
-eigen_core    = { version = "0.1.0" }
+eigen_core    = { path = "../../../eigen_core" }
 fns_proto       = { path = "../proto" }

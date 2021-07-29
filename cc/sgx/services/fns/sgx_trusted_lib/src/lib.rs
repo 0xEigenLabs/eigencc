@@ -22,6 +22,9 @@ extern crate sgx_tstd as std;
 #[macro_use]
 extern crate log;
 
+extern crate eigen_crypto;
+extern crate rand;
+
 mod fns;
 mod global;
 mod trusted_worker;

@@ -7,6 +7,6 @@ edition = "2018"
 
 [dependencies]
 fns_client           = { path = "../services/fns/client" }
-eigen_core         = { path = "../eigen_core" }
-utils       = { path = "../utils" }
+eigen_core           = { path = "../eigen_core" }
+utils       	     = { path = "../utils" }
 uuid                 = { version = "0.8.1", features = ["v4"] }

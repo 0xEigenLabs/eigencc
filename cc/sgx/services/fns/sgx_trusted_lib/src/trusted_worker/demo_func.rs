@@ -19,6 +19,11 @@
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
 
+use std::vec;
+
+use eigen_crypto::sign::ecdsa::KeyPair;
+use rand::Rng;
+
 use crate::worker::{Worker, WorkerContext};
 use eigen_core::{Error, ErrorKind, Result};
 
@@ -59,6 +64,30 @@ impl Worker for EchoWorker {
             .input
             .take()
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+        let mut r = vec![0u8; 32];
+        rand::thread_rng().fill(&mut r[..]);
+        let private_key = eigen_crypto::sign::ecdsa::EcdsaKeyPair::from_seed_unchecked(
+            &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1_SIGNING,
+            untrusted::Input::from(&r),
+            );
+
+        assert_eq!(private_key.is_ok(), true);
+        let private_key = private_key.unwrap();
+        let msg = "hello, come on, go get it 你好!";
+        let s1 = vec![];
+        let s2 = vec![];
+
+        let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+        let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, private_key.public_key());
+
+        let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, msg.as_bytes());
+        assert_eq!(cipher.is_ok(), true);
+        let cipher = cipher.unwrap();
+        let plain = eigen_crypto::ec::suite_b::ecies::decrypt(&private_key, &cipher, &s1, &s2);
+
+        assert_eq!(plain.is_ok(), true);
+        assert_eq!(msg.as_bytes().to_vec(), (plain.unwrap()));
+        std::println!("check success");
         Ok(input.msg + ", Eigen")
     }
 }

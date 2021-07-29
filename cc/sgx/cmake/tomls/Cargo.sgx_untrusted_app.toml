@@ -16,6 +16,6 @@ eigen_core    = { path = "./eigen_core" }
 binder = { path = "./binder" }
 
 # We cannot remove these crates, because proto crates depend on them
-sgx_cov   = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }
-sgx_urts  = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }
-sgx_types = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.2" }
+sgx_cov   = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.3" }
+sgx_urts  = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.3" }
+sgx_types = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.3" }
