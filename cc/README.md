@@ -4,6 +4,10 @@
 
 [Intel SGX](https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html) Enhance Your Code and Data Protection
 
+### Requirements
+Rust SGX SDK: 1.1.3
+Rust Version: rustup default nightly-2020-10-25
+
 ### Compile
 
 ```
