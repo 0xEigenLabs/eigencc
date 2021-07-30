@@ -16,6 +16,7 @@
 // under the License.
 use crate::trusted_worker::EchoWorker;
 use crate::trusted_worker::RegisterWorker;
+use crate::trusted_worker::OperatorWorker;
 use crate::worker::WorkerInfoQueue;
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
@@ -26,6 +27,9 @@ pub fn register_trusted_worker_statically() {
         let _ = WorkerInfoQueue::register(worker);
 
         let worker = Box::new(RegisterWorker::new());
+        let _ = WorkerInfoQueue::register(worker);
+
+        let worker = Box::new(OperatorWorker::new());
         let _ = WorkerInfoQueue::register(worker);
     }
 }
