@@ -27,6 +27,9 @@ use crate::trusted_worker::register_func;
 use eigen_core::{Error, ErrorKind, Result};
 use crate::eigen_crypto::sign::ecdsa::KeyPair;
 
+use num_bigint::{BigInt, ToBigInt};
+use num_bigint::{BigUint, ToBigUint};
+
 // TODO: unwrap() method should all be replaced with a property error handling
 
 pub struct OperatorWorker {
@@ -88,7 +91,7 @@ impl Worker for OperatorWorker {
 
         match op.as_str() {
             "add" => {
-                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
                 if op_num != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
@@ -103,7 +106,7 @@ impl Worker for OperatorWorker {
                 });
             },
             "add1" => {
-                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
                 if op_num != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
@@ -118,7 +121,7 @@ impl Worker for OperatorWorker {
                 });
             },
             "sub" => {
-                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
                 if op_num != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
@@ -132,7 +135,7 @@ impl Worker for OperatorWorker {
                 });
             },
             "sub1" => {
-                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
                 if op_num != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
@@ -146,8 +149,7 @@ impl Worker for OperatorWorker {
                 });
             },
             "enc" => {
-                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
-                error!("op_num is {}", op_num);
+                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
                 if op_num != 1 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
@@ -161,7 +163,7 @@ impl Worker for OperatorWorker {
                 });
             }
             "des" => {
-                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
                 if op_num != 1 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
@@ -191,21 +193,31 @@ impl Worker for OperatorWorker {
 
         match input.op {
             OperatorKind::Add | OperatorKind::Sub => {
-                let key_pair = register_func::get_key_pair();
-                let s1 = vec![];
-                let s2 = vec![];
-
                 // First, do AES decrypt
                 let aes_key = register_func::get_aes_key();
-                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op1.as_bytes()).unwrap();
-                let cipher_op2 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op2.as_bytes()).unwrap();
+                let b1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
+                let cipher_op1 = b1.to_bytes_be();
+                let b2 = BigUint::parse_bytes(input.cipher_op2.as_bytes(), 10).unwrap();
+                let cipher_op2 = b2.to_bytes_be();
+
+                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op1).unwrap();
+                let cipher_op2 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op2).unwrap();
 
                 // Second, do ECIES decrypt
-                let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
-                let op1 = u64::from_be_bytes(op1[0..8].try_into().unwrap());
-                let op2 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op2, &s1, &s2).unwrap();
-                let op2 = u64::from_be_bytes(op2[0..8].try_into().unwrap());
+                ///////////////////////////////////////////////////////////////////////////////////////////////
+                // let key_pair = register_func::get_key_pair();
+                // let s1 = vec![];
+                // let s2 = vec![];
+                // let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
+                // let op1 = u64::from_be_bytes(op1[0..8].try_into().unwrap());
+                // let op2 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op2, &s1, &s2).unwrap();
+                // let op2 = u64::from_be_bytes(op2[0..8].try_into().unwrap());
 
+                let op1 = cipher_op1;
+                let op1 = BigUint::from_bytes_be(&op1[..]);
+                let op2 = cipher_op2;
+                let op2 = BigUint::from_bytes_be(&op2[..]);
+                ///////////////////////////////////////////////////////////////////////////////////////////////
                 let result = match input.op {
                     OperatorKind::Add => op1 + op2,
                     OperatorKind::Sub => op1 - op2,
@@ -220,91 +232,121 @@ impl Worker for OperatorWorker {
                 let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
 
                 // First, do ECIES encrypt
-                let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &result.to_be_bytes());
-                let cipher = cipher.unwrap();
+                //////////////////////////////////////////////////////////////////////////////////////////////
+                // let s1 = vec![];
+                // let s2 = vec![];
+                // let key_pair = register_func::get_key_pair();
+                // let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+                // let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
+                // let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &result.to_be_bytes());
+                // let cipher = cipher.unwrap();
+                let cipher = result.to_bytes_be();
+                //////////////////////////////////////////////////////////////////////////////////////////////
 
                 // Second, do AES encrypt
                 let aes_key = register_func::get_aes_key();
                 let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
 
-                // TODO: should covert into a u64
-                Ok(base64::encode(&cipher))
+                let b = BigUint::from_bytes_be(&cipher[..]);
+                let result = b.to_str_radix(10);
+                Ok(result)
             },
             OperatorKind::Add1 | OperatorKind::Sub1 => {
-                let key_pair = register_func::get_key_pair();
-                let s1 = vec![];
-                let s2 = vec![];
-
                 // First, do AES decrypt
                 let aes_key = register_func::get_aes_key();
-                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op1.as_bytes()).unwrap();
+                let b1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
+                let cipher_op1 = b1.to_bytes_be();
+                let op2 = BigUint::parse_bytes(input.cipher_op2.as_bytes(), 10).unwrap();
+
+                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op1).unwrap();
 
                 // Second, do ECIES decrypt
-                let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
-                let op1 = u64::from_be_bytes(op1[0..8].try_into().unwrap());
-                let op2 = input.cipher_op2.parse::<u64>().unwrap();
+                ///////////////////////////////////////////////////////////////////////////////////////////////
+                // let key_pair = register_func::get_key_pair();
+                // let s1 = vec![];
+                // let s2 = vec![];
+                // let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
+                // let op1 = u64::from_be_bytes(op1[0..8].try_into().unwrap());
 
+                let op1 = cipher_op1;
+                let op1 = BigUint::from_bytes_be(&op1[..]);
+                ///////////////////////////////////////////////////////////////////////////////////////////////
                 let result = match input.op {
                     OperatorKind::Add1 => op1 + op2,
                     OperatorKind::Sub1 => op1 - op2,
                     _ => return Err(Error::from(ErrorKind::InvalidInputError)),
                 };
 
-                let s1 = vec![];
-                let s2 = vec![];
-                let key_pair = register_func::get_key_pair();
-
-                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
-                let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
-
                 // First, do ECIES encrypt
-                let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &result.to_be_bytes());
-                let cipher = cipher.unwrap();
+                //////////////////////////////////////////////////////////////////////////////////////////////
+                // let s1 = vec![];
+                // let s2 = vec![];
+                // let key_pair = register_func::get_key_pair();
+                // let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+                // let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
+                // let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &result.to_be_bytes());
+                // let cipher = cipher.unwrap();
+                let cipher = result.to_bytes_be();
+                //////////////////////////////////////////////////////////////////////////////////////////////
 
                 // Second, do AES encrypt
                 let aes_key = register_func::get_aes_key();
                 let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
-                
-                // TODO: Should convert into a u64
-                Ok(base64::encode(&cipher))
+
+                let b = BigUint::from_bytes_be(&cipher[..]);
+                let result = b.to_str_radix(10);
+                Ok(result)
             },
             OperatorKind::Enc => {
-                let s1 = vec![];
-                let s2 = vec![];
-                let key_pair = register_func::get_key_pair();
-
-                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
-                let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
-
                 // First, do ECIES encrypt
                 // NOTE: `input.cipher_op1` is acually plain text
-                error!("enc op1 {}", &input.cipher_op1);
-                let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &input.cipher_op1.as_bytes());
-                let cipher = cipher.unwrap();
-                error!("cipher after ecies: {:?}", cipher);
+                let op1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
+                let op_bytes = op1.to_bytes_be();
+                
+                ///////////////////////////////////////////////////////////////////////////////////////////////
+                // let s1 = vec![];
+                // let s2 = vec![];
+                // let key_pair = register_func::get_key_pair();
+
+                // let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+                // let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
+                // let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &op_bytes);
+                // let cipher = cipher.unwrap();
+
+                // XXX:
+                let cipher = op_bytes;
+                ///////////////////////////////////////////////////////////////////////////////////////////////
 
                 // Second, do AES encrypt
                 let aes_key = register_func::get_aes_key();
                 let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
-                error!("cipher after aes: {:?}", cipher);
                 
-                // TODO: Should convert into a u64
-                Ok(base64::encode(&cipher))
+                let b = BigUint::from_bytes_be(&cipher[..]);
+                let result = b.to_str_radix(10);
+                Ok(result)
             }
             OperatorKind::Des => {
-                let key_pair = register_func::get_key_pair();
-                let s1 = vec![];
-                let s2 = vec![];
+                let b = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
+                let cipher = b.to_bytes_be();
+                // let cipher_num = input.cipher_op1.parse::<u64>().unwrap();
+                // let cipher = u64::to_be_bytes(cipher_num);
 
                 // First, do AES decrypt
                 let aes_key = register_func::get_aes_key();
-                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op1.as_bytes()).unwrap();
+                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher).unwrap();
 
                 // Second, do ECIES decrypt
-                let plain = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
-                let plain = u64::from_be_bytes(plain[0..8].try_into().unwrap());
+                ///////////////////////////////////////////////////////////////////////////////////////////////
+                // let key_pair = register_func::get_key_pair();
+                // let s1 = vec![];
+                // let s2 = vec![];
+                // let plain = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
+                // let plain = u64::from_be_bytes(plain[0..8].try_into().unwrap());
+                let plain = cipher_op1;
+                let b = BigUint::from_bytes_be(&plain[..]);
+                ///////////////////////////////////////////////////////////////////////////////////////////////
 
-                Ok(plain.to_string())
+                Ok(b.to_str_radix(10))
 
             }
             _ => {
