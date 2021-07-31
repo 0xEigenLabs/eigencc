@@ -47,10 +47,16 @@ impl OperatorWorker {
 
 enum OperatorKind {
     Add,
+    Add1,
     Sub,
+    Sub1,
+    Enc,
+    Des,
 }
 
 struct OperatorWorkerInput {
+    // TODO: Use a more property field name to describe what we want to save here.
+    //       e.g., when operator is `Enc`, `cipher_op1` is not a cipher one
     op: OperatorKind,
     cipher_op1: String,
     cipher_op2: String,
@@ -76,7 +82,7 @@ impl Worker for OperatorWorker {
         // now `op` may be 'add' or 'sub'
         // number is parsed with big endian
 
-        let splited = Vec::from_iter(msg.split("something").map(String::from));
+        let splited = Vec::from_iter(msg.split(",").map(String::from));
 
         let op = splited.get(0).unwrap();
 
@@ -93,7 +99,23 @@ impl Worker for OperatorWorker {
                 self.input = Some(OperatorWorkerInput { 
                     op: OperatorKind::Add,
                     cipher_op1: cipher_op1.to_string(),
-                    cipher_op2: cipher_op2.to_string() });
+                    cipher_op2: cipher_op2.to_string()
+                });
+            },
+            "add1" => {
+                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                if op_num != 2 {
+                    return Err(Error::from(ErrorKind::InvalidInputError));
+                }
+
+                let cipher_op1 = splited.get(2).unwrap();
+                let cipher_op2 = splited.get(3).unwrap();
+
+                self.input = Some(OperatorWorkerInput { 
+                    op: OperatorKind::Add1,
+                    cipher_op1: cipher_op1.to_string(),
+                    cipher_op2: cipher_op2.to_string()
+                });
             },
             "sub" => {
                 let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
@@ -103,10 +125,55 @@ impl Worker for OperatorWorker {
                 let cipher_op1 = splited.get(2).unwrap();
                 let cipher_op2 = splited.get(3).unwrap();
 
-                self.input = Some(OperatorWorkerInput { op:OperatorKind::Sub,
+                self.input = Some(OperatorWorkerInput {
+                    op: OperatorKind::Sub,
                     cipher_op1: cipher_op1.to_string(),
-                    cipher_op2: cipher_op2.to_string() });
+                    cipher_op2: cipher_op2.to_string()
+                });
             },
+            "sub1" => {
+                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                if op_num != 2 {
+                    return Err(Error::from(ErrorKind::InvalidInputError));
+                }
+                let cipher_op1 = splited.get(2).unwrap();
+                let cipher_op2 = splited.get(3).unwrap();
+
+                self.input = Some(OperatorWorkerInput {
+                    op: OperatorKind::Sub1,
+                    cipher_op1: cipher_op1.to_string(),
+                    cipher_op2: cipher_op2.to_string()
+                });
+            },
+            "enc" => {
+                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                error!("op_num is {}", op_num);
+                if op_num != 1 {
+                    return Err(Error::from(ErrorKind::InvalidInputError));
+                }
+
+                let to_enc = splited.get(2).unwrap();
+
+                self.input = Some(OperatorWorkerInput {
+                    op: OperatorKind::Enc,
+                    cipher_op1: to_enc.to_string(),
+                    cipher_op2: "".to_string()
+                });
+            }
+            "des" => {
+                let op_num = splited.get(1).unwrap().parse::<u64>().unwrap();
+                if op_num != 1 {
+                    return Err(Error::from(ErrorKind::InvalidInputError));
+                }
+
+                let to_des = splited.get(2).unwrap();
+
+                self.input = Some(OperatorWorkerInput {
+                    op: OperatorKind::Des,
+                    cipher_op1: to_des.to_string(),
+                    cipher_op2: "".to_string()
+                });
+            }
             _ => {
                 return Err(Error::from(ErrorKind::InvalidInputError));
             }
@@ -122,48 +189,127 @@ impl Worker for OperatorWorker {
             .take()
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
-        let key_pair = register_func::get_key_pair();
-        let s1 = vec![];
-        let s2 = vec![];
+        match input.op {
+            OperatorKind::Add | OperatorKind::Sub => {
+                let key_pair = register_func::get_key_pair();
+                let s1 = vec![];
+                let s2 = vec![];
 
-        // First, do AES decrypt
-        let aes_key = register_func::get_aes_key();
-        let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op1.as_bytes()).unwrap();
-        let cipher_op2 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op2.as_bytes()).unwrap();
+                // First, do AES decrypt
+                let aes_key = register_func::get_aes_key();
+                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op1.as_bytes()).unwrap();
+                let cipher_op2 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op2.as_bytes()).unwrap();
 
-        // Second, do ECIES decrypt
-        let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
-        let op1 = u64::from_be_bytes(op1[0..8].try_into().unwrap());
-        let op2 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op2, &s1, &s2).unwrap();
-        let op2 = u64::from_be_bytes(op2[0..8].try_into().unwrap());
+                // Second, do ECIES decrypt
+                let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
+                let op1 = u64::from_be_bytes(op1[0..8].try_into().unwrap());
+                let op2 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op2, &s1, &s2).unwrap();
+                let op2 = u64::from_be_bytes(op2[0..8].try_into().unwrap());
 
-        let result = match input.op {
-            OperatorKind::Add => {
-                op1 + op2
+                let result = match input.op {
+                    OperatorKind::Add => op1 + op2,
+                    OperatorKind::Sub => op1 - op2,
+                    _ => return Err(Error::from(ErrorKind::InvalidInputError)),
+                };
+
+                let s1 = vec![];
+                let s2 = vec![];
+                let key_pair = register_func::get_key_pair();
+
+                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+                let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
+
+                // First, do ECIES encrypt
+                let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &result.to_be_bytes());
+                let cipher = cipher.unwrap();
+
+                // Second, do AES encrypt
+                let aes_key = register_func::get_aes_key();
+                let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
+
+                // TODO: should covert into a u64
+                Ok(base64::encode(&cipher))
             },
-            OperatorKind::Sub => {
-                op1 - op2
+            OperatorKind::Add1 | OperatorKind::Sub1 => {
+                let key_pair = register_func::get_key_pair();
+                let s1 = vec![];
+                let s2 = vec![];
+
+                // First, do AES decrypt
+                let aes_key = register_func::get_aes_key();
+                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op1.as_bytes()).unwrap();
+
+                // Second, do ECIES decrypt
+                let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
+                let op1 = u64::from_be_bytes(op1[0..8].try_into().unwrap());
+                let op2 = input.cipher_op2.parse::<u64>().unwrap();
+
+                let result = match input.op {
+                    OperatorKind::Add1 => op1 + op2,
+                    OperatorKind::Sub1 => op1 - op2,
+                    _ => return Err(Error::from(ErrorKind::InvalidInputError)),
+                };
+
+                let s1 = vec![];
+                let s2 = vec![];
+                let key_pair = register_func::get_key_pair();
+
+                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+                let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
+
+                // First, do ECIES encrypt
+                let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &result.to_be_bytes());
+                let cipher = cipher.unwrap();
+
+                // Second, do AES encrypt
+                let aes_key = register_func::get_aes_key();
+                let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
+                
+                // TODO: Should convert into a u64
+                Ok(base64::encode(&cipher))
             },
+            OperatorKind::Enc => {
+                let s1 = vec![];
+                let s2 = vec![];
+                let key_pair = register_func::get_key_pair();
+
+                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+                let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
+
+                // First, do ECIES encrypt
+                // NOTE: `input.cipher_op1` is acually plain text
+                error!("enc op1 {}", &input.cipher_op1);
+                let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &input.cipher_op1.as_bytes());
+                let cipher = cipher.unwrap();
+                error!("cipher after ecies: {:?}", cipher);
+
+                // Second, do AES encrypt
+                let aes_key = register_func::get_aes_key();
+                let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
+                error!("cipher after aes: {:?}", cipher);
+                
+                // TODO: Should convert into a u64
+                Ok(base64::encode(&cipher))
+            }
+            OperatorKind::Des => {
+                let key_pair = register_func::get_key_pair();
+                let s1 = vec![];
+                let s2 = vec![];
+
+                // First, do AES decrypt
+                let aes_key = register_func::get_aes_key();
+                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op1.as_bytes()).unwrap();
+
+                // Second, do ECIES decrypt
+                let plain = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
+                let plain = u64::from_be_bytes(plain[0..8].try_into().unwrap());
+
+                Ok(plain.to_string())
+
+            }
             _ => {
                 return Err(Error::from(ErrorKind::InvalidInputError));
             }
-        };
-
-        let s1 = vec![];
-        let s2 = vec![];
-        let key_pair = register_func::get_key_pair();
-
-        let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
-        let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
-
-        // First, do ECIES encrypt
-        let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &result.to_be_bytes());
-        let cipher = cipher.unwrap();
-
-        // Second, do AES encrypt
-        let aes_key = register_func::get_aes_key();
-        let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
-
-        Ok(base64::encode(&cipher))
+        }
     }
 }
