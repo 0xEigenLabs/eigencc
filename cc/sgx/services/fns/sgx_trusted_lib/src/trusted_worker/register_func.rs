@@ -41,6 +41,12 @@ lazy_static! {
             );
         private_key.unwrap()
     };
+
+    static ref CACHED_AES_KEY: Vec<u8> = {
+        let mut r = vec![0u8; 32];
+        rand::thread_rng().fill(&mut r[..]);
+        r
+    };
 }
 
 pub struct RegisterWorker {
@@ -92,4 +98,8 @@ impl Worker for RegisterWorker {
 
 pub fn get_key_pair() -> &'static EcdsaKeyPair {
     &CACHED_KEY_PAIR
+}
+
+pub fn get_aes_key() -> &'static Vec<u8> {
+    &CACHED_AES_KEY
 }

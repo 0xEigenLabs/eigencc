@@ -125,9 +125,16 @@ impl Worker for OperatorWorker {
         let key_pair = register_func::get_key_pair();
         let s1 = vec![];
         let s2 = vec![];
-        let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &input.cipher_op1.as_bytes(), &s1, &s2).unwrap();
+
+        // First, do AES decrypt
+        let aes_key = register_func::get_aes_key();
+        let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op1.as_bytes()).unwrap();
+        let cipher_op2 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &input.cipher_op2.as_bytes()).unwrap();
+
+        // Second, do ECIES decrypt
+        let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op1, &s1, &s2).unwrap();
         let op1 = u64::from_be_bytes(op1[0..8].try_into().unwrap());
-        let op2 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &input.cipher_op2.as_bytes(), &s1, &s2).unwrap();
+        let op2 = eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_op2, &s1, &s2).unwrap();
         let op2 = u64::from_be_bytes(op2[0..8].try_into().unwrap());
 
         let result = match input.op {
@@ -149,8 +156,14 @@ impl Worker for OperatorWorker {
         let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
         let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
 
+        // First, do ECIES encrypt
         let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &result.to_be_bytes());
         let cipher = cipher.unwrap();
+
+        // Second, do AES encrypt
+        let aes_key = register_func::get_aes_key();
+        let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
+
         Ok(base64::encode(&cipher))
     }
 }
