@@ -54,7 +54,7 @@ enum OperatorKind {
     Sub,
     Sub1,
     Enc,
-    Des,
+    Dec,
 }
 
 struct OperatorWorkerInput {
@@ -162,17 +162,17 @@ impl Worker for OperatorWorker {
                     cipher_op2: "".to_string()
                 });
             }
-            "des" => {
+            "dec" => {
                 let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
                 if op_num != 1 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
 
-                let to_des = splited.get(2).unwrap();
+                let to_dec = splited.get(2).unwrap();
 
                 self.input = Some(OperatorWorkerInput {
-                    op: OperatorKind::Des,
-                    cipher_op1: to_des.to_string(),
+                    op: OperatorKind::Dec,
+                    cipher_op1: to_dec.to_string(),
                     cipher_op2: "".to_string()
                 });
             }
@@ -325,7 +325,7 @@ impl Worker for OperatorWorker {
                 let result = b.to_str_radix(10);
                 Ok(result)
             }
-            OperatorKind::Des => {
+            OperatorKind::Dec => {
                 let b = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
                 let cipher = b.to_bytes_be();
                 // let cipher_num = input.cipher_op1.parse::<u64>().unwrap();
