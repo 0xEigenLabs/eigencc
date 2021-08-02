@@ -9,11 +9,11 @@ export TEESDK_ARGS="enc,1,${num}"
 export TEESDK_UID="uid"
 export TEESDK_TOKEN= "token"
 
-descrypt=`./test_teesdk 2> /dev/null`
+decrypt=`./test_teesdk 2> /dev/null`
 
 
 export TEESDK_METHOD="operator"
-export TEESDK_ARGS="des,1,$descrypt"
+export TEESDK_ARGS="dec,1,$decrypt"
 export TEESDK_UID="uid"
 export TEESDK_TOKEN= "token"
 
@@ -55,7 +55,7 @@ export TEESDK_TOKEN= "token"
 result_cipher=`./test_teesdk 2> /dev/null`
 
 export TEESDK_METHOD="operator"
-export TEESDK_ARGS="des,1,$result_cipher"
+export TEESDK_ARGS="dec,1,$result_cipher"
 export TEESDK_UID="uid"
 export TEESDK_TOKEN= "token"
 
@@ -96,7 +96,7 @@ export TEESDK_TOKEN= "token"
 result_cipher=`./test_teesdk 2> /dev/null`
 
 export TEESDK_METHOD="operator"
-export TEESDK_ARGS="des,1,$result_cipher"
+export TEESDK_ARGS="dec,1,$result_cipher"
 export TEESDK_UID="uid"
 export TEESDK_TOKEN= "token"
 
@@ -130,7 +130,7 @@ export TEESDK_TOKEN= "token"
 result_cipher=`./test_teesdk 2> /dev/null`
 
 export TEESDK_METHOD="operator"
-export TEESDK_ARGS="des,1,$result_cipher"
+export TEESDK_ARGS="dec,1,$result_cipher"
 export TEESDK_UID="uid"
 export TEESDK_TOKEN= "token"
 
@@ -165,7 +165,7 @@ export TEESDK_TOKEN= "token"
 result_cipher=`./test_teesdk 2> /dev/null`
 
 export TEESDK_METHOD="operator"
-export TEESDK_ARGS="des,1,$result_cipher"
+export TEESDK_ARGS="dec,1,$result_cipher"
 export TEESDK_UID="uid"
 export TEESDK_TOKEN= "token"
 
