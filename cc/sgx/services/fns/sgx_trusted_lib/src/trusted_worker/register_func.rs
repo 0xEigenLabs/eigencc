@@ -23,16 +23,38 @@ use std::str;
 use std::vec;
 use crate::worker::{Worker, WorkerContext};
 use eigen_core::{Error, ErrorKind, Result};
-use sgx_tcrypto::{
-    rsgx_sha256_slice,
-    SgxEccHandle
-};
+
+use eigen_crypto::sign::ecdsa::{KeyPair, EcdsaKeyPair};
+use rand::Rng;
+use lazy_static::lazy_static;
+
+// TODO: For a naive implementation, now the key pair is never changed
+//       when `fns` is launched, however, in the future, the key pair
+//       may be updated by some mechanism
+lazy_static! {
+    static ref CACHED_KEY_PAIR: EcdsaKeyPair = {
+        let mut r = vec![0u8; 32];
+        rand::thread_rng().fill(&mut r[..]);
+        let private_key = eigen_crypto::sign::ecdsa::EcdsaKeyPair::from_seed_unchecked(
+            &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1_SIGNING,
+            untrusted::Input::from(&r),
+            );
+        private_key.unwrap()
+    };
+
+    static ref CACHED_AES_KEY: Vec<u8> = {
+        let mut r = vec![0u8; 32];
+        // rand::thread_rng().fill(&mut r[..]);
+        r
+    };
+}
 
 pub struct RegisterWorker {
     worker_id: u32,
     func_name: String,
     input: Option<RegisterWorkerInput>,
 }
+
 impl RegisterWorker {
     pub fn new() -> Self {
         RegisterWorker {
@@ -65,31 +87,19 @@ impl Worker for RegisterWorker {
 
     fn execute(&mut self, _context: WorkerContext) -> Result<String> {
         // generate pk and sk
-        let ec_handle = SgxEccHandle::new();
-        ec_handle.open()?;
-        let (_sk, pk) = ec_handle.create_key_pair()?;
 
-        // encode, section 4.3.6 of ANSI X9.62
-        let mut pub_key_bytes: Vec<u8> = vec![4]; // uncompressed point
-        let mut pk_gx = pk.gx.clone();
-        pk_gx.reverse(); // big-endian byte slice
-        let mut pk_gy = pk.gy.clone();
-        pk_gy.reverse();
-        pub_key_bytes.extend_from_slice(&pk_gx);
-        pub_key_bytes.extend_from_slice(&pk_gy);
+        let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+        let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, CACHED_KEY_PAIR.public_key());
 
-        // calculate sha256 of public key
-        let ret = rsgx_sha256_slice::<u8>(&pub_key_bytes.clone());
-        match ret {
-            Ok(key) => {
-                let mut res_bytes: Vec<u8> = key.to_vec();
-                res_bytes.extend_from_slice(&pub_key_bytes);
-                Ok(base64::encode(&res_bytes))
-            },
-            Err(e) => {
-                warn!("Hash failed {:?}", e);
-                Err(Error::from(ErrorKind::InvalidInputError))
-            }
-        }
+        Ok(base64::encode(public_key.as_ref()))
+        
     }
+}
+
+pub fn get_key_pair() -> &'static EcdsaKeyPair {
+    &CACHED_KEY_PAIR
+}
+
+pub fn get_aes_key() -> &'static Vec<u8> {
+    &CACHED_AES_KEY
 }
