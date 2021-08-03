@@ -224,13 +224,6 @@ impl Worker for OperatorWorker {
                     _ => return Err(Error::from(ErrorKind::InvalidInputError)),
                 };
 
-                let s1 = vec![];
-                let s2 = vec![];
-                let key_pair = register_func::get_key_pair();
-
-                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
-                let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
-
                 // First, do ECIES encrypt
                 //////////////////////////////////////////////////////////////////////////////////////////////
                 // let s1 = vec![];
