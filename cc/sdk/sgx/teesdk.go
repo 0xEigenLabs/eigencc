@@ -51,7 +51,7 @@ int submit_task(const char* method, const char* args, const char* uid,
   printf("Response: %s\n", recvbuf);
   *output_size = strlen(recvbuf);
   *output = (char*)malloc(strlen(recvbuf) + 1);
-  memset(*output, 0, *output_size);
+  memset(*output, 0, *output_size + 1);
   memcpy(*output, recvbuf, *output_size);
 
   eigen_task_free(task);
