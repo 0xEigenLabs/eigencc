@@ -16,21 +16,19 @@
 // under the License.
 
 // Insert std prelude in the top for the sgx feature
+use std::convert::TryInto;
+use std::iter::FromIterator;
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
 use std::vec;
-use std::iter::FromIterator;
-use std::convert::TryInto;
 
-use crate::worker::{Worker, WorkerContext};
-use crate::trusted_worker::register_func;
-use eigen_core::{Error, ErrorKind, Result};
 use crate::eigen_crypto::sign::ecdsa::KeyPair;
+use crate::trusted_worker::register_func;
+use crate::worker::{Worker, WorkerContext};
+use eigen_core::{Error, ErrorKind, Result};
 
 use num_bigint::{BigInt, ToBigInt};
 use num_bigint::{BigUint, ToBigUint};
-
-// TODO: unwrap() method should all be replaced with a property error handling
 
 pub struct OperatorWorker {
     worker_id: u32,
@@ -87,93 +85,139 @@ impl Worker for OperatorWorker {
 
         let splited = Vec::from_iter(msg.split(",").map(String::from));
 
-        let op = splited.get(0).unwrap();
+        let op = splited
+            .get(0)
+            .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
         match op.as_str() {
             "add" => {
-                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
+                let op_num = splited
+                    .get(1)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?
+                    .parse::<u8>()
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
                 if op_num != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
 
-                let cipher_op1 = splited.get(2).unwrap();
-                let cipher_op2 = splited.get(3).unwrap();
+                let cipher_op1 = splited
+                    .get(2)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+                let cipher_op2 = splited
+                    .get(3)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
-                self.input = Some(OperatorWorkerInput { 
+                self.input = Some(OperatorWorkerInput {
                     op: OperatorKind::Add,
                     cipher_op1: cipher_op1.to_string(),
-                    cipher_op2: cipher_op2.to_string()
+                    cipher_op2: cipher_op2.to_string(),
                 });
-            },
+            }
             "add1" => {
-                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
+                let op_num = splited
+                    .get(1)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?
+                    .parse::<u8>()
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
                 if op_num != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
 
-                let cipher_op1 = splited.get(2).unwrap();
-                let cipher_op2 = splited.get(3).unwrap();
+                let cipher_op1 = splited
+                    .get(2)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+                let cipher_op2 = splited
+                    .get(3)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
-                self.input = Some(OperatorWorkerInput { 
+                self.input = Some(OperatorWorkerInput {
                     op: OperatorKind::Add1,
                     cipher_op1: cipher_op1.to_string(),
-                    cipher_op2: cipher_op2.to_string()
+                    cipher_op2: cipher_op2.to_string(),
                 });
-            },
+            }
             "sub" => {
-                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
+                let op_num = splited
+                    .get(1)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?
+                    .parse::<u8>()
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
                 if op_num != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
-                let cipher_op1 = splited.get(2).unwrap();
-                let cipher_op2 = splited.get(3).unwrap();
+                let cipher_op1 = splited
+                    .get(2)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+                let cipher_op2 = splited
+                    .get(3)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
                 self.input = Some(OperatorWorkerInput {
                     op: OperatorKind::Sub,
                     cipher_op1: cipher_op1.to_string(),
-                    cipher_op2: cipher_op2.to_string()
+                    cipher_op2: cipher_op2.to_string(),
                 });
-            },
+            }
             "sub1" => {
-                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
+                let op_num = splited
+                    .get(1)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?
+                    .parse::<u8>()
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
                 if op_num != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
-                let cipher_op1 = splited.get(2).unwrap();
-                let cipher_op2 = splited.get(3).unwrap();
+                let cipher_op1 = splited
+                    .get(2)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+                let cipher_op2 = splited
+                    .get(3)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
                 self.input = Some(OperatorWorkerInput {
                     op: OperatorKind::Sub1,
                     cipher_op1: cipher_op1.to_string(),
-                    cipher_op2: cipher_op2.to_string()
+                    cipher_op2: cipher_op2.to_string(),
                 });
-            },
+            }
             "enc" => {
-                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
+                let op_num = splited
+                    .get(1)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?
+                    .parse::<u8>()
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
                 if op_num != 1 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
 
-                let to_enc = splited.get(2).unwrap();
+                let to_enc = splited
+                    .get(2)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
                 self.input = Some(OperatorWorkerInput {
                     op: OperatorKind::Enc,
                     cipher_op1: to_enc.to_string(),
-                    cipher_op2: "".to_string()
+                    cipher_op2: "".to_string(),
                 });
             }
             "dec" => {
-                let op_num = splited.get(1).unwrap().parse::<u8>().unwrap();
+                let op_num = splited
+                    .get(1)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?
+                    .parse::<u8>()
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
                 if op_num != 1 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
 
-                let to_dec = splited.get(2).unwrap();
+                let to_dec = splited
+                    .get(2)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
                 self.input = Some(OperatorWorkerInput {
                     op: OperatorKind::Dec,
                     cipher_op1: to_dec.to_string(),
-                    cipher_op2: "".to_string()
+                    cipher_op2: "".to_string(),
                 });
             }
             _ => {
@@ -182,7 +226,6 @@ impl Worker for OperatorWorker {
         }
 
         Ok(())
-
     }
 
     fn execute(&mut self, _context: WorkerContext) -> Result<String> {
@@ -195,13 +238,19 @@ impl Worker for OperatorWorker {
             OperatorKind::Add | OperatorKind::Sub => {
                 // First, do AES decrypt
                 let aes_key = register_func::get_aes_key();
-                let b1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
+                let b1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
                 let cipher_op1 = b1.to_bytes_be();
-                let b2 = BigUint::parse_bytes(input.cipher_op2.as_bytes(), 10).unwrap();
+                let b2 = BigUint::parse_bytes(input.cipher_op2.as_bytes(), 10)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
                 let cipher_op2 = b2.to_bytes_be();
 
-                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op1).unwrap();
-                let cipher_op2 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op2).unwrap();
+                let cipher_op1 =
+                    eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op1)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                let cipher_op2 =
+                    eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op2)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
 
                 // Second, do ECIES decrypt
                 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,20 +287,26 @@ impl Worker for OperatorWorker {
 
                 // Second, do AES encrypt
                 let aes_key = register_func::get_aes_key();
-                let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
+                let cipher =
+                    eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
 
                 let b = BigUint::from_bytes_be(&cipher[..]);
                 let result = b.to_str_radix(10);
                 Ok(result)
-            },
+            }
             OperatorKind::Add1 | OperatorKind::Sub1 => {
                 // First, do AES decrypt
                 let aes_key = register_func::get_aes_key();
-                let b1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
+                let b1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
                 let cipher_op1 = b1.to_bytes_be();
-                let op2 = BigUint::parse_bytes(input.cipher_op2.as_bytes(), 10).unwrap();
+                let op2 = BigUint::parse_bytes(input.cipher_op2.as_bytes(), 10)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
-                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op1).unwrap();
+                let cipher_op1 =
+                    eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher_op1)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
 
                 // Second, do ECIES decrypt
                 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -284,18 +339,20 @@ impl Worker for OperatorWorker {
 
                 // Second, do AES encrypt
                 let aes_key = register_func::get_aes_key();
-                let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
+                let cipher =
+                    eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
 
                 let b = BigUint::from_bytes_be(&cipher[..]);
                 let result = b.to_str_radix(10);
                 Ok(result)
-            },
+            }
             OperatorKind::Enc => {
                 // First, do ECIES encrypt
                 // NOTE: `input.cipher_op1` is acually plain text
-                let op1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
+                let op1 = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
                 let op_bytes = op1.to_bytes_be();
-                
                 ///////////////////////////////////////////////////////////////////////////////////////////////
                 // let s1 = vec![];
                 // let s2 = vec![];
@@ -312,21 +369,25 @@ impl Worker for OperatorWorker {
 
                 // Second, do AES encrypt
                 let aes_key = register_func::get_aes_key();
-                let cipher = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher).unwrap();
-                
+                let cipher =
+                    eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(aes_key, &cipher)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
                 let b = BigUint::from_bytes_be(&cipher[..]);
                 let result = b.to_str_radix(10);
                 Ok(result)
             }
             OperatorKind::Dec => {
-                let b = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10).unwrap();
+                let b = BigUint::parse_bytes(input.cipher_op1.as_bytes(), 10)
+                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
                 let cipher = b.to_bytes_be();
                 // let cipher_num = input.cipher_op1.parse::<u64>().unwrap();
                 // let cipher = u64::to_be_bytes(cipher_num);
 
                 // First, do AES decrypt
                 let aes_key = register_func::get_aes_key();
-                let cipher_op1 = eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher).unwrap();
+                let cipher_op1 =
+                    eigen_crypto::ec::suite_b::ecies::aes_decrypt_less_safe(aes_key, &cipher)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
 
                 // Second, do ECIES decrypt
                 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +401,6 @@ impl Worker for OperatorWorker {
                 ///////////////////////////////////////////////////////////////////////////////////////////////
 
                 Ok(b.to_str_radix(10))
-
             }
             _ => {
                 return Err(Error::from(ErrorKind::InvalidInputError));
