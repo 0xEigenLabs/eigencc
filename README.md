@@ -11,7 +11,7 @@
 ## About Eigen
 [Eigen Network](https://www.ieigen.com/)
 
-[Discord](https://discord.gg/KJeFDM5v)
+[Discord](https://discord.gg/CkzGRuKwWU)
 
 [Twitter](https://twitter.com/Eigen_Network)
 
