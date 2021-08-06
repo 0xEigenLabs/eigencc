@@ -8,6 +8,16 @@
 ## EigenFL
 [EigenFL](./fl) Federated Machine Learning
 
+## About Eigen
+[Eigen Network](https://www.ieigen.com/)
+
+[Discord](https://discord.gg/KJeFDM5v)
+
+[Twitter](https://twitter.com/Eigen_Network)
+
+[Telegram](https://t.me/Eigen_Network)
+
+[Medium](https://medium.com/@iEigen)
 
 # We are hiring!
 
