@@ -15,6 +15,7 @@ Rust Version: rustup default nightly-2020-10-25
 $ git clone --recursive https://github.com/ieigen/ieigen.git
 $ cd cc/sgx 
 $ docker run --name fns --net=host -v$(pwd):/app -w /app -it $IMAGE bash
+$ rustup default nightly-2020-10-25
 $ mkdir -p build && cd build
 $ cmake .. && make # or use SIM mode: cmake .. -DSGX_SIM_MODE=on && make 
 ```
