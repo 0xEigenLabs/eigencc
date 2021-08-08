@@ -12,7 +12,7 @@ Rust Version: rustup default nightly-2020-10-25
 ### Compile
 
 ```
-$ git clone --recursive https://github.com/ieigen/ieigen.git
+$ git clone --recursive https://github.com/ieigen/ieigen.git  # if clone failed, use `git submodule update --init` to pull submodules 
 $ cd cc/sgx 
 $ docker run --name fns --net=host -v$(pwd):/app -w /app -it $IMAGE bash
 $ rustup default nightly-2020-10-25
