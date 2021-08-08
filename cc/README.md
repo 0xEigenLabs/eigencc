@@ -16,7 +16,7 @@ $ git clone --recursive https://github.com/ieigen/ieigen.git
 $ cd cc/sgx 
 $ docker run --name fns --net=host -v$(pwd):/app -w /app -it $IMAGE bash
 $ mkdir -p build && cd build
-$ cmake -DTEST_MODE=ON .. && make
+$ cmake .. && make # or use SIM mode: cmake .. -DSGX_SIM_MODE=on && make 
 ```
 
 Build $IMAGE image by [Dockerfile](./sgx/dcap/Dockerfile)
