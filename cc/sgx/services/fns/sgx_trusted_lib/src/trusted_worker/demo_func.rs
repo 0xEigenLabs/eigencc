@@ -27,6 +27,11 @@ use rand::Rng;
 use crate::worker::{Worker, WorkerContext};
 use eigen_core::{Error, ErrorKind, Result};
 
+use gbdt::config::Config;
+use gbdt::decision_tree::{DataVec, PredVec};
+use gbdt::gradient_boost::GBDT;
+use gbdt::input::{InputFormat, load};
+
 pub struct EchoWorker {
     worker_id: u32,
     func_name: String,
@@ -43,7 +48,10 @@ impl EchoWorker {
 }
 struct EchoWorkerInput {
     msg: String,
+    test_dataset: String,
+    training_dataset: String,
 }
+
 impl Worker for EchoWorker {
     fn function_name(&self) -> &str {
         self.func_name.as_str()
@@ -56,7 +64,13 @@ impl Worker for EchoWorker {
     }
     fn prepare_input(&mut self, dynamic_input: Option<String>) -> Result<()> {
         let msg = dynamic_input.ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
-        self.input = Some(EchoWorkerInput { msg });
+        let value: Vec<&str> = msg.as_str().split(",").collect();
+        std::println!("input {} {} {}", value[0], value[1], value[2]);
+        self.input = Some(EchoWorkerInput { 
+            msg: value[0].to_string(), 
+            test_dataset: value[1].to_string(),
+            training_dataset: value[2].to_string()
+            });
         Ok(())
     }
     fn execute(&mut self, _context: WorkerContext) -> Result<String> {
@@ -88,6 +102,38 @@ impl Worker for EchoWorker {
         assert_eq!(plain.is_ok(), true);
         assert_eq!(msg.as_bytes().to_vec(), (plain.unwrap()));
         std::println!("check success");
-        Ok(input.msg + ", Eigen")
+
+	    if(input.test_dataset.len() > 0) {
+	        let mut cfg = Config::new();
+	        cfg.set_feature_size(22);
+	        cfg.set_max_depth(3);
+	        cfg.set_iterations(50);
+	        cfg.set_shrinkage(0.1);
+	        cfg.set_loss("LogLikelyhood"); 
+	        cfg.set_debug(true);
+	        cfg.set_data_sample_ratio(1.0);
+	        cfg.set_feature_sample_ratio(1.0);
+	        cfg.set_training_optimization_level(2);
+
+	        // load data
+	        let train_file = input.training_dataset.as_str();  
+	        let test_file = input.test_dataset.as_str(); 
+
+	        let mut input_format = InputFormat::csv_format();
+	        input_format.set_feature_size(22);
+	        input_format.set_label_index(22);
+	        let mut train_dv: DataVec = load(train_file, input_format).expect("failed to load training data");
+	        let test_dv: DataVec = load(test_file, input_format).expect("failed to load test data");
+
+	        // train and save model
+	        let mut gbdt = GBDT::new(&cfg);
+	        gbdt.fit(&mut train_dv);
+	        gbdt.save_model("gbdt.model").expect("failed to save the model");
+
+	        // load model and do inference
+	        let model = GBDT::load_model("gbdt.model").expect("failed to load the model");
+	        let predicted: PredVec = model.predict(&test_dv);
+	    } 
+	    Ok(input.msg + ", Eigen")
     }
 }

@@ -70,3 +70,4 @@ prost-types       = { git = "https://github.com/mesalock-linux/prost-sgx", tag="
 eigen_crypto 	  = { git = "https://github.com/ieigen/eigen-crypto", features = ["mesalock_sgx"], branch="merge" }
 rust-base58       = { git = "https://github.com/mesalock-linux/rust-base58-sgx" }
 rust-crypto       = { git = "https://github.com/mesalock-linux/rust-crypto-sgx" }
+gbdt = { package = "gbdt_sgx", git = "https://github.com/mesalock-linux/gbdt-rs" }
