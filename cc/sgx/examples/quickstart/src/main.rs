@@ -32,6 +32,12 @@ struct EchoOpt {
 
     #[structopt(short = "m", required = true)]
     message: String,
+
+    #[structopt(short = "t", required = false, default_value = "")]
+    test_dataset: String,
+	
+    #[structopt(short = "r", required = false, default_value = "")]
+    training_dataset: String,
 }
 
 #[derive(Debug, StructOpt)]
@@ -57,7 +63,8 @@ fn echo(args: EchoOpt) {
 
     let tee = Mesatee::new(&enclave_info, "uid1", "token1", *TMS_ADDR).expect("new");
     let task = tee.create_task("echo").expect("create");
-    let response = task.invoke_with_payload(&args.message).expect("invoke");
+    let message = vec![args.message, args.test_dataset, args.training_dataset].join(",");
+    let response = task.invoke_with_payload(&message).expect("invoke");
     println!("{}", response);
 }
 

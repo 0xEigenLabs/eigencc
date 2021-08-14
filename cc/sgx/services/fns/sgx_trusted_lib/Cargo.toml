@@ -47,6 +47,7 @@ prost-types = { version = "0.6.0" }
 eigen_crypto 	  = { git = "https://github.com/ieigen/eigen-crypto", features = ["mesalock_sgx"], branch = "merge" }
 rand 	          = { git = "https://github.com/mesalock-linux/rand-sgx" }
 untrusted = { git = "https://github.com/briansmith/untrusted", tag = "ring-master"  }
+gbdt = { package = "gbdt_sgx", git = "https://github.com/mesalock-linux/gbdt-rs", default-features = false, features = ["mesalock_sgx", "input", "enable_training"]  }
 
 
 fns_proto            = { path = "../proto", optional = true }
