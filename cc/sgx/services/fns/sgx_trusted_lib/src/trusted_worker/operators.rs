@@ -201,7 +201,7 @@ impl Worker for OperatorWorker {
                     &s2,
                     &result.to_bytes_be(),
                 )
-                .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                .map_err(|_| Error::from(ErrorKind::CryptoError))?;
 
                 // 5. Result is cipher, encode it as base64
                 let result = base64::encode(&cipher);
@@ -248,7 +248,7 @@ impl Worker for OperatorWorker {
                     &s2,
                     &result.to_bytes_be(),
                 )
-                .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                .map_err(|_| Error::from(ErrorKind::CryptoError))?;
 
                 // 5. Result is cipher, encode it as base64
                 let result = base64::encode(&cipher);
@@ -269,20 +269,16 @@ impl Worker for OperatorWorker {
                     eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
                 let cipher =
                     eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &op_bytes)
-                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                        .map_err(|_| Error::from(ErrorKind::CryptoError))?;
 
                 // 2. Result is cipher, encode it as base64
-                error!("[ENCRYPT] Cipher: {:?}", cipher);
                 let result = base64::encode(&cipher);
-                error!("[ENCRYPT] Cipher Base64: {:?}", result);
                 Ok(result)
             }
             OperatorKind::Decrypt => {
                 // 1. Cipher is encoded as base64, should be decoded
-                error!("[DECRYPT] Cipher Base64: {:?}", input.operand_1);
                 let cipher_operand = base64::decode(&input.operand_1)
                     .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-                error!("[DECRYPT] Cipher: {:?}", cipher_operand);
 
                 // 2. Do ECIES decrypt
                 let key_pair = register_func::get_key_pair();
@@ -291,10 +287,9 @@ impl Worker for OperatorWorker {
                 let plain =
                     eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_operand, &s1, &s2)
                         .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-                error!("[DECRYPT] Plain: {:?}", cipher_operand);
+
                 // 3. Parsed as BigInt from big endian
                 let b = BigUint::from_bytes_be(&plain[..]);
-                error!("[DECRYPT] Plain BigInt: {:?}", b);
 
                 Ok(b.to_str_radix(10))
             }
