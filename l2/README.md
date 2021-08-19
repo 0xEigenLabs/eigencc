@@ -24,12 +24,17 @@ To run Arbitrum locally, you need several things:
 
   ```bash
   yarn docker:build:geth
+
+  # Set DEVNET_PRIVKEY, for example:
+  export DEVNET_PRIVKEY="0x2323232323232323232323232323232323232323232323232323232323232323"
   yarn docker:geth
   ```
 
   - Configuring your local Arbitrum chain (the L2)
 
   ```bash
+  # If in another terminal, we should set DEVNET_PRIVKEY again with the same value as before
+  
   yarn demo:initialize
   ```
 
@@ -39,15 +44,15 @@ To run Arbitrum locally, you need several things:
   yarn demo:deploy
   ```
 
-3. Deploy contract by truffle in `eigen_call_sample`
+3. Run tutorial `demo-eigencall`
 
 ```bash
+cd eigen-tutorials
 # Install some dependencies
-npm install @truffle/hdwallet-provider
+yarn
 
-# Deploy the contracts
-truffle migrate --reset --network arbitrum
+# Run tutorial
+cd packages/demo-iegencall
 
-# Test our contracts
-truffle console --network arbitrum
+yarn run exec
 ```
