@@ -7,20 +7,20 @@ interface ArbSys {
     /**
     * @notice Get internal version number identifying an ArbOS build
     * @return version number as int
-    */
+     */
     function arbOSVersion() external pure returns (uint);
     
     /**
-    * @notice Call eigenCall function with RLP encoding bytes, which is a list must contain 4 strings
-    * @param RLP encoding bytes of `[operator, arg1, arg2, arg3]`
-    * @return eigenCall returns bytes which is encoded with RLP
-    */
+    * @notice Call eigenCall function with RLP encoding bytes
+    * @return eigenCall returns value with RLP encoding bytes
+     */
+    
     function eigenCall(bytes calldata) external pure returns (bytes memory);
 
     /**
     * @notice Get Arbitrum block number (distinct from L1 block number; Arbitrum genesis block has block number 0)
     * @return block number as int
-    */
+     */
     function arbBlockNumber() external view returns (uint);
 
     /**
@@ -38,7 +38,6 @@ interface ArbSys {
     * @return a unique identifier for this L2-to-L1 transaction.
     */
     function sendTxToL1(address destination, bytes calldata calldataForL1) external payable returns(uint);
-
 
 
     /**
