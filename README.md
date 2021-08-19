@@ -9,7 +9,7 @@
 [EigenRollup Chain](./l2) Optimistical Rollup Chain.
 
 ## EigenFL
-To be coming
+Stay tuned, coming soon.
 
 ## About Eigen
 [Eigen Network](https://www.ieigen.com/)
