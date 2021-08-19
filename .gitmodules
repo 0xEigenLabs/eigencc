@@ -9,7 +9,3 @@
 	path = cc/sgx/third_party/crates-io
 	url = https://github.com/mesalock-linux/crates-io.git
 	ignore = dirty
-[submodule "third_party/charm"]
-	path = fl/third_party/charm
-	url = https://github.com/ieigen/charm.git 
-	ignore = dirty

@@ -1,2 +1,0 @@
-echo "$@"
-PYTHONPATH=../..:$PATHONPATH python $@

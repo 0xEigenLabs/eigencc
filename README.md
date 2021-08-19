@@ -5,8 +5,11 @@
 ## EigenCC
 [EigenCC](./cc) Confidential Computation Framework.
 
+## EigenRollup Chain
+[EigenRollup Chain](./l2) Optimistical Rollup Chain.
+
 ## EigenFL
-[EigenFL](./fl) Federated Machine Learning
+To be coming
 
 ## About Eigen
 [Eigen Network](https://www.ieigen.com/)
