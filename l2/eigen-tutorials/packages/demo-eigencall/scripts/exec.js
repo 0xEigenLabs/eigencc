@@ -1,6 +1,6 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
-const { arbLog, requireEnvVariables } = require('arb-shared-dependencies')
+const { eigenLog, requireEnvVariables } = require('arb-shared-dependencies')
 var RLP = require('rlp')
 var BASE64 = require('Base64')
 
@@ -149,7 +149,7 @@ const sub_cipher_plain = async (contract, cipher, plain) => {
 
 
 const main = async () => {
-  await arbLog('Simple eigenCall demo')
+  await eigenLog('Simple eigenCall demo')
 
   const l2Wallet = (await hre.ethers.getSigners())[0]
   console.log('Your wallet address:', l2Wallet.address)
