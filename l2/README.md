@@ -1,6 +1,6 @@
 # EigenRollup
 
-EigenRollup provides a privacy-preserving smart contract on mixed layer 2 Rollup protocols of current main public blockchain, such as Ethereum. EigenRollup initiailly implements the protocol by referring to Arbitrum.
+EigenRollup provides a privacy-preserving smart contract on mixed layer 2 Rollup protocols of current main public blockchain, such as Ethereum. EigenRollup initiailly implements the protocol on Arbitrum.
 
 ## [WIP] Add New Instructions for private computing
 
