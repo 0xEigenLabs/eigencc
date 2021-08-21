@@ -26,7 +26,7 @@ To run Arbitrum locally, you need several things:
   yarn docker:build:geth
 
   # Set DEVNET_PRIVKEY, for example:
-  export DEVNET_PRIVKEY="0x2323232323232323232323232323232323232323232323232323232323232323"
+  export DEVNET_PRIVKEY=""
   yarn docker:geth
   ```
 
