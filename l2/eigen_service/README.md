@@ -1,5 +1,6 @@
-# Simple PK Cache Service
-Simple local public key cache service on sqlite, with ecies inside.
+# Eigen Service
+* PKCS
+* Transaction History
 
 ## Test
 `yarn test`
@@ -12,6 +13,7 @@ nohup yarn start &
 ```
 
 ### PKCS
+Simple local public key cache service on sqlite, with ecies inside.
 
 ```
 
