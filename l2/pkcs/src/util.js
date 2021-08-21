@@ -12,7 +12,7 @@ exports.has_value = function(variable) {
     if (variable == undefined) {
         return false
     }
-    if (variable.trim() == "") {
+    if (typeof(variable) == 'string' && variable.trim() == "") {
         return false
     }
     return true
