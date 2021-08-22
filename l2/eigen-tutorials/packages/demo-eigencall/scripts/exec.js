@@ -11,7 +11,7 @@ const ec = new EC('p256');
 
 require('dotenv').config()
 
-requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC'])
+requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC', 'PKCS'])
 
 function compose_decrypt(cipher) {
   return RLP.encode(["decrypt",Base64.fromUint8Array(cipher), "", ""])
@@ -50,7 +50,7 @@ const encrypt = async (contract, num) => {
   rlp_encoded_return_value = event.args.returnValue;
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
-  
+
   var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
   var cipher = Base64.toUint8Array(cipher_base64)
   return cipher
@@ -167,19 +167,19 @@ function ecies_encrypt(public_key, num) {
   }
 
   const cipher = ecies.encrypt(public_key, (new Uint64BE(num)).toBuffer(), options);
-  
+
   return cipher
 }
 
 const main = async () => {
-  await arbLog('Simple eigenCall demo')
-  
-  const res = await fetch('http://localhost:3000/store?digest=1', {
+  await eigenLog('Simple eigenCall demo')
+
+  const res = await fetch(process.env['PKCS'] + '/store?digest=1', {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' }
     })
     .then(response => response.json())
-  
+
   expect(res.errno).to.equal(0)
 
   const public_key = res.data.public_key

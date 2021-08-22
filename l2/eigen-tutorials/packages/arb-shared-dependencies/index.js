@@ -7,8 +7,6 @@ const wait = (ms = 0) => {
 
 const eigenLog = async text => {
   console.log('Eigen Demo:', text)
-  await wait(2000)
-
   console.log('Lets')
   await wait(1000)
 

@@ -83,24 +83,32 @@ int release() {
 }
 
 int main() {
-  const char *pub = "/app/release/services/auditors/godzilla/godzilla.public.der";
-  const char *pri = "/app/release/services/auditors/godzilla/godzilla.sign.sha256";
-  const char *conf = "/app/release/services/enclave_info.toml";
   int32_t port = 8082;
   int result = 0;
+	char *output = NULL; // malloc from `submit_task`
+	size_t outputsize = 0;
 #if 0
+	const char *pub = "/app/release/services/auditors/godzilla/godzilla.public.der";
+	const char *pri = "/app/release/services/auditors/godzilla/godzilla.sign.sha256";
+	const char *conf = "/app/release/services/enclave_info.toml";
   const char *method = "echo";
   const char *args = "Hello Eigen";
   const char *uid = "uid";
   const char *token = "token";
 #else
+	const char *base_dir = getenv("TEESDK_AUDITOR_BASE_DIR");
+	const char *auditor_name = getenv("TEESDK_AUDITOR_NAME");
+	const char pub[256] = {0};
+	const char pri[256] = {0};
+	const char *conf = getenv("TEESDK_ENCLAVE_INFO_PATH");
   const char* method = getenv("TEESDK_METHOD");
   const char* args = getenv("TEESDK_ARGS");
   const char* uid = getenv("TEESDK_UID");
   const char *token = getenv("TEESDK_TOKEN");
-#endif 
-  char *output = NULL; // malloc from `submit_task`
-  size_t outputsize = 0;
+
+	sprintf(pub, "%s/%s/%s.pub.der", base_dir, auditor_name, auditor_name);
+	sprintf(pri, "%s/%s/%s.sign.sha256", base_dir, auditor_name, auditor_name);
+#endif
 
   fprintf(stderr, "method[%d]: `%s'\n", strlen(method), method);
   fprintf(stderr, "args[%d]: `%s'\n", strlen(args), args);

@@ -1,10 +1,7 @@
 # Assume libsdk_c.so is located in the current directory
 export LD_LIBRARY_PATH=.
 
-export TEESDK_METHOD="EigenTEERegister"
-export TEESDK_ARGS=""
-export TEESDK_UID="uid"
-export TEESDK_TOKEN= "token"
+source "./.env"
 
 # Assume the compiled executable file named `teesdk_til`
 pub_key=`./teesdk_util 2> /dev/null`
