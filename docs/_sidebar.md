@@ -1,7 +1,7 @@
 - Eigen Netowork
   - [Overview](../README.md)
   - EigenCC
-    - EigenCC (../cc/README.md)
+    - [EigenCC](../cc/README.md)
     - [Operators](operators.md)
   - [EigenRollup](../l2/README.md)
   - [Secret](https://github.com/ieigen/secret)
