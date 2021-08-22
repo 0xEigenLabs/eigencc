@@ -9,7 +9,7 @@
 
 ### Launch Server
 ```
-nohup yarn start &
+forever start ./src/app.js  # or `yarn start` for dev
 ```
 
 ### PKCS
