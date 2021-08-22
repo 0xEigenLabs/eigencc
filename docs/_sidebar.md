@@ -1,5 +1,5 @@
 - Eigen Netowork
-  - [Overview](https://raw.githubusercontent.com/ieigen/ieigen/main/README.md)
+  - [Overview](/../README.md)
   - EigenCC
     - [Function Service](https://raw.githubusercontent.com/ieigen/ieigen/main/cc/README.md)
     - [Operators](operators.md)
