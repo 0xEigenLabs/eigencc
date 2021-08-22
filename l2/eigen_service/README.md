@@ -32,7 +32,7 @@ curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/store" -d 
 #query
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txh?txid=1"
 #search all
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txh?action=search&from=0x1"
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action=search&from=0x1"
 #add
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/txh" -d '{"txid": "1", "from": "0x1", "to": "0x1", "type":0}'
 #update
