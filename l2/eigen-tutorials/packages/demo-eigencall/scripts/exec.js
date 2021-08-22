@@ -5,7 +5,7 @@ const RLP = require('rlp')
 const { Base64 } = require('js-base64');
 const { Uint64BE } = require("int64-buffer");
 const fetch = require('node-fetch');
-const ecies = require('../../../../pkcs/src/ecies')
+const ecies = require('../../../../eigen_service/src/ecies')
 const EC = require('elliptic').ec;
 const ec = new EC('p256');
 
