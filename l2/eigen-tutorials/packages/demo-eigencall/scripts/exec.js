@@ -1,15 +1,20 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const { eigenLog, requireEnvVariables } = require('arb-shared-dependencies')
-var RLP = require('rlp')
-var BASE64 = require('Base64')
+const RLP = require('rlp')
+const { Base64 } = require('js-base64');
+const { Uint64BE } = require("int64-buffer");
+const fetch = require('node-fetch');
+const ecies = require('../../../../pkcs/src/ecies')
+const EC = require('elliptic').ec;
+const ec = new EC('p256');
 
 require('dotenv').config()
 
 requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC'])
 
 function compose_decrypt(cipher) {
-  return RLP.encode(["decrypt", BASE64.atob(cipher), "", ""])
+  return RLP.encode(["decrypt",Base64.fromUint8Array(cipher), "", ""])
 }
 
 function compose_encrypt(num) {
@@ -17,19 +22,19 @@ function compose_encrypt(num) {
 }
 
 function compose_add_cipher_cipher(cipher1, cipher2) {
-  return RLP.encode(["add_cipher_cipher", BASE64.atob(cipher1),  BASE64.atob(cipher2), ""])
+  return RLP.encode(["add_cipher_cipher",Base64.fromUint8Array(cipher1), Base64.fromUint8Array(cipher2), ""])
 }
 
 function compose_add_cipher_plain(cipher, plain) {
-  return RLP.encode(["add_cipher_plain", BASE64.atob(cipher),  plain.toString(), ""])
+  return RLP.encode(["add_cipher_plain",Base64.fromUint8Array(cipher),  plain.toString(), ""])
 }
 
 function compose_sub_cipher_cipher(cipher1, cipher2) {
-  return RLP.encode(["sub_cipher_cipher", BASE64.atob(cipher1),  BASE64.atob(cipher2), ""])
+  return RLP.encode(["sub_cipher_cipher",Base64.fromUint8Array(cipher1), Base64.fromUint8Array(cipher2), ""])
 }
 
 function compose_sub_cipher_plain(cipher, plain) {
-  return RLP.encode(["sub_cipher_plain", BASE64.atob(cipher),  plain.toString(), ""])
+  return RLP.encode(["sub_cipher_plain",Base64.fromUint8Array(cipher),  plain.toString(), ""])
 }
 
 const encrypt = async (contract, num) => {
@@ -46,8 +51,8 @@ const encrypt = async (contract, num) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
   
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value)
-  var cipher = BASE64.btoa(cipher_base64)
+  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
+  var cipher = Base64.toUint8Array(cipher_base64)
   return cipher
 }
 
@@ -66,7 +71,7 @@ const decrypt = async (contract, cipher) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var plain = RLP.decode(rlp_encoded_return_value)
+  var plain = RLP.decode(rlp_encoded_return_value).toString()
 
   return parseInt(plain)
 }
@@ -85,8 +90,8 @@ const add_cipher_cipher = async (contract, cipher1, cipher2) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value)
-  var cipher = BASE64.btoa(cipher_base64)
+  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
+  var cipher = Base64.toUint8Array(cipher_base64)
   return cipher
 }
 
@@ -104,8 +109,8 @@ const add_cipher_plain = async (contract, cipher, plain) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value)
-  var cipher = BASE64.btoa(cipher_base64)
+  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
+  var cipher = Base64.toUint8Array(cipher_base64)
   return cipher
 }
 
@@ -123,8 +128,8 @@ const sub_cipher_cipher = async (contract, cipher1, cipher2) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value)
-  var cipher = BASE64.btoa(cipher_base64)
+  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
+  var cipher = Base64.toUint8Array(cipher_base64)
   return cipher
 }
 
@@ -142,14 +147,51 @@ const sub_cipher_plain = async (contract, cipher, plain) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value)
-  var cipher = BASE64.btoa(cipher_base64)
+  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
+  var cipher = Base64.toUint8Array(cipher_base64)
   return cipher
 }
 
+function ecies_encrypt(public_key, num) {
+  // default option
+  const options = {
+    hashName: 'sha512',
+    hashLength: 64,
+    macName: 'sha256',
+    macLength: 32,
+    curveName: 'prime256v1',
+    symmetricCypherName: 'aes-256-gcm',
+    keyFormat: 'uncompressed',
+    s1: null, // optional shared information1
+    s2: null // optional shared information2
+  }
+
+  const cipher = ecies.encrypt(public_key, (new Uint64BE(num)).toBuffer(), options);
+  
+  return cipher
+}
 
 const main = async () => {
-  await eigenLog('Simple eigenCall demo')
+  await arbLog('Simple eigenCall demo')
+  
+  const res = await fetch('http://localhost:3000/store?digest=1', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+  
+  expect(res.errno).to.equal(0)
+
+  const public_key = res.data.public_key
+
+  console.log("Public key get from pkcs: ", public_key)
+
+  expect(public_key).not.equal("")
+
+  let keyPair = ec.keyFromPublic(public_key, "hex");
+  let publicKey = keyPair.getPublic();
+
+  console.log("----------------------------------------------------")
 
   const l2Wallet = (await hre.ethers.getSigners())[0]
   console.log('Your wallet address:', l2Wallet.address)
@@ -164,6 +206,20 @@ const main = async () => {
 
   ////////////////////////////////////////////////////////////////////////////////////
   // 'encrypt' test
+  var num = 123
+  var cipher = ecies_encrypt(publicKey, num)
+
+  // 'decrypt' test
+  console.log("Going to 'decrypt' ", cipher)
+  var decrypt_number = await decrypt(l2eigencalldemo, cipher)
+  console.log("Success!")
+
+  expect(decrypt_number).to.equal(num)
+  console.log(`${num} -> encrypt -> decrypt is still ${num}`)
+  ////////////////////////////////////////////////////////////////////////////////////
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  // Self 'encrypt' and then 'decrypt' test
   var num = 123
   console.log("Going to 'encrypt' ", num)
   var cipher = await encrypt(l2eigencalldemo, num)
@@ -184,8 +240,8 @@ const main = async () => {
   var num2 = 1
 
   console.log(`Going to 'add_cipher_cipher' ${num1}, ${num2}`)
-  var cipher1 = await encrypt(l2eigencalldemo, num1)
-  var cipher2 = await encrypt(l2eigencalldemo, num2)
+  var cipher1 = ecies_encrypt(publicKey, num1)
+  var cipher2 = ecies_encrypt(publicKey, num2)
 
   var result_cipher = await add_cipher_cipher(l2eigencalldemo, cipher1, cipher2)
   var result_number = await decrypt(l2eigencalldemo, result_cipher)
@@ -200,7 +256,7 @@ const main = async () => {
   var num2 = 1
 
   console.log(`Going to 'add_cipher_plain' ${num1}, ${num2}`)
-  var cipher1 = await encrypt(l2eigencalldemo, num1)
+  var cipher1 = ecies_encrypt(publicKey, num1)
 
   var result_cipher = await add_cipher_plain(l2eigencalldemo, cipher1, num2)
   var result_number = await decrypt(l2eigencalldemo, result_cipher)
@@ -215,8 +271,8 @@ const main = async () => {
   var num2 = 1
 
   console.log(`Going to 'sub_cipher_cipher' ${num1}, ${num2}`)
-  var cipher1 = await encrypt(l2eigencalldemo, num1)
-  var cipher2 = await encrypt(l2eigencalldemo, num2)
+  var cipher1 = ecies_encrypt(publicKey, num1)
+  var cipher2 = ecies_encrypt(publicKey, num2)
 
   var result_cipher = await sub_cipher_cipher(l2eigencalldemo, cipher1, cipher2)
   var result_number = await decrypt(l2eigencalldemo, result_cipher)
@@ -231,7 +287,7 @@ const main = async () => {
   var num2 = 1
 
   console.log(`Going to 'sub_cipher_plain' ${num1}, ${num2}`)
-  var cipher1 = await encrypt(l2eigencalldemo, num1)
+  var cipher1 = ecies_encrypt(publicKey, num1)
 
   var result_cipher = await sub_cipher_plain(l2eigencalldemo, cipher1, num2)
   var result_number = await decrypt(l2eigencalldemo, result_cipher)
