@@ -87,12 +87,11 @@ impl Worker for RegisterWorker {
 
     fn execute(&mut self, _context: WorkerContext) -> Result<String> {
         // generate pk and sk
-
         let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
         let public_key = eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, CACHED_KEY_PAIR.public_key());
+        let public_key_hex = hex::encode(public_key.as_ref());
 
-        Ok(base64::encode(public_key.as_ref()))
-        
+        Ok(public_key_hex)
     }
 }
 
