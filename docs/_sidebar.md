@@ -1,6 +1,11 @@
+- Eigen Netowork
+  - [Overview](../README.md)
+  - EigenCC
+    - EigenCC (../cc/README.md)
+    - [Operators](operators.md)
+  - [EigenRollup](../l2/README.md)
+  - [Secret](https://github.com/ieigen/secret)
+  - [Mixer](../l2/box/mixer/README.md)
 - EGIP
   - [00001](egip/00001.md)
   - [00002](egip/00002.md)
-
-- OPERATORS
-  - [operators](operators.md)
