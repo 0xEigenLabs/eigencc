@@ -1,7 +1,7 @@
 - Eigen Netowork
   - [Overview](/../README.md)
   - EigenCC
-    - [Function Service](https://raw.githubusercontent.com/ieigen/ieigen/main/cc/README.md)
+    - [Function Service](https://raw.githubusercontent.com/ieigen/ieigen/main/cc/README.md ':include')
     - [Operators](operators.md)
   - [EigenRollup](https://raw.githubusercontent.com/ieigen/ieigen/main/l2/README.md)
   - [Secret](https://raw.githubusercontent.com/ieigen/secret/main/README.md)
