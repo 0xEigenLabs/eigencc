@@ -1,11 +1,11 @@
 - Eigen Netowork
-  - [Overview](/main/README.md)
+  - [Overview](/ieigen/main/README.md)
   - EigenCC
-    - [Function Service](/main/cc/README.md ':include')
-    - [Operators](operators.md)
-  - [EigenRollup](/main/l2/README.md)
-  - [Secret](https://raw.githubusercontent.com/ieigen/secret/main/README.md)
-  - [Mixer](/main/l2/box/mixer/README.md)
+    - [Function Service](/ieigen/main/cc/README.md ':include')
+    - [Operators](/ieigen/main/docs/operators.md)
+  - [EigenRollup](/ieigen/main/l2/README.md)
+  - [Secret](/secret/master/README.md)
+  - [Mixer](/ieigen/main/l2/box/mixer/README.md)
 - EGIP
-  - [00001](egip/00001.md)
-  - [00002](egip/00002.md)
+  - [00001](/ieigen/main/docs/egip/00001.md)
+  - [00002](/ieigen/main/docs/egip/00002.md)
