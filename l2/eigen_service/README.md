@@ -39,5 +39,15 @@ curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/txh" -d '{
 curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/txh/{txid}" -d '{"status": 1, "sub_txid": "2121"}'
 ```
 
-# TODO
-1. Access control
+## Deployment in production
+
+### Build
+```
+docker build -t ieigen/service:v1 .
+```
+
+### Run
+```
+docker run --name=eigen-service -d ieigen/service:v1  -p 3000:3000
+```
+

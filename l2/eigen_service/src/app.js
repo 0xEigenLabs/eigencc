@@ -98,6 +98,7 @@ app.post("/txh", async function (req, res) {
         !util.has_value(type)) {
         return res.json(util.Err(1, "missing fields"))
     }
+    console.log(req.body);
 
     var result = db_txh.updateOrAdd(txid, {
         "txid": txid,
