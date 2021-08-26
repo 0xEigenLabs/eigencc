@@ -5,7 +5,6 @@
     - [Operators](/docs/operators.md)
   - [Rollup Protocol](/l2/README.md)
   - [EigenService](/l2/eigen_service/README.md)
-  - [Secret](https://raw.githubusercontent.com/ieigen/secret/master/README.md)
   - [Mixer](/l2/box/mixer/README.md)
 
 - developer
