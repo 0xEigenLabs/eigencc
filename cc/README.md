@@ -57,3 +57,7 @@ then you can see the AUC of training from terminal of fns.
 
 ## ARM TrustZone on FPGA 
 TBD
+
+
+## Reference
+1. SGX check： https://www.intel.com/content/www/us/en/support/articles/000057420/software/intel-security-products.html
