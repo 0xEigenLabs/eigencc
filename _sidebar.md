@@ -13,3 +13,6 @@
 - EGIP
   - [00001](/docs/egip/00001.md)
   - [00002](/docs/egip/00002.md)
+- MINER
+  - [Hardware Configuration Requirements](/docs/miners.md)
+
