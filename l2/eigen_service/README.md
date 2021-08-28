@@ -48,6 +48,6 @@ docker build -t ieigen/service:v1 .
 
 ### Run
 ```
-docker run --name=eigen-service -d ieigen/service:v1  -p 3000:3000
+docker run --name=eigen-service -p 3000:3000 -d ieigen/service:v1
 ```
 

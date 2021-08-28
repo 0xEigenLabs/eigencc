@@ -15,6 +15,7 @@ const pkdb = sequelize.define('transaction_history_st', {
   txid: Sequelize.STRING(64),
   from: Sequelize.STRING,
   to: Sequelize.STRING,
+  value: Sequelize.INTEGER,
   type: Sequelize.INTEGER,
   status: Sequelize.INTEGER,
   sub_txid: Sequelize.STRING
@@ -30,6 +31,7 @@ sequelize.sync().then(function() {
         txid: "_txid",
         from: "0xID",
         to: "0xID",
+        value: 0,
         type: TX_TYPE_L1ToL1,
         status: 0, // 1 success, 0 init
         sub_txid: ''
@@ -48,6 +50,7 @@ exports.add = function(dict) {
     txid: dict.txid,
     from: dict.from,
     to: dict.to,
+    value: dict.value,
     type: dict.type,
     status: dict.status || 0,
     sub_txid: dict.sub_txid || ''
@@ -70,7 +73,6 @@ exports.findAll = function() {
 exports.updateOrAdd = function(txid, update_dict){
     pkdb.findOne({where: {txid: txid
     }}).then(function(row){
-        console.log(row)
         if (row === null) {
             exports.add(update_dict)
             return true
