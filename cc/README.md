@@ -15,7 +15,7 @@ Rust Version: rustup default nightly-2020-10-25
 ```
 $ git clone --recursive https://github.com/ieigen/ieigen.git  # if clone failed, use `git submodule update --init` to pull submodules
 $ cd cc/sgx
-$ docker run --name fns --security-opt seccomp=unconfined --cap-add=SYS_PTRACE --net=host -v $(pwd):/teaclave -w /teaclave -it teaclave/teaclave-build-ubuntu-1804-sgx-2.9.1 bash
+$ docker run --name fns --security-opt seccomp=unconfined --cap-add=SYS_PTRACE --net=host -v $(pwd):/app -w /app -it ieigen/fns:v3 bash
 $ rustup default nightly-2020-10-25
 $ mkdir -p build && cd build
 $ cmake .. && make # or use SIM mode: cmake .. -DSGX_SIM_MODE=on && make
