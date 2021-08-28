@@ -91,9 +91,11 @@ app.post("/txh", async function (req, res) {
     var txid = req.body.txid;
     var from = req.body.from;
     var to = req.body.to;
+    var value = req.body.value;
     var type = req.body.type;
     if (!util.has_value(txid) ||
         !util.has_value(from) ||
+        !util.has_value(value) ||
         !util.has_value(to) ||
         !util.has_value(type)) {
         return res.json(util.Err(1, "missing fields"))
@@ -104,6 +106,7 @@ app.post("/txh", async function (req, res) {
         "txid": txid,
         "from": from,
         "to": to,
+        "value": value,
         "type": Number(type),
         "status": req.body.status || 0,
         "sub_txid": req.body.sub_txid || ''
