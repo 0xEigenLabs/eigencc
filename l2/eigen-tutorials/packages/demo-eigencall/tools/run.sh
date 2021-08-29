@@ -1,5 +1,5 @@
 # Assume libsdk_c.so is located in the current directory
-export LD_LIBRARY_PATH=.
+export LD_LIBRARY_PATH=../../../../../cc/sgx/release/lib
 
 source "./.env"
 
