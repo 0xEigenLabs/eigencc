@@ -14,7 +14,7 @@ eigen_auditor_set_t *g_auditors = NULL;
 int32_t g_tms_port = 8082;
 
 int submit_task(const char* method, const char* args, const char* uid,
-	const char* token, char** output, size_t* output_size) {
+  const char* token, char** output, size_t* output_size) {
 
   struct sockaddr_in tms_addr;
   char recvbuf[2048] = {0};
@@ -39,7 +39,7 @@ int submit_task(const char* method, const char* args, const char* uid,
   fprintf(stderr, "args: %s, size=%lu\n", args, strlen(args));
   // BUG result truncating
   ret = eigen_task_invoke_with_payload(task, args, strlen(args),
-	recvbuf, sizeof(recvbuf));
+  recvbuf, sizeof(recvbuf));
   if (ret <= 0) {
     return EXIT_FAILURE;
   }
@@ -85,29 +85,33 @@ int release() {
 int main() {
   int32_t port = 8082;
   int result = 0;
-	char *output = NULL; // malloc from `submit_task`
-	size_t outputsize = 0;
+  char *output = NULL; // malloc from `submit_task`
+  size_t outputsize = 0;
 #if 0
-	const char *pub = "/app/release/services/auditors/godzilla/godzilla.public.der";
-	const char *pri = "/app/release/services/auditors/godzilla/godzilla.sign.sha256";
-	const char *conf = "/app/release/services/enclave_info.toml";
+  const char *pub = "/app/release/services/auditors/godzilla/godzilla.public.der";
+  const char *pri = "/app/release/services/auditors/godzilla/godzilla.sign.sha256";
+  const char *conf = "/app/release/services/enclave_info.toml";
   const char *method = "echo";
   const char *args = "Hello Eigen";
   const char *uid = "uid";
   const char *token = "token";
 #else
-	const char *base_dir = getenv("TEESDK_AUDITOR_BASE_DIR");
-	const char *auditor_name = getenv("TEESDK_AUDITOR_NAME");
-	const char pub[256] = {0};
-	const char pri[256] = {0};
-	const char *conf = getenv("TEESDK_ENCLAVE_INFO_PATH");
+  // base_dir, e.g.,  "/app/release/services/auditors", without '/'
+  const char *base_dir = getenv("TEESDK_AUDITOR_BASE_DIR");
+  // auditor_name, e.g., "godzilla"
+  const char *auditor_name = getenv("TEESDK_AUDITOR_NAME");
+  const char pub[256] = {0};
+  const char pri[256] = {0};
+  const char *conf = getenv("TEESDK_ENCLAVE_INFO_PATH");
   const char* method = getenv("TEESDK_METHOD");
   const char* args = getenv("TEESDK_ARGS");
   const char* uid = getenv("TEESDK_UID");
   const char *token = getenv("TEESDK_TOKEN");
 
-	sprintf(pub, "%s/%s/%s.pub.der", base_dir, auditor_name, auditor_name);
-	sprintf(pri, "%s/%s/%s.sign.sha256", base_dir, auditor_name, auditor_name);
+  // pub, e.g., "/app/release/services/auditors/godzilla/godzilla.public.der"
+  sprintf(pub, "%s/%s/%s.public.der", base_dir, auditor_name, auditor_name);
+  // pri, e.g., "/app/release/services/auditors/godzilla/godzilla.sign.sha256"
+  sprintf(pri, "%s/%s/%s.sign.sha256", base_dir, auditor_name, auditor_name);
 #endif
 
   fprintf(stderr, "method[%d]: `%s'\n", strlen(method), method);
