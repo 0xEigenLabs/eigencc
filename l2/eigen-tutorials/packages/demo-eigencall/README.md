@@ -14,13 +14,13 @@ cp .env-sample .env
 
 ### Build `teesdk_util`
 
-`teesdk_util` uses dynamic link library `libsdk_c.so`, so firstly we should build `libsdk_c.so`, please see [README.md](../../../../cc/sgx/README.md).
+`teesdk_util` uses dynamic link library `libsdk_c.so`, so firstly we should build `libsdk_c.so`, please see [README.md](https://github.com/ieigen/ieigen/blob/main/cc/README.md).
 
 Then enter directory _tools_, run `build.sh` will build an executable file _teesdk_util_.
 
 ### Start up `eigen_service`
 
-Please see [README.md](../../../eigen_service/README.md) to know how to start up `eigen_service`.
+Please see [README.md](https://github.com/ieigen/ieigen/blob/main/l2/eigen_service/README.md) to know how to start up `eigen_service`.
 
 ### Register Tee Key
 
