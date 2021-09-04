@@ -2,7 +2,7 @@
   - [Overview](/README.md)
   - EigenCC
     - [Function Service](/cc/README.md ':include')
-    - [Operators](/docs/operators.md)
+    - [Operators](https://github.com/ieigen/ieigen/blob/main/docs/operators.md)
   - [Rollup Protocol](/l2/README.md)
   - [EigenService](/l2/eigen_service/README.md)
   - [Mixer](/l2/box/mixer/README.md)
