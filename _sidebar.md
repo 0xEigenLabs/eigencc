@@ -1,17 +1,17 @@
 - Eigen Netowork
-  - [Overview](/README.md)
+  - [Overview](https://github.com/ieigen/ieigen/blob/main/README.md)
   - EigenCC
-    - [Function Service](/cc/README.md ':include')
+    - [Function Service](https://github.com/ieigen/ieigen/blob/main/cc/README.md)
     - [Operators](https://github.com/ieigen/ieigen/blob/main/docs/operators.md)
-  - [Rollup Protocol](/l2/README.md)
-  - [EigenService](/l2/eigen_service/README.md)
-  - [Mixer](/l2/box/mixer/README.md)
+  - [Rollup Protocol](https://github.com/ieigen/ieigen/blob/main/l2/README.md)
+  - [EigenService](https://github.com/ieigen/ieigen/blob/main/l2/eigen_service/README.md)
+  - [Mixer](https://github.com/ieigen/ieigen/blob/main/l2/box/mixer/README.md)
 
 - developer
-  - [Demo](/l2/eigen-tutorials/packages/demo-eigencall/README.md)
-  - [Outbox](/l2/eigen-tutorials/packages/outbox-execute/README.md)
+  - [Demo](https://github.com/ieigen/ieigen/blob/main/l2/eigen-tutorials/packages/demo-eigencall/README.md)
+  - [Outbox](https://github.com/ieigen/ieigen/blob/main/l2/eigen-tutorials/packages/outbox-execute/README.md)
 - EGIP
-  - [00001](/docs/egip/00001.md)
-  - [00002](/docs/egip/00002.md)
+  - [00001](https://github.com/ieigen/ieigen/blob/main/docs/egip/00001.md)
+  - [00002](https://github.com/ieigen/ieigen/blob/main/docs/egip/00002.md)
 - MINER
-  - [Hardware Configuration Requirements](/docs/miner.md)
+  - [Hardware Configuration Requirements](https://github.com/ieigen/ieigen/blob/main/docs/miner.md)
