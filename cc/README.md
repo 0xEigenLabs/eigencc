@@ -21,7 +21,7 @@ $ mkdir -p build && cd build
 $ cmake .. && make # or use SIM mode: cmake .. -DSGX_SIM_MODE=on && make
 ```
 
-Build $IMAGE image by [Dockerfile](./sgx/dcap/Dockerfile)
+Build $IMAGE image by [Dockerfile](https://github.com/ieigen/ieigen/blob/main/cc/sgx/dcap/Dockerfile)
 
 ### Run
 
@@ -59,7 +59,7 @@ then you can see the AUC of training from terminal of fns.
 
 ### Develop an new confidential service
 
-[EigenCC Privacy Operators](../docs/operators.md)
+[EigenCC Privacy Operators](https://github.com/ieigen/ieigen/blob/main/docs/operators.md)
 
 ## ARM TrustZone on FPGA
 
