@@ -4,7 +4,7 @@ It's easy to develop new privacy operators via EigenCC Framework.
 ### Steps
 1. Define the service.
 A service could be a collection of methods handling the private object on Blockchain.
-A built-on Echo service [here](../cc/sgx/services/fns/sgx_trusted_lib/src/trusted_worker/demo_func.rs#L25) is provided:
+A built-on Echo service [here](https://github.com/ieigen/ieigen/blob/main/cc/sgx/services/fns/sgx_trusted_lib/src/trusted_worker/demo_func.rs#L25) is provided:
 
 ```
 pub struct EchoWorker {
