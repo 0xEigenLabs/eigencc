@@ -10,8 +10,6 @@
 - developer
   - [Demo](/l2/eigen-tutorials/packages/demo-eigencall/README.md)
   - [Outbox](/l2/eigen-tutorials/packages/outbox-execute/README.md)
-- EGIP
-  - [00001](/docs/egip/00001.md)
-  - [00002](/docs/egip/00002.md)
+  
 - MINER
   - [Hardware Configuration Requirements](/docs/miner.md)
