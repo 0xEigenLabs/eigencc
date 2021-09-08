@@ -3,7 +3,7 @@
   "license": "Apache-2.0",
   "version": "1.0.0",
   "scripts": {
-    "bb": "hardhat compile",
+    "build": "hardhat compile",
     "exec": "hardhat run scripts/exec.js --network l2",
     "deploy": "hardhat run scripts/custom_token.ts"
   },
