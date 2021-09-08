@@ -27,4 +27,5 @@ l2/*/package-lock.json
 l2/*/yarn-error.log
 l2/*/db.sqlite
 
-
+**/yarn.lock
+**/yarn-error.log
