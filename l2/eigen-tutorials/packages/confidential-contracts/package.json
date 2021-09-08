@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "hardhat compile",
+    "clean": "rm -rf artifacts cache typechain",
     "exec": "hardhat run scripts/exec.js --network l2",
     "deploy": "hardhat run scripts/custom_token.ts"
   },
