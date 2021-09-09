@@ -48,7 +48,7 @@ const l1GasPrice = 10;
 const gasLimit = 9646610
 const maxGas = 9646610
 
-const deploy_l1 = async () => {
+const deploy_l1_and_l2 = async () => {
     let l1CustomToken: TestCustomTokenL1
     console.log("pre funded balance", (await l1TestWallet.getBalance()).toString());
 
@@ -70,40 +70,41 @@ const deploy_l1 = async () => {
     const data = await bridge.getAndUpdateL1TokenData(l1CustomToken.address);
     const userBalance = data?.ERC20?.balance
     console.log("l1 wallet balance : ", userBalance?.toString())
-    return l1CustomToken.address
-}
 
-const deploy_l2 = async (l1CustomTokenAddr: string) => {
     let arbCustomToken: TestArbCustomToken
-    const customTokenFactory = await new TestArbCustomToken__factory(l2TestWallet);
+    const customTokenFactory2 = await new TestArbCustomToken__factory(l2TestWallet);
     console.log("deploy TestArbCustomToken");
-    arbCustomToken = await customTokenFactory.deploy(
+    arbCustomToken = await customTokenFactory2.deploy(
         bridge.arbTokenBridge.address,
-        l1CustomTokenAddr,
+        l1CustomToken.address,
         { gasLimit: 8000000, gasPrice: 1}
     )
     await wait(10000)
     console.log("deploy TestArbCustomToken after deploy");
-    let rec = await arbCustomToken.deployTransaction.wait()
+    rec = await arbCustomToken.deployTransaction.wait()
     if (rec.status != 1) {
         throw new Error("deployTransaction failed")
     }
-    console.log("L2 custom address", arbCustomToken.address);
-    let l1CustomToken = TestCustomTokenL1__factory.connect(l1CustomTokenAddr, l1TestWallet);
+    
+    await arbCustomToken.deployed()
+    console.log("L2 custom address", arbCustomToken.address, 
+                arbCustomToken.deployTransaction.hash);
+
+    await(1000000)
     const registerRes = await l1CustomToken.registerTokenOnL2(
         arbCustomToken.address,
-        BigNumber.from(100000000),
-        BigNumber.from(100000000),
+        BigNumber.from(59994373),
+        BigNumber.from(59994373),
         BigNumber.from(0),
         l1TestWallet.address,
-        { gasLimit: 59985148, gasPrice:1 }
+        { gasLimit: 5999437, gasPrice:0 }
     );
     const registerRec = await registerRes.wait();
     if (registerRec.status != 1) {
         throw new Error("registerTokenOnL2 failed")
     }
     const factory = new EthERC20Bridge__factory();
-    const contract = factory.attach(l1CustomTokenAddr);
+    const contract = factory.attach(l1CustomToken.address);
     const iface = contract.interface
     const event = iface.getEvent('ActivateCustomToken')
     const eventTopic = iface.getEventTopic(event);
@@ -117,7 +118,7 @@ const deploy_l2 = async (l1CustomTokenAddr: string) => {
     )
     const retrableReceipt = await arbProvider.waitForTransaction(l2RetryableHash);
 
-    return arbCustomToken.address
+    return {l1CustomToken: l1CustomToken.address, l2CustomToken: arbCustomToken.address}
 }
 
 const deposit = async (l1CustomTokenAddr: string, tokenDepositAmount: BigNumber) => {
@@ -180,12 +181,13 @@ const withdraw = async (arbCustomTokenAddr: string, tokenWithdrawAmount: BigNumb
 }
 
 const main = async () => {
-    let l1CustomTokenAddr = await deploy_l1()
-    await approveToken(l1CustomTokenAddr)
-    let l2CustomTokenAddr = await deploy_l2(l1CustomTokenAddr)
+    let tokenPair = await deploy_l1_and_l2()
+    //await approveToken(l1CustomTokenAddr)
+    //let l2CustomTokenAddr = await deploy_l2(l1CustomTokenAddr)
+    console.log(tokenPair)
     let amount = BigNumber.from(100)
-    deposit(l1CustomTokenAddr, amount)
-    withdraw(l2CustomTokenAddr, amount)
+    deposit(tokenPair.l1CustomToken, amount)
+    withdraw(tokenPair.l2CustomToken, amount)
 }
 
 main()
