@@ -29,6 +29,9 @@ hasher：mimc7
 #### generate public input，Private input
 
 ```
+$ cd ..
+$ git clone https://github.com/iden3/circomlib.git
+$ cd circomlib && yarn && cd ../mixer
 $ yarn generate
 ```
 
