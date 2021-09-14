@@ -77,7 +77,6 @@ exports.getByTxid = function (txid) {
 };
 
 exports.search = function (filter_dict, page, page_size, order) {
-  // TODO: Use findAndCountAll in page search
   console.log(filter_dict);
   if (page) {
     console.log("page = ", page);
@@ -85,36 +84,32 @@ exports.search = function (filter_dict, page, page_size, order) {
     if (order) {
       console.log("Reverse order is enabled");
       return (async () => {
-        transactions = await pkdb.findAll({
+        const { count, rows } = await pkdb.findAndCountAll({
           where: filter_dict,
           order: [["createdAt", "DESC"]],
           limit: page_size,
-          offset: (page - 1) * page,
-        });
-        count = await pkdb.count({
-          where: filter_dict,
+          offset: (page - 1) * page_size,
         });
         console.log("count = ", count);
+        console.log("rows = ", rows);
         total_page = Math.ceil(count / page_size);
         return {
-          transactions: transactions,
+          transactions: rows,
           total_page: total_page,
         };
       })();
     } else {
       return (async () => {
-        transactions = await pkdb.findAll({
+        const { count, rows } = await pkdb.findAndCountAll({
           where: filter_dict,
           limit: page_size,
-          offset: (page - 1) * page,
-        });
-        count = await pkdb.count({
-          where: filter_dict,
+          offset: (page - 1) * page_size,
         });
         console.log("count = ", count);
+        console.log("transactions = ", rows);
         total_page = Math.ceil(count / page_size);
         return {
-          transactions: transactions,
+          transactions: rows,
           total_page: total_page,
         };
       })();
