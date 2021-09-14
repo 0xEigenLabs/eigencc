@@ -5,7 +5,8 @@
   "license": "APACHE",
   "scripts": {
     "start": "node ./src/app.js",
-    "test": "node ./test/app.js"
+    "test": "node ./test/app.js",
+    "clean": "rm -f ./db_pk.sqlite & rm -f ./db_transaction_history.sqlite"
   },
   "devDependencies": {
     "express": "~4.17.1",
