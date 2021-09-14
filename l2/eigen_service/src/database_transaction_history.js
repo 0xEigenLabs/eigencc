@@ -86,7 +86,7 @@ exports.search = function (filter_dict, page, page_size, order) {
       return (async () => {
         const { count, rows } = await pkdb.findAndCountAll({
           where: filter_dict,
-          order: [["createdAt", "DESC"]],
+          order: [["updatedAt", "DESC"]],
           limit: page_size,
           offset: (page - 1) * page_size,
         });
@@ -119,7 +119,7 @@ exports.search = function (filter_dict, page, page_size, order) {
       console.log("Reverse order is enabled");
       return pkdb.findAll({
         where: filter_dict,
-        order: [["createdAt", "DESC"]],
+        order: [["updatedAt", "DESC"]],
       });
     } else {
       return pkdb.findAll({
