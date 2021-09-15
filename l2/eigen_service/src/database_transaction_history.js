@@ -157,23 +157,18 @@ exports.updateOrAdd = function (txid, update_dict) {
 
 exports.account_count_l2 = function () {
   return (async () => {
-    // l1_to_l2 = await pkdb.findAll({
-    //   attributes: [["to", "account"]],
-    //   where: {
-    //     type: TX_TYPE_L1ToL2,
-    //   },
-    // });
-
-    // s1 = new Set(l1_to_l2);
-
     l2_to_l1 = await pkdb.findAll({
       attributes: [["from", "account"]],
       where: {
         type: TX_TYPE_L2ToL1,
       },
+      raw: true,
     });
-
-    s2 = new Set(l2_to_l1);
+    console.log(l2_to_l1);
+    accounts = new Set();
+    for (var i = 0; i < l2_to_l1.length; i++) {
+      accounts.add(l2_to_l1[i].account);
+    }
 
     l2_to_l2 = await pkdb.findAll({
       attributes: [
@@ -183,11 +178,15 @@ exports.account_count_l2 = function () {
       where: {
         type: TX_TYPE_L2ToL2,
       },
+      raw: true,
     });
 
-    s3 = new Set(l2_to_l2);
+    console.log(l2_to_l2);
+    for (var i = 0; i < l2_to_l2.length; i++) {
+      accounts.add(l2_to_l2[i].account);
+    }
 
-    return new Set([...s2, ...s3]).size;
+    return accounts.size;
   })();
 };
 
