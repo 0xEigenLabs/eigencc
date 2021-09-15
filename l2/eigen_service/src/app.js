@@ -64,7 +64,6 @@ app.get("/txhs", async function(req, res) {
 })
 */
 
-//TODO: retrieve by page
 app.get("/txhs", async function (req, res) {
   var action = req.query.action;
   console.log(req.query);
@@ -83,20 +82,17 @@ app.get("/txhs", async function (req, res) {
       );
       break;
     case "search_l2":
+      delete dict["action"];
+      delete dict["page"];
+      delete dict["page_size"];
+      delete dict["order"];
+
       // TODO: 0x2 (L2->L1), 0x3 (L2->L2) should replaced with enum
+      dict["type"] = {
+        [Op.or]: [0x2, 0x3],
+      };
       return res.json(
-        util.Succ(
-          await db_txh.search(
-            {
-              type: {
-                [Op.or]: [0x2, 0x3],
-              },
-            },
-            page,
-            page_size,
-            order
-          )
-        )
+        util.Succ(await db_txh.search(req.query, page, page_size, order))
       );
       break;
 
