@@ -83,13 +83,13 @@ app.get("/txhs", async function (req, res) {
       );
       break;
     case "search_l2":
-      // TODO: 0x1, 0x2, 0x3 should replaced with enum
+      // TODO: 0x2 (L2->L1), 0x3 (L2->L2) should replaced with enum
       return res.json(
         util.Succ(
           await db_txh.search(
             {
               type: {
-                [Op.or]: [0x1, 0x2, 0x3],
+                [Op.or]: [0x2, 0x3],
               },
             },
             page,
