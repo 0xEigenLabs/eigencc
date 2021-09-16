@@ -66,7 +66,7 @@ exports.add = function (dict) {
     to: dict.to,
     value: dict.value,
     type: dict.type,
-    block_num: dict.block_num,
+    block_num: dict.block_num || -1, // `block_num` can be empty when `send` is called
     status: dict.status || 0,
     sub_txid: dict.sub_txid || "",
   });
