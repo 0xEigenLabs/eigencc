@@ -144,7 +144,6 @@ app.post("/txh", async function (req, res) {
     !util.has_value(from) ||
     !util.has_value(value) ||
     !util.has_value(to) ||
-    !util.has_value(block_num) ||
     !util.has_value(type)
   ) {
     return res.json(util.Err(1, "missing fields"));
@@ -157,7 +156,7 @@ app.post("/txh", async function (req, res) {
     to: to,
     value: value,
     type: Number(type),
-    block_num: block_num,
+    block_num: req.body.block_num || -1,
     status: req.body.status || 0,
     sub_txid: req.body.sub_txid || "",
   });
