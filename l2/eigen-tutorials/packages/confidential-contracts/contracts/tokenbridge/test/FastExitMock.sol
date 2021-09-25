@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /*
- * Copyright 2021, Offchain Labs, Inc.
+ * Copyright 2020, Offchain Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,23 @@
 
 pragma solidity ^0.6.11;
 
-interface IOutbox {
-    event OutboxEntryCreated(
-        uint256 indexed batchNum,
-        uint256 outboxIndex,
-        bytes32 outputRoot,
-        uint256 numInBatch
-    );
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../ethereum/IExitLiquidityProvider.sol";
 
-    function l2ToL1Sender() external view returns (address);
+contract FastExitMock is IExitLiquidityProvider {
+    uint256 fee = 0;
 
-    function l2ToL1Block() external view returns (uint256);
+    function setFee(uint256 _fee) external {
+        fee = _fee;
+    }
 
-    function l2ToL1EthBlock() external view returns (uint256);
-
-    function l2ToL1Timestamp() external view returns (uint256);
-
-    function processOutgoingMessages(bytes calldata sendsData, uint256[] calldata sendLengths)
-        external;
+    function requestLiquidity(
+        address dest,
+        address erc20,
+        uint256 amount,
+        uint256 exitNum,
+        bytes calldata liquidityProof
+    ) external override {
+        IERC20(erc20).transfer(dest, amount - fee);
+    }
 }

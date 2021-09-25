@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /*
- * Copyright 2021, Offchain Labs, Inc.
+ * Copyright 2020, Offchain Labs, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,22 @@
 
 pragma solidity ^0.6.11;
 
-interface IOutbox {
-    event OutboxEntryCreated(
-        uint256 indexed batchNum,
-        uint256 outboxIndex,
-        bytes32 outputRoot,
-        uint256 numInBatch
-    );
+contract TesterERC20Token {
+    uint256 public decimals;
+    bytes32 public name;
+    bytes32 public symbol;
 
-    function l2ToL1Sender() external view returns (address);
+    constructor(
+        uint256 _decimals,
+        bytes32 _name,
+        bytes32 _symbol
+    ) public {
+        decimals = _decimals;
+        name = _name;
+        symbol = _symbol;
+    }
+}
 
-    function l2ToL1Block() external view returns (uint256);
-
-    function l2ToL1EthBlock() external view returns (uint256);
-
-    function l2ToL1Timestamp() external view returns (uint256);
-
-    function processOutgoingMessages(bytes calldata sendsData, uint256[] calldata sendLengths)
-        external;
+contract TesterERC20TokenNoMetadata {
+    constructor() public {}
 }
