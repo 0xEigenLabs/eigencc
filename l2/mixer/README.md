@@ -149,6 +149,7 @@ Deploy Mixer, which is derivative of Merkle Tree and Verifier.
 >* forward(a, b, c, input, cmt): forward current account's asset to another anonymous account.
 
 ### TODO
+* fix the circuits to verify the new root
 * tx origin check before deposit
 
 ### Reference
