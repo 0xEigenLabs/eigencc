@@ -139,6 +139,7 @@ app.post("/txh", async function (req, res) {
   var value = req.body.value;
   var block_num = req.body.block_num;
   var type = req.body.type;
+  var name = req.body.name;
   if (
     !util.has_value(txid) ||
     !util.has_value(from) ||
@@ -156,6 +157,7 @@ app.post("/txh", async function (req, res) {
     to: to,
     value: value,
     type: Number(type),
+    name: name || "ETH",
     block_num: req.body.block_num || -1,
     status: req.body.status || 0,
     sub_txid: req.body.sub_txid || "",

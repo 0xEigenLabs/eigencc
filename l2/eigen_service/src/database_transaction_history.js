@@ -21,6 +21,7 @@ const pkdb = sequelize.define("transaction_history_st", {
   },
   from: Sequelize.STRING,
   to: Sequelize.STRING,
+  name: Sequelize.STRING,
   value: Sequelize.INTEGER,
   type: Sequelize.INTEGER,
   block_num: Sequelize.INTEGER,
@@ -43,6 +44,7 @@ sequelize
       value: 0,
       type: TX_TYPE_L1ToL1,
       block_num: 0,
+      name: "ETH",
       status: 0, // 1 success, 0 init
       sub_txid: "",
     });
@@ -66,6 +68,7 @@ exports.add = function (dict) {
     to: dict.to,
     value: dict.value,
     type: dict.type,
+    name: dict.name || "ETH",
     block_num: dict.block_num || -1, // `block_num` can be empty when `send` is called
     status: dict.status || 0,
     sub_txid: dict.sub_txid || "",
