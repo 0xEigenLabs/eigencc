@@ -5,7 +5,7 @@
     - [Operators](/docs/operators.md)
   - [Rollup Protocol](/l2/README.md)
   - [EigenService](/l2/eigen_service/README.md)
-  - [Mixer](/l2/box/mixer/README.md)
+  - [Mixer](/l2/mixer/README.md)
 
 - developer
   - [Demo](/l2/eigen-tutorials/packages/demo-eigencall/README.md)
