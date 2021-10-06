@@ -39,7 +39,7 @@ const path2_root_pos = [1, 1, 1, 1, 1, 0, 1, 1]
 console.log(path2_root_pos.join(""))
 // 255 = 11111111b
 //const cmt_index = parseInt(path2_root_pos.reverse().join(""), 2)
-const cmt_index = Bits2Num(8, path2_root_pos)
+const cmt_index = Bits2Num(process.env.LEAF_NUM, path2_root_pos)
 console.log("cmt index", cmt_index)
 const nullifierHash = mimcjs.hash(cmt_index, secret)
 console.log("nullifierHash", nullifierHash, nullifierHash.toString())
