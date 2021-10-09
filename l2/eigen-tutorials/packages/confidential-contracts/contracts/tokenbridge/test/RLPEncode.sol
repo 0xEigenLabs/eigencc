@@ -1,10 +1,10 @@
 pragma solidity ^0.6.11;
 
 /**
- * @title RLPEncode
+ * @title RLPEncode, creidt: This module is from here: https://github.com/omgnetwork/plasma-mvp/blob/82e26b5efadb57c00683f18f11758f59c7a98876/plasma/root_chain/contracts/RLPEncode.sol
  * @dev A simple RLP encoding library.
  * @author Bakaoh
- * @creidt This module is from here: https://github.com/omgnetwork/plasma-mvp/blob/82e26b5efadb57c00683f18f11758f59c7a98876/plasma/root_chain/contracts/RLPEncode.sol
+ *
  */
 library RLPEncode {
     /*

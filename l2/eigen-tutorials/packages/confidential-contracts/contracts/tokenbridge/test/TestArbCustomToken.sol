@@ -36,6 +36,14 @@ contract TestArbCustomToken is aeERC20, IArbToken {
     // Mapping from token ID to approved address
     mapping(address => bytes) private _cipher_balances;
 
+    /**
+     * @dev Emitted when `value` tokens are moved from one account (`from`) to
+     * another (`to`).
+     *
+     * Note that `value` may be zero.
+     */
+    event TransferCipher(address indexed from, address indexed to, bytes value);
+
     modifier onlyBridge() {
         require(msg.sender == address(bridge), "ONLY_BRIDGE");
         _;
@@ -123,5 +131,43 @@ contract TestArbCustomToken is aeERC20, IArbToken {
 
     function withdraw(address destination, uint256 amount) external override {
         bridge.withdraw(l1Address, msg.sender, destination, amount);
+    }
+
+    function cipherTransfer(address recipient, bytes memory cipher_amount)
+        public
+        virtual
+        returns (bool)
+    {
+        require(_msgSender() != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        bytes[] memory list;
+        list = new bytes[](4);
+
+        bytes memory sender_cipher_base64_balance = _cipher_balances[_msgSender()];
+        list[0] = RLPEncode.encodeString("sub_cipher_cipher");
+        list[1] = RLPEncode.encodeBytes(sender_cipher_base64_balance);
+        list[2] = RLPEncode.encodeBytes(cipher_amount);
+        list[3] = RLPEncode.encodeString("");
+        bytes memory sender_encrypt_bytes = RLPEncode.encodeList(list);
+        bytes memory sender_rlp_encoded_result = ArbSys(address(100)).eigenCall(
+            sender_encrypt_bytes
+        );
+        bytes memory sender_cipher_base64 = sender_rlp_encoded_result.toRlpItem().toBytes();
+        _cipher_balances[_msgSender()] = copy_bytes(sender_cipher_base64);
+
+        bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
+        list[0] = RLPEncode.encodeString("add_cipher_cipher");
+        list[1] = RLPEncode.encodeBytes(recipient_cipher_base64_balance);
+        list[2] = RLPEncode.encodeBytes(cipher_amount);
+        list[3] = RLPEncode.encodeString("");
+        bytes memory recipient_encrypt_bytes = RLPEncode.encodeList(list);
+        bytes memory recipient_rlp_encoded_result = ArbSys(address(100)).eigenCall(
+            recipient_encrypt_bytes
+        );
+        bytes memory recipient_cipher_base64 = recipient_rlp_encoded_result.toRlpItem().toBytes();
+        _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
+        emit TransferCipher(_msgSender(), recipient, cipher_amount);
+        return true;
     }
 }
