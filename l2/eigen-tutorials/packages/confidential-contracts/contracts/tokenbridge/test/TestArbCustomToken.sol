@@ -172,6 +172,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
     }
 
     function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+        _transfer(_msgSender(), recipient, amount);
         require(_msgSender() != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
