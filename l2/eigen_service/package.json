@@ -24,6 +24,11 @@
   "dependencies": {
     "@types/elliptic": "6.4.13",
     "asn1.js": "^5.4.1",
+    "elliptic": "^6.5.4",
+    "express": "^4.17.1",
+    "log4js": "^6.3.0",
+    "sequelize": "^6.7.0",
+    "sqlite3": "^5.0.2",
     "standard-ecies": "^2.0.0",
     "typings": "^2.1.1"
   }

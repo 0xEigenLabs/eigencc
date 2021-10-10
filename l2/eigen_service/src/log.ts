@@ -7,8 +7,7 @@ const configure = function() {
 
 const logger = function(name) {
     const dateFileLog = log4js.getLogger(name);
-    // dateFileLog.level = log4js.levels.INFO;
-    dateFileLog.level = "debug";
+    dateFileLog.level = "debug"
     return dateFileLog;
 }
 

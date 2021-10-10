@@ -1,6 +1,6 @@
 declare const Buffer;
-import {ec as EC} from "elliptic"
-// const EC = elliptic.ec;
+import * as elliptic from "elliptic"
+const EC = elliptic.ec;
 const ec = new EC("p256");
 
 import * as ecies from "../src/ecies";
