@@ -67,7 +67,7 @@ app.get("/txhs", async function(req, res) {
 app.get("/txhs", async function (req, res) {
   const action = req.query.action;
   console.log(req.query);
-  let dict = req.query;
+  const dict = req.query;
 
   const page = dict.page;
   const page_size = dict.page_size;
@@ -89,11 +89,12 @@ app.get("/txhs", async function (req, res) {
       delete dict.order;
 
       // TODO: 0x2 (L2->L1), 0x3 (L2->L2) should replaced with enum
-      /* TODO 
+      /*
       dict.type = {
         [Op.or]: [0x2, 0x3],
       };
       */
+     dict.type = ["2","3"]
       return res.json(
         util.Succ(await db_txh.search(req.query, page, page_size, order))
       );

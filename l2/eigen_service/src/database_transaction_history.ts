@@ -80,6 +80,9 @@ const getByTxid = function (txid) {
 
 const search = function (filter_dict, page, page_size, order) {
   console.log(filter_dict);
+  filter_dict.type = {
+        [Op.or]: filter_dict.type
+  }
   if (page) {
     console.log("page = ", page);
     console.log("page_size = ", page_size);

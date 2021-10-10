@@ -26,8 +26,8 @@ function aes_dec(cypherName, key, cipherText) {
     const text = cipherText.slice(IV_LEN + AUTH_TAG_LEN);
     const decipher = crypto.createDecipheriv(cypherName, key, iv);
     decipher.setAuthTag(tag);
-    //const dec = decipher.update(text) + decipher.final();
-    const dec = decipher.update(text) + decipher.final("utf8"); //TODO test
+    // const dec = decipher.update(text) + decipher.final();
+    const dec = decipher.update(text) + decipher.final("utf8"); // TODO test
     return dec;
 }
 
@@ -90,7 +90,7 @@ const encrypt = function (publicKey, message, options) {
 
     const ephemPrivateKey = ec.genKeyPair();
     // R
-    //const ephemPublicKey = Buffer.from(ephemPrivateKey.getPublic("arr"));
+    // const ephemPublicKey = Buffer.from(ephemPrivateKey.getPublic("arr"));
     const ephemPublicKey = Buffer.from(ephemPrivateKey.getPublic("array"));
     // S
     const sharedSecret = Buffer.from(ephemPrivateKey.derive(publicKey).toArray());

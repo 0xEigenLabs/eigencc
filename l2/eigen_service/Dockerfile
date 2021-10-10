@@ -9,6 +9,6 @@ COPY . /app
 
 RUN npm install forever -g && npm install
 
-CMD ["forever", "src/app.js"]
+CMD ["forever", "build/src/app.js"]
 
 
