@@ -5,19 +5,13 @@
   "license": "Apache-2.0",
   "scripts": {
     "start": "node ./build/src/app.js",
-    "prebuild_xxx": "./node_modules/.bin/tslint -c tslint.json -p tsconfig.json --fix",
+    "prebuild_close": "./node_modules/.bin/tslint -c tslint.json -p tsconfig.json --fix",
     "build": "./node_modules/.bin/tsc",
     "test": "node ./build/test/app.js",
     "clean": "rm -f ./db_pk.sqlite & rm -f ./db_transaction_history.sqlite"
   },
   "devDependencies": {
-    "@types/crypto-js": "4.0.2",
-    "@types/elliptic": "6.4.13",
-    "@types/express": "^4.17.13",
-    "@types/log4js": "0.0.33",
     "@types/node": "^16.10.3",
-    "@types/sequelize": "4.28.10",
-    "@types/sqlite3": "3.1.7",
     "tslint": "^6.1.3",
     "typescript": "^4.4.3"
   },
