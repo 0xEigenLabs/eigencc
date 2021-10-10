@@ -1,15 +1,15 @@
-const express = require("express");
-const log4js = require("./log");
-var logger = log4js.logger("APP");
-var db_pk = require("./database_pk");
-var db_txh = require("./database_transaction_history");
-var util = require("./util.js");
-const { Op } = require("sequelize");
+import express from 'express';
+import bodyParser from "body-parser";
+import * as log4js from "./log"
+import * as db_pk from "./database_pk";
+import * as db_txh from "./database_transaction_history";
+import * as util from "./util";
+import {Op} from "sequelize";
 
+const logger = log4js.logger("Eigen");
 const app = express();
 app.use(log4js.useLog());
 
-var bodyParser = require("body-parser");
 app.use(bodyParser.json());
 
 // query key
@@ -18,12 +18,12 @@ app.get("/stores", async function (req, res) {
 });
 
 app.get("/store", async function (req, res) {
-  var digest = req.query.digest;
+  const digest = req.query.digest;
   if (!util.has_value(digest)) {
     logger.error("digest is empty");
     return res.json(util.Err(1, "digest missing"));
   }
-  var result = await db_pk.findByDigest(digest);
+  const result = await db_pk.findByDigest(digest);
   if (!result) {
     return res.json(util.Succ({}));
   }
@@ -32,21 +32,21 @@ app.get("/store", async function (req, res) {
 
 // add new key
 app.post("/store", async function (req, res) {
-  var digest = req.body.digest;
-  var pk = req.body.public_key;
+  const digest = req.body.digest;
+  const pk = req.body.public_key;
   if (!util.has_value(digest) || !util.has_value(pk)) {
     return res.json(util.Err(1, "missing dig or pk"));
   }
 
-  var result = db_pk.updateOrAdd(digest, digest, pk);
+  const result = db_pk.updateOrAdd(digest, digest, pk);
   res.json(util.Succ(result));
 });
 
 // update
 app.put("/store", async function (req, res) {
-  var old_digest = req.body.old_digest;
-  var digest = req.body.digest;
-  var pk = req.body.public_key;
+  const old_digest = req.body.old_digest;
+  const digest = req.body.digest;
+  const pk = req.body.public_key;
   if (
     !util.has_value(digest) ||
     !util.has_value(pk) ||
@@ -54,7 +54,7 @@ app.put("/store", async function (req, res) {
   ) {
     return res.json(util.Err(1, "missing dig or pk"));
   }
-  var result = db_pk.updateOrAdd(old_digest, digest, pk);
+  const result = db_pk.updateOrAdd(old_digest, digest, pk);
   res.json(util.Succ(result));
 });
 
@@ -65,32 +65,35 @@ app.get("/txhs", async function(req, res) {
 */
 
 app.get("/txhs", async function (req, res) {
-  var action = req.query.action;
+  const action = req.query.action;
   console.log(req.query);
   let dict = req.query;
-  let page = dict["page"];
-  let page_size = dict["page_size"];
-  let order = dict["order"];
+
+  const page = dict.page;
+  const page_size = dict.page_size;
+  const order = dict.order;
   switch (action) {
     case "search":
-      delete dict["action"];
-      delete dict["page"];
-      delete dict["page_size"];
-      delete dict["order"];
+      delete dict.action;
+      delete dict.page;
+      delete dict.page_size;
+      delete dict.order;
       return res.json(
         util.Succ(await db_txh.search(req.query, page, page_size, order))
       );
       break;
     case "search_l2":
-      delete dict["action"];
-      delete dict["page"];
-      delete dict["page_size"];
-      delete dict["order"];
+      delete dict.action;
+      delete dict.page;
+      delete dict.page_size;
+      delete dict.order;
 
       // TODO: 0x2 (L2->L1), 0x3 (L2->L2) should replaced with enum
-      dict["type"] = {
+      /* TODO 
+      dict.type = {
         [Op.or]: [0x2, 0x3],
       };
+      */
       return res.json(
         util.Succ(await db_txh.search(req.query, page, page_size, order))
       );
@@ -103,15 +106,15 @@ app.get("/txhs", async function (req, res) {
 });
 
 app.get("/txh", async function (req, res) {
-  var action = req.query.action;
+  const action = req.query.action;
   console.log("action = ", action);
   if (!action) {
-    var txid = req.query.txid;
+    const txid = req.query.txid;
     if (!util.has_value(txid)) {
       logger.error("txid is empty");
       return res.json(util.Err(1, "txid missing"));
     }
-    var result = await db_txh.getByTxid(txid);
+    const result = await db_txh.getByTxid(txid);
     if (!result) {
       return res.json(util.Succ({}));
     }
@@ -133,13 +136,13 @@ app.get("/txh", async function (req, res) {
 
 // add transaction
 app.post("/txh", async function (req, res) {
-  var txid = req.body.txid;
-  var from = req.body.from;
-  var to = req.body.to;
-  var value = req.body.value;
-  var block_num = req.body.block_num;
-  var type = req.body.type;
-  var name = req.body.name;
+  const txid = req.body.txid;
+  const from = req.body.from;
+  const to = req.body.to;
+  const value = req.body.value;
+  const block_num = req.body.block_num;
+  const type = req.body.type;
+  const name = req.body.name;
   if (
     !util.has_value(txid) ||
     !util.has_value(from) ||
@@ -151,11 +154,11 @@ app.post("/txh", async function (req, res) {
   }
   console.log(req.body);
 
-  var result = db_txh.updateOrAdd(txid, {
-    txid: txid,
-    from: from,
-    to: to,
-    value: value,
+  const result = db_txh.updateOrAdd(txid, {
+    txid,
+    from,
+    to,
+    value,
     type: Number(type),
     name: name || "ETH",
     block_num: req.body.block_num || -1,
@@ -167,11 +170,11 @@ app.post("/txh", async function (req, res) {
 
 // update transaction status
 app.put("/txh/:txid", async function (req, res) {
-  var txid = req.params.txid;
+  const txid = req.params.txid;
   if (!util.has_value(txid)) {
     return res.json(util.Err(1, "missing fields"));
   }
-  var result = db_txh.updateOrAdd(txid, {
+  const result = db_txh.updateOrAdd(txid, {
     status: req.body.status || 0,
     sub_txid: req.body.sub_txid || "",
   });

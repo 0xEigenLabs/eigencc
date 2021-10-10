@@ -1,5 +1,4 @@
-var Sequelize = require("sequelize");
-const { Op } = require("sequelize");
+import {Sequelize, Op, DataTypes} from "sequelize";
 
 const sequelize = new Sequelize({
   dialect: "sqlite",
@@ -15,18 +14,18 @@ const sequelize = new Sequelize({
 
 const pkdb = sequelize.define("transaction_history_st", {
   txid: {
-    type: Sequelize.STRING(64),
+    type: DataTypes.STRING(64),
     allowNull: false,
     unique: true,
   },
-  from: Sequelize.STRING,
-  to: Sequelize.STRING,
-  name: Sequelize.STRING,
-  value: Sequelize.INTEGER,
-  type: Sequelize.INTEGER,
-  block_num: Sequelize.INTEGER,
-  status: Sequelize.INTEGER,
-  sub_txid: Sequelize.STRING,
+  from: DataTypes.STRING,
+  to: DataTypes.STRING,
+  name: DataTypes.STRING,
+  value: DataTypes.INTEGER,
+  type: DataTypes.INTEGER,
+  block_num: DataTypes.INTEGER,
+  status: DataTypes.INTEGER,
+  sub_txid: DataTypes.STRING,
 });
 
 const TX_TYPE_L1ToL1 = 0x0;
@@ -49,7 +48,7 @@ sequelize
       sub_txid: "",
     });
   })
-  .then(function (row) {
+  .then(function (row: any) {
     console.log(
       row.get({
         plain: true,
@@ -61,7 +60,7 @@ sequelize
     console.log("Unable to connect to the database:", err);
   });
 
-exports.add = function (dict) {
+const add = function (dict) {
   return pkdb.create({
     txid: dict.txid,
     from: dict.from,
@@ -75,11 +74,11 @@ exports.add = function (dict) {
   });
 };
 
-exports.getByTxid = function (txid) {
-  return pkdb.findOne({ where: { txid: txid } });
+const getByTxid = function (txid) {
+  return pkdb.findOne({ where: { txid } });
 };
 
-exports.search = function (filter_dict, page, page_size, order) {
+const search = function (filter_dict, page, page_size, order) {
   console.log(filter_dict);
   if (page) {
     console.log("page = ", page);
@@ -95,10 +94,10 @@ exports.search = function (filter_dict, page, page_size, order) {
         });
         console.log("count = ", count);
         console.log("rows = ", rows);
-        total_page = Math.ceil(count / page_size);
+        const total_page = Math.ceil(count / page_size);
         return {
           transactions: rows,
-          total_page: total_page,
+          total_page,
         };
       })();
     } else {
@@ -110,10 +109,10 @@ exports.search = function (filter_dict, page, page_size, order) {
         });
         console.log("count = ", count);
         console.log("transactions = ", rows);
-        total_page = Math.ceil(count / page_size);
+        const total_page = Math.ceil(count / page_size);
         return {
           transactions: rows,
-          total_page: total_page,
+          total_page,
         };
       })();
     }
@@ -132,14 +131,14 @@ exports.search = function (filter_dict, page, page_size, order) {
   }
 };
 
-exports.findAll = function () {
+const findAll = function () {
   return pkdb.findAll();
 };
 
-exports.updateOrAdd = function (txid, update_dict) {
-  pkdb.findOne({ where: { txid: txid } }).then(function (row) {
+const updateOrAdd = function (txid, update_dict) {
+  pkdb.findOne({ where: { txid } }).then(function (row: any) {
     if (row === null) {
-      exports.add(update_dict);
+      add(update_dict);
       return true;
     }
     return row
@@ -158,9 +157,9 @@ exports.updateOrAdd = function (txid, update_dict) {
   });
 };
 
-exports.account_count_l2 = function () {
+const account_count_l2 = function () {
   return (async () => {
-    l2_to_l1 = await pkdb.findAll({
+    const l2_to_l1:any = await pkdb.findAll({
       attributes: [["from", "account"]],
       where: {
         type: TX_TYPE_L2ToL1,
@@ -168,12 +167,12 @@ exports.account_count_l2 = function () {
       raw: true,
     });
     console.log(l2_to_l1);
-    accounts = new Set();
-    for (var i = 0; i < l2_to_l1.length; i++) {
+    const accounts = new Set();
+    for (let i = 0; i < l2_to_l1.length; i++) {
       accounts.add(l2_to_l1[i].account);
     }
 
-    l2_to_l2 = await pkdb.findAll({
+    const l2_to_l2:any = await pkdb.findAll({
       attributes: [
         ["from", "account"],
         ["to", "account"],
@@ -185,7 +184,7 @@ exports.account_count_l2 = function () {
     });
 
     console.log(l2_to_l2);
-    for (var i = 0; i < l2_to_l2.length; i++) {
+    for (let i = 0; i < l2_to_l2.length; i++) {
       accounts.add(l2_to_l2[i].account);
     }
 
@@ -193,7 +192,7 @@ exports.account_count_l2 = function () {
   })();
 };
 
-exports.transaction_count_l2 = function () {
+const transaction_count_l2 = function () {
   return pkdb.count({
     where: {
       type: {
@@ -202,3 +201,4 @@ exports.transaction_count_l2 = function () {
     },
   });
 };
+export {account_count_l2, transaction_count_l2, updateOrAdd, add, search, getByTxid, findAll};

@@ -1,8 +1,10 @@
-var EC = require('elliptic').ec;
-var ec = new EC('p256');
-var ecies = require("../src/ecies.js");
-const crypto = require("crypto");
-var assert = require('assert');
+declare const Buffer;
+import {ec as EC} from "elliptic"
+//const EC = elliptic.ec;
+const ec = new EC("p256");
+
+import * as ecies from "../src/ecies";
+import * as crypto from "crypto";
 
 let msg = "Hello, Eigen, Privacy Computing!";
 const KEY = Buffer.from(crypto.randomBytes(32), 'utf8');
@@ -10,7 +12,9 @@ const iv2 = Buffer.from(crypto.randomBytes(12), 'utf8');
 
 let encrypted2 = ecies.aes_enc('aes-256-gcm', iv2, KEY, msg)
 let decrypted2 = ecies.aes_dec('aes-256-gcm', KEY, encrypted2)
-assert(decrypted2 == msg);
+if (decrypted2 != msg) {
+    throw new Error("decrypt failed")
+}
 //console.log("aes worker well", decrypted2, iv2);
 
 function test_ecies() {
@@ -30,7 +34,9 @@ function test_ecies() {
     let publicKey = keyPair.getPublic();
     const encryptedText = ecies.encrypt(publicKey, msg, options);
     const decryptedText = ecies.decrypt(keyPair, encryptedText, options);
-    assert(msg == decryptedText);
+    if (msg != decryptedText) {
+        throw new Error("decrypted2 failed")
+    }
 }
 
 function test_ecies_with_rs() {
@@ -49,7 +55,7 @@ function test_ecies_with_rs() {
     let pub = "04a52438a5c1bba393d167994974b6d299bbdb078263144c9d9429bb65bb151fa3718657caea7bb5adef04a8cf8d40ff20bbc3a9330f04c2acb5b209cd25a2d863";
     let keyPair = ec.keyFromPublic(pub, "hex");
     let publicKey = keyPair.getPublic();
-    console.log("public: ", keyPair.getPublic('string'));
+    console.log("public: ", keyPair.getPublic('hex'));
     const encryptedText = ecies.encrypt(publicKey, msg, options);
     console.log("cipher", encryptedText.toString('hex'));
 

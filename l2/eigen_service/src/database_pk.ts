@@ -1,4 +1,4 @@
-var Sequelize = require('sequelize');
+import {Sequelize,DataTypes} from 'sequelize';
 const sequelize = new Sequelize({
   dialect: 'sqlite',
 
@@ -12,8 +12,8 @@ const sequelize = new Sequelize({
 });
 
 const pkdb = sequelize.define('pk_st', {
-  digest: Sequelize.STRING(64),
-  public_key: Sequelize.STRING
+  digest: DataTypes.STRING(64),
+  public_key: DataTypes.STRING
 });
 
 sequelize.sync().then(function() {
@@ -21,7 +21,7 @@ sequelize.sync().then(function() {
         digest: 'eigen__',
         public_key: 'eigne__'
     });
-}).then(function(row) {
+}).then(function(row: any) {
     console.log(row.get({
         plain: true
     }));
@@ -30,27 +30,27 @@ sequelize.sync().then(function() {
   console.log('Unable to connect to the database:', err);
 });
 
-exports.add = function(digest, pk) {
+const add = function(digest, pk) {
   return pkdb.create({
-      digest: digest,
+      digest,
       public_key: pk
   })
 };
 
-exports.findByDigest = function(dig) {
+const findByDigest = function(dig) {
   return pkdb.findOne({where: {digest: dig}})
 };
 
-exports.findAll = function() {
+const findAll = function() {
     return pkdb.findAll();
 }
 
-exports.updateOrAdd = function(old_dig, new_dig, new_pk){
+const updateOrAdd = function(old_dig, new_dig, new_pk){
     pkdb.findOne({where: {digest: old_dig
-    }}).then(function(row){
+    }}).then(function(row: any){
         console.log(row)
         if (row === null) {
-            exports.add(new_dig, new_pk)
+            add(new_dig, new_pk)
             return true
         }
         return row.update({
@@ -65,3 +65,5 @@ exports.updateOrAdd = function(old_dig, new_dig, new_pk){
         });
     });
 };
+
+export {updateOrAdd, findAll, findByDigest, add };
