@@ -2,17 +2,20 @@
 
 - PKCS
 - Transaction History
-
-## Test
-
-`yarn test`
+- Secret recovery
 
 ## Usage
+
+### Compile
+```
+yarn && yarn build
+yarn test
+```
 
 ### Launch Server
 
 ```
-forever start ./src/app.js  # or `yarn start` for dev
+forever start ./build/src/app.js  # or `yarn start` for dev
 ```
 
 ### PKCS

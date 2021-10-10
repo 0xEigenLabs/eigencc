@@ -1,35 +1,35 @@
 // Implemention of ECIES specified in https://en.wikipedia.org/wiki/Integrated_Encryption_Scheme
 'use strict';
+declare const Buffer;
 
-const crypto = require('crypto');
-const assert = require('assert');
-var EC = require("elliptic").ec;
-var ec = new EC("p256");
+import * as crypto from 'crypto';
+import * as elliptic from "elliptic"
+const EC = elliptic.ec;
+const ec = new EC("p256");
 const empty_buffer = Buffer.allocUnsafe ? Buffer.allocUnsafe(0) : Buffer.from([]);
 const AUTH_TAG_LEN = 16;
 const IV_LEN = 12;
 
 // E
-function symmetricEncrypt(cypherName, iv, key, plaintext) {
-    let cipher = crypto.createCipheriv(cypherName, key, iv);
-    var encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
-    let tag  = cipher.getAuthTag()
+function aes_enc(cypherName, iv, key, plaintext) {
+    const cipher = crypto.createCipheriv(cypherName, key, iv);
+    const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+    const tag  = cipher.getAuthTag()
     return Buffer.concat([iv, tag, encrypted]);
 }
 
 // E-1
-function symmetricDecrypt(cypherName, key, cipherText) {
+function aes_dec(cypherName, key, cipherText) {
     // convert data to buffers
-    let iv = cipherText.slice(0, IV_LEN);
-    let tag = cipherText.slice(IV_LEN, IV_LEN + AUTH_TAG_LEN);
-    let text = cipherText.slice(IV_LEN + AUTH_TAG_LEN);
-    let decipher = crypto.createDecipheriv(cypherName, key, iv);
+    const iv = cipherText.slice(0, IV_LEN);
+    const tag = cipherText.slice(IV_LEN, IV_LEN + AUTH_TAG_LEN);
+    const text = cipherText.slice(IV_LEN + AUTH_TAG_LEN);
+    const decipher = crypto.createDecipheriv(cypherName, key, iv);
     decipher.setAuthTag(tag);
-    let dec = decipher.update(text) + decipher.final();
+    // const dec = decipher.update(text) + decipher.final();
+    const dec = decipher.update(text) + decipher.final("utf8"); // TODO test
     return dec;
 }
-exports.aes_enc = symmetricEncrypt
-exports.aes_dec = symmetricDecrypt
 
 // KDF
 function hashMessage(cypherName, message) {
@@ -85,12 +85,13 @@ function makeUpOptions(options) {
     return options;
 }
 
-exports.encrypt = function (publicKey, message, options) {
+const encrypt = function (publicKey, message, options) {
     options = makeUpOptions(options);
 
     const ephemPrivateKey = ec.genKeyPair();
     // R
-    const ephemPublicKey = Buffer.from(ephemPrivateKey.getPublic("arr"));
+    // const ephemPublicKey = Buffer.from(ephemPrivateKey.getPublic("arr"));
+    const ephemPublicKey = Buffer.from(ephemPrivateKey.getPublic("array"));
     // S
     const sharedSecret = Buffer.from(ephemPrivateKey.derive(publicKey).toArray());
 
@@ -111,8 +112,8 @@ exports.encrypt = function (publicKey, message, options) {
     // encrypts the message:
     // c = E(Ke; m);
     const iv = Buffer.from(crypto.randomBytes(IV_LEN), 'utf8');
-    const cipherText = symmetricEncrypt(options.symmetricCypherName, iv, encryptionKey, message);
-    let bufCipherText = Buffer.from(cipherText, 'base64')
+    const cipherText = aes_enc(options.symmetricCypherName, iv, encryptionKey, message);
+    const bufCipherText = Buffer.from(cipherText, 'base64')
     // computes the tag of encrypted message and S2:
     // d = MAC(Km; c || S2)
     const tag = macMessage(
@@ -127,14 +128,14 @@ exports.encrypt = function (publicKey, message, options) {
     return Buffer.concat([ephemPublicKey, bufCipherText, tag]);
 };
 
-exports.decrypt = function (keyPair, message, options) {
+const decrypt = function (keyPair, message, options) {
     options = makeUpOptions(options);
 
     const publicKeyLength = keyPair.getPublic("arr").length;
     // R
     const R = message.slice(0, publicKeyLength);
-    let keyPair2 = ec.keyFromPublic(R);
-    let publicKey = keyPair2.getPublic();
+    const keyPair2 = ec.keyFromPublic(R);
+    const publicKey = keyPair2.getPublic();
     // c
     const cipherText = message.slice(publicKeyLength, message.length - options.macLength);
     // d
@@ -168,9 +169,11 @@ exports.decrypt = function (keyPair, message, options) {
     );
 
     // outputs failed if d != MAC(Km; c || S2);
-    assert(equalConstTime(messageTag, keyTag), "Bad MAC");
+    if (!equalConstTime(messageTag, keyTag)) throw new Error("Bad MAC");
 
     // uses symmetric encryption scheme to decrypt the message
     // m = E-1(Ke; c)
-    return symmetricDecrypt(options.symmetricCypherName, encryptionKey, cipherText);
+    return aes_dec(options.symmetricCypherName, encryptionKey, cipherText);
 }
+
+export {encrypt, decrypt, aes_dec, aes_enc};
