@@ -235,21 +235,26 @@ const withdraw = async (l1CustomTokenAddr: string, arbCustomTokenAddr: string, t
     const withdrawRes = await l2CustomToken.withdraw(
         l1TestWallet.address,
         tokenWithdrawAmount,
-        { gasLimit: 600000, gasPrice: 100 }
+        { gasLimit: 210000, gasPrice: 1000000 }
     )
     const withdrawRec = await withdrawRes.wait()
     console.log("withdraw done")
-    /*
     const withdrawEventData = (
         await bridge.getWithdrawalsInL2Transaction(withdrawRec)
     )[0]
     console.log("withdraw data", withdrawEventData)
-    */
     const txHash = withdrawRec.transactionHash
     console.log("withdraw hash:", txHash)
     const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txHash);
     const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
+    console.log(outGoingMessagesFromTxn)
     const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
+    if (!batchNumber.eq(withdrawEventData.batchNumber) || 
+        !indexInBatch.eq(withdrawEventData.indexInBatch)) {
+        console.log("Invalid batchNumber or indexInBatch")
+        process.exit(-1)
+    }
+
     console.log("from outgoing msg", outGoingMessagesFromTxn[0])
     const outgoingMessageState = await bridge.getOutGoingMessageState(
         batchNumber,
@@ -306,7 +311,8 @@ const depositETH = async(ethToL2DepositAmount: BigNumber) => {
     console.log("deployments.ethERC20Bridge balance: ", bridgeEthBalance.toString()) 
 
     if (bridgeEthBalance.gt(BigNumber.from(0))) {
-        return;
+        console.log("Skip deposit ethERC20Bridge")
+        //return;
     }
     /*
     let balance = await getWalletBalance() 
