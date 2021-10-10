@@ -60,7 +60,7 @@ const deployL1AndL2 = async () => {
     const bal = await l1CustomToken.balanceOf(l1TestWallet.address);
     console.log("l1 wallet balance in token", bal.toString());
     const res = await l1CustomToken.transfer(userAddr,
-        BigNumber.from(200)
+        BigNumber.from(1)
     );
     let rec = await res.wait();
     const data = await bridge.getAndUpdateL1TokenData(l1CustomToken.address);
@@ -247,6 +247,9 @@ const withdraw = async (arbCustomTokenAddr: string, tokenWithdrawAmount: BigNumb
         console.log("invalid withdraw")
         process.exit(-1);
     }
+
+    const curBridgeTokenCipherBalance = await l2CustomToken.cipherBalanceOf(l2TestWallet.address);
+    console.log("cipher balance in l2 token", curBridgeTokenCipherBalance?.toString());
 }
 
 const getWalletBalance = async () => {

@@ -170,4 +170,38 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         emit TransferCipher(_msgSender(), recipient, cipher_amount);
         return true;
     }
+
+    function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
+        require(_msgSender() != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        bytes[] memory list;
+        list = new bytes[](4);
+
+        bytes memory sender_cipher_base64_balance = _cipher_balances[_msgSender()];
+        list[0] = RLPEncode.encodeString("sub_cipher_plain");
+        list[1] = RLPEncode.encodeBytes(sender_cipher_base64_balance);
+        list[2] = RLPEncode.encodeString(uint256_to_string(amount));
+        list[3] = RLPEncode.encodeString("");
+        bytes memory sender_encrypt_bytes = RLPEncode.encodeList(list);
+        bytes memory sender_rlp_encoded_result = ArbSys(address(100)).eigenCall(
+            sender_encrypt_bytes
+        );
+        bytes memory sender_cipher_base64 = sender_rlp_encoded_result.toRlpItem().toBytes();
+        _cipher_balances[_msgSender()] = copy_bytes(sender_cipher_base64);
+
+        bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
+        list[0] = RLPEncode.encodeString("add_cipher_plain");
+        list[1] = RLPEncode.encodeBytes(recipient_cipher_base64_balance);
+        list[2] = RLPEncode.encodeString(uint256_to_string(amount));
+        list[3] = RLPEncode.encodeString("");
+        bytes memory recipient_encrypt_bytes = RLPEncode.encodeList(list);
+        bytes memory recipient_rlp_encoded_result = ArbSys(address(100)).eigenCall(
+            recipient_encrypt_bytes
+        );
+        bytes memory recipient_cipher_base64 = recipient_rlp_encoded_result.toRlpItem().toBytes();
+        _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
+        emit Transfer(_msgSender(), recipient, amount);
+        return true;
+    }
 }
