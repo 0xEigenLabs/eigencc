@@ -172,7 +172,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
     }
 
     function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
-        _transfer(_msgSender(), recipient, amount);
+        // _transfer(_msgSender(), recipient, amount);
         require(_msgSender() != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
@@ -204,5 +204,111 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
         emit Transfer(_msgSender(), recipient, amount);
         return true;
+    }
+
+    function _compare_bytes(bytes memory a, bytes memory b) private view returns (bool) {
+        return keccak256(a) == keccak256(b);
+    }
+
+    function compareCipherCipher(bytes memory cipher1, bytes memory cipher2)
+        public
+        view
+        returns (int256)
+    {
+        bytes[] memory list;
+        list = new bytes[](4);
+
+        list[0] = RLPEncode.encodeString("compare_cipher_cipher");
+        list[1] = RLPEncode.encodeBytes(cipher1);
+        list[2] = RLPEncode.encodeBytes(cipher2);
+        list[3] = RLPEncode.encodeString("");
+
+        bytes memory compare_cipher_cipher_bytes = RLPEncode.encodeList(list);
+
+        bytes memory compare_rlp_encoded_result = ArbSys(address(100)).eigenCall(
+            compare_cipher_cipher_bytes
+        );
+
+        bytes memory compare_result = compare_rlp_encoded_result.toRlpItem().toBytes();
+        require(
+            _compare_bytes(compare_result, "0") ||
+                _compare_bytes(compare_result, "1") ||
+                _compare_bytes(compare_result, "-1"),
+            "compare result can only be -1, 0, or 1"
+        );
+
+        if (_compare_bytes(compare_result, "-1")) {
+            return -1;
+        } else if (_compare_bytes(compare_result, "1")) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    function compareCipherPlain(bytes memory cipher, uint256 plain) public view returns (int256) {
+        bytes[] memory list;
+        list = new bytes[](4);
+
+        list[0] = RLPEncode.encodeString("compare_cipher_plain");
+        list[1] = RLPEncode.encodeBytes(cipher);
+        list[2] = RLPEncode.encodeString(uint256_to_string(plain));
+        list[3] = RLPEncode.encodeString("");
+
+        bytes memory compare_cipher_plain_bytes = RLPEncode.encodeList(list);
+
+        bytes memory compare_rlp_encoded_result = ArbSys(address(100)).eigenCall(
+            compare_cipher_plain_bytes
+        );
+
+        bytes memory compare_result = compare_rlp_encoded_result.toRlpItem().toBytes();
+        require(
+            _compare_bytes(compare_result, "0") ||
+                _compare_bytes(compare_result, "1") ||
+                _compare_bytes(compare_result, "-1"),
+            "compare result can only be -1, 0, or 1"
+        );
+
+        if (_compare_bytes(compare_result, "-1")) {
+            return -1;
+        } else if (_compare_bytes(compare_result, "1")) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    function encryptUint256(uint256 plain) public view returns (bytes memory) {
+        bytes[] memory list;
+
+        list = new bytes[](4);
+
+        list[0] = RLPEncode.encodeString("encrypt");
+        list[1] = RLPEncode.encodeString(uint256_to_string(plain));
+        list[2] = RLPEncode.encodeString("");
+        list[3] = RLPEncode.encodeString("");
+        bytes memory encrypt_bytes = RLPEncode.encodeList(list);
+
+        bytes memory rlp_encoded_result = ArbSys(address(100)).eigenCall(encrypt_bytes);
+
+        bytes memory cipher_base64 = rlp_encoded_result.toRlpItem().toBytes();
+        return cipher_base64;
+    }
+
+    function decryptUint256(bytes memory cipher) public view returns (bytes memory) {
+        bytes[] memory list;
+
+        list = new bytes[](4);
+
+        list[0] = RLPEncode.encodeString("decrypt");
+        list[1] = RLPEncode.encodeBytes(cipher);
+        list[2] = RLPEncode.encodeString("");
+        list[3] = RLPEncode.encodeString("");
+        bytes memory decrypt_bytes = RLPEncode.encodeList(list);
+
+        bytes memory rlp_encoded_result = ArbSys(address(100)).eigenCall(decrypt_bytes);
+
+        bytes memory cipher_base64 = rlp_encoded_result.toRlpItem().toBytes();
+        return cipher_base64;
     }
 }
