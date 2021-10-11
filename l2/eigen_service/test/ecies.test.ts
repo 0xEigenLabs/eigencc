@@ -72,6 +72,6 @@ describe('ecies library', () => {
         test_ecies_with_rs();
     });
     it('ecies with js' , () => {
-        test_ecies_with_rs();
+        test_ecies();
     });
 })
