@@ -2,6 +2,9 @@ declare const Buffer;
 import * as elliptic from "elliptic"
 const EC = elliptic.ec;
 const ec = new EC("p256");
+import * as mocha from 'mocha';
+import * as chai from 'chai';
+const expect = chai.expect;
 
 import * as ecies from "../src/ecies";
 import * as crypto from "crypto";
@@ -34,9 +37,7 @@ function test_ecies() {
     const publicKey = keyPair.getPublic();
     const encryptedText = ecies.encrypt(publicKey, msg, options);
     const decryptedText = ecies.decrypt(keyPair, encryptedText, options);
-    if (msg != decryptedText) {
-        throw new Error("decrypted2 failed")
-    }
+    expect(msg).to.equal(decryptedText);
 }
 
 function test_ecies_with_rs() {
@@ -64,7 +65,13 @@ function test_ecies_with_rs() {
     console.log(keyPair2.getPublic("hex"));
     const decryptedText = ecies.decrypt(keyPair2, encryptedText, options);
     console.log(msg, decryptedText)
-    // assert(msg == decryptedText);
+    expect(msg).to.equal(decryptedText);
 }
-
-test_ecies_with_rs();
+describe('ecies library', () => {
+    it('ecies with rs' , () => {
+        test_ecies_with_rs();
+    });
+    it('ecies with js' , () => {
+        test_ecies_with_rs();
+    });
+})
