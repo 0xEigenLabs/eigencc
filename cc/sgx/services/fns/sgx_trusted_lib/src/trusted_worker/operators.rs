@@ -184,7 +184,7 @@ impl Worker for OperatorWorker {
                 // 3. Do calculate
                 let result = match input.op {
                     OperatorKind::AddCipherCipher => op1 + op2,
-                    OperatorKind::SubCipherCipher => op1 - op2,
+                    OperatorKind::SubCipherCipher if op1 >= op2 => op1 - op2,
                     _ => return Err(Error::from(ErrorKind::InvalidInputError)),
                 };
 
@@ -231,7 +231,7 @@ impl Worker for OperatorWorker {
 
                 let result = match input.op {
                     OperatorKind::AddCipherPlain => op1 + op2,
-                    OperatorKind::SubCipherPlain => op1 - op2,
+                    OperatorKind::SubCipherPlain if op1 >= op2 => op1 - op2,
                     _ => return Err(Error::from(ErrorKind::InvalidInputError)),
                 };
 
