@@ -51,6 +51,8 @@ enum OperatorKind {
     SubCipherPlain,
     Encrypt,
     Decrypt,
+    CompareCipherCipher,
+    CompareCipherPlain,
 }
 
 struct OperatorWorkerInput {
@@ -89,7 +91,12 @@ impl Worker for OperatorWorker {
         let op = splited[0];
 
         match op {
-            "add_cipher_cipher" | "add_cipher_plain" | "sub_cipher_cipher" | "sub_cipher_plain" => {
+            "add_cipher_cipher"
+            | "add_cipher_plain"
+            | "sub_cipher_cipher"
+            | "sub_cipher_plain"
+            | "compare_cipher_cipher"
+            | "compare_cipher_plain" => {
                 let arity = splited[1]
                     .parse::<u8>()
                     .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
@@ -106,6 +113,8 @@ impl Worker for OperatorWorker {
                     "add_cipher_plain" => OperatorKind::AddCipherPlain,
                     "sub_cipher_cipher" => OperatorKind::SubCipherCipher,
                     "sub_cipher_plain" => OperatorKind::SubCipherPlain,
+                    "compare_cipher_cipher" => OperatorKind::CompareCipherCipher,
+                    "compare_cipher_plain" => OperatorKind::CompareCipherPlain,
                     _ => unreachable!(),
                 };
 
@@ -184,7 +193,7 @@ impl Worker for OperatorWorker {
                 // 3. Do calculate
                 let result = match input.op {
                     OperatorKind::AddCipherCipher => op1 + op2,
-                    OperatorKind::SubCipherCipher => op1 - op2,
+                    OperatorKind::SubCipherCipher if op1 >= op2 => op1 - op2,
                     _ => return Err(Error::from(ErrorKind::InvalidInputError)),
                 };
 
@@ -231,7 +240,7 @@ impl Worker for OperatorWorker {
 
                 let result = match input.op {
                     OperatorKind::AddCipherPlain => op1 + op2,
-                    OperatorKind::SubCipherPlain => op1 - op2,
+                    OperatorKind::SubCipherPlain if op1 >= op2 => op1 - op2,
                     _ => return Err(Error::from(ErrorKind::InvalidInputError)),
                 };
 
@@ -292,6 +301,51 @@ impl Worker for OperatorWorker {
                 let b = BigUint::from_bytes_be(&plain[..]);
 
                 Ok(b.to_str_radix(10))
+            }
+            OperatorKind::CompareCipherCipher | OperatorKind::CompareCipherPlain => {
+                let key_pair = register_func::get_key_pair();
+                let s1 = vec![];
+                let s2 = vec![];
+
+                let op1 = {
+                    let cipher_operand_1 = base64::decode(&input.operand_1)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                    let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(
+                        key_pair,
+                        &cipher_operand_1,
+                        &s1,
+                        &s2,
+                    )
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                    BigUint::from_bytes_be(&op1[..])
+                };
+
+                let op2 = match input.op {
+                    OperatorKind::CompareCipherCipher => {
+                        let cipher_operand_2 = base64::decode(&input.operand_2)
+                            .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                        let op2 = eigen_crypto::ec::suite_b::ecies::decrypt(
+                            key_pair,
+                            &cipher_operand_2,
+                            &s1,
+                            &s2,
+                        )
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                        BigUint::from_bytes_be(&op2[..])
+                    }
+                    OperatorKind::CompareCipherPlain => {
+                        BigUint::parse_bytes(input.operand_2.as_bytes(), 10)
+                            .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?
+                    }
+                    _ => unreachable!(),
+                };
+
+                // Do compare
+                match op1.cmp(&op2) {
+                    std::cmp::Ordering::Equal => Ok("0".to_string()),
+                    std::cmp::Ordering::Less => Ok("-1".to_string()),
+                    std::cmp::Ordering::Greater => Ok("1".to_string()),
+                }
             }
             _ => {
                 return Err(Error::from(ErrorKind::InvalidInputError));
