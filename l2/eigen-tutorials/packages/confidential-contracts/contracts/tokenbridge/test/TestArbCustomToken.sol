@@ -18,6 +18,8 @@
 
 pragma solidity ^0.6.11;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 import "../arbitrum/IArbToken.sol";
 import "../libraries/aeERC20.sol";
 import "../arbitrum/ArbTokenBridge.sol";
@@ -29,6 +31,7 @@ import "solidity-rlp/contracts/RLPReader.sol";
 contract TestArbCustomToken is aeERC20, IArbToken {
     using RLPReader for RLPReader.RLPItem;
     using RLPReader for bytes;
+    using Strings for uint256;
 
     ArbTokenBridge public bridge;
     address public override l1Address;
@@ -156,7 +159,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
     }
 
     function encrypt(uint256 plain) public pure returns (bytes memory) {
-        return _call_eigen_call("encrypt", bytes(_uint256_to_string(plain)), "", "");
+        return _call_eigen_call("encrypt", bytes(plain.toString()), "", "");
     }
 
     function decrypt(bytes memory cipher) public pure returns (bytes memory) {
@@ -172,7 +175,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
     }
 
     function addCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {
-        return _call_eigen_call("add_cipher_plain", cipher, bytes(_uint256_to_string(plain)), "");
+        return _call_eigen_call("add_cipher_plain", cipher, bytes(plain.toString()), "");
     }
 
     function subCipherCipher(bytes memory cipher1, bytes memory cipher2)
@@ -184,7 +187,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
     }
 
     function subCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {
-        return _call_eigen_call("sub_cipher_plain", cipher, bytes(_uint256_to_string(plain)), "");
+        return _call_eigen_call("sub_cipher_plain", cipher, bytes(plain.toString()), "");
     }
 
     function _compare_bytes(bytes memory a, bytes memory b) private pure returns (bool) {
@@ -222,7 +225,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         bytes memory compare_result = _call_eigen_call(
             "compare_cipher_plain",
             cipher,
-            bytes(_uint256_to_string(plain)),
+            bytes(plain.toString()),
             ""
         );
         require(
@@ -239,26 +242,6 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         } else {
             return 0;
         }
-    }
-
-    function _uint256_to_string(uint256 _i) internal pure returns (string memory str) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint256 j = _i;
-        uint256 length;
-        while (j != 0) {
-            length++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(length);
-        uint256 k = length;
-        j = _i;
-        while (j != 0) {
-            bstr[--k] = bytes1(uint8(48 + (j % 10)));
-            j /= 10;
-        }
-        str = string(bstr);
     }
 
     function copy_bytes(bytes memory _bytes) private pure returns (bytes memory) {
