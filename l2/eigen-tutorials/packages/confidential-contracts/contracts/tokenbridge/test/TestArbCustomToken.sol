@@ -143,6 +143,8 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         bytes memory arg3,
         bytes memory arg4
     ) private pure returns (bytes memory) {
+        // TODO: Now we use RLP encoding in `ecall`, it'd be better using `abi.encode`
+        //       to save gas
         bytes[] memory list;
 
         list = new bytes[](4);
