@@ -11,6 +11,13 @@ interface ArbSys {
     function arbOSVersion() external pure returns (uint);
 
     /**
+    * @notice Call eigenCall function with RLP encoding bytes
+    * @return eigenCall returns value with RLP encoding bytes
+     */
+    
+    function eigenCall(bytes calldata) external pure returns (bytes memory);
+
+    /**
     * @notice Get Arbitrum block number (distinct from L1 block number; Arbitrum genesis block has block number 0)
     * @return block number as int
      */ 

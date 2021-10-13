@@ -26,6 +26,6 @@ contract TestERC20 is aeERC20 {
     }
 
     function mint() external {
-        _mint(msg.sender, 50000000);
+        _mint(msg.sender, 1e31);
     }
 }

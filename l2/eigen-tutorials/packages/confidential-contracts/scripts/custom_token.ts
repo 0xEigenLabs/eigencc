@@ -17,6 +17,8 @@ import { TestArbCustomToken } from "../typechain/TestArbCustomToken";
 import { TestCustomTokenL1__factory } from '../typechain/factories/TestCustomTokenL1__factory';
 import { TestArbCustomToken__factory } from '../typechain/factories/TestArbCustomToken__factory'
 
+const hex2ascii = require('hex2ascii')
+
 const MIN_APPROVAL = constants.MaxUint256
 
 const wait = async (i: number) => {
@@ -60,7 +62,7 @@ const deployL1AndL2 = async () => {
     const bal = await l1CustomToken.balanceOf(l1TestWallet.address);
     console.log("l1 wallet balance in token", bal.toString());
     const res = await l1CustomToken.transfer(userAddr,
-        BigNumber.from(200)
+        BigNumber.from(1)
     );
     let rec = await res.wait();
     const data = await bridge.getAndUpdateL1TokenData(l1CustomToken.address);
@@ -286,6 +288,47 @@ const depositETH = async(ethToL2DepositAmount: BigNumber) => {
     }
 }
 
+const eigenCallDemo = async (
+    arbCustomTokenAddr: string
+) => {
+
+    console.log("Withdraw")
+    const l2CustomToken = TestArbCustomToken__factory.connect(arbCustomTokenAddr, l2TestWallet)
+    // Here is example how we encrypt and descrypt
+    const value = 123;
+
+    const cipher = await l2CustomToken.encrypt(value);
+    console.log("Encrypt the value: ", hex2ascii(cipher?.toString()));
+
+    const plain = await l2CustomToken.decrypt(cipher?.toString());
+    console.log("Decrypt the cipher:  ", hex2ascii(plain?.toString()));
+
+    // Here is example how we compare cipher with cipher or plain
+    const value_1 = 122;
+    const value_2 = 123;
+    const value_3 = 124;
+
+    const cipher_1 = await l2CustomToken.encrypt(value_1);
+    const cipher_2 = await l2CustomToken.encrypt(value_2);
+    const cipher_3 = await l2CustomToken.encrypt(value_3);
+
+    const result_cipher_cipher_1 = await l2CustomToken.compareCipherCipher(cipher, cipher_1); // 123 > 122, yields 1
+    const result_cipher_cipher_2 = await l2CustomToken.compareCipherCipher(cipher, cipher_2); // 123 = 123, yields 0
+    const result_cipher_cipher_3 = await l2CustomToken.compareCipherCipher(cipher, cipher_3); // 123 < 124, yields -1
+
+    console.log("Compare cipher with cipher results: ", result_cipher_cipher_1, result_cipher_cipher_2, result_cipher_cipher_3)
+
+    const result_cipher_plain_1 = await l2CustomToken.compareCipherPlain(cipher, value_1); // 123 > 122, yields 1
+    const result_cipher_plain_2 = await l2CustomToken.compareCipherPlain(cipher, value_2); // 123 = 123, yields 0
+    const result_cipher_plain_3 = await l2CustomToken.compareCipherPlain(cipher, value_3); // 123 < 124, yields -1
+
+    console.log("Compare cipher with plain results: ", result_cipher_plain_1, result_cipher_plain_2, result_cipher_plain_3)
+
+    // To get the cipher balance
+    const curBridgeTokenCipherBalance = await l2CustomToken.cipherBalanceOf(l2TestWallet.address);
+    console.log("cipher balance in l2 token", hex2ascii(curBridgeTokenCipherBalance?.toString()));
+}
+
 const main = async () => {	
 	/*
     const inboxAddr1 = await bridge.ethERC20Bridge.inbox()
@@ -319,10 +362,12 @@ const main = async () => {
       l2CustomToken: '0x32D292d23A277410e23Ef29e79E2FD165FCD8F3E'
     }
     */
+    const l2CustomToken = TestArbCustomToken__factory.connect(tokenPair.l2CustomToken, l2TestWallet)
 
     let amount = BigNumber.from(120000)
     await deposit(tokenPair.l1CustomToken, amount)
     await withdraw(tokenPair.l2CustomToken, amount)
+    await eigenCallDemo(tokenPair.l2CustomToken)
 }
 
 main()
