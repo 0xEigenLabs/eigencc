@@ -111,8 +111,35 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         return true;
     }
 
+    function cipherTransferFrom(
+        address sender,
+        address recipient,
+        bytes memory cipher_amount
+    ) public virtual returns (bool) {
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        bytes[] memory list;
+        list = new bytes[](4);
+
+        bytes memory sender_cipher_base64_balance = _cipher_balances[sender];
+        bytes memory sender_cipher_base64 = subCipherCipher(sender_cipher_base64_balance, cipher_amount);
+        _cipher_balances[sender] = copy_bytes(sender_cipher_base64);
+
+        bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
+        bytes memory recipient_cipher_base64 = addCipherCipher(
+            recipient_cipher_base64_balance,
+            cipher_amount
+        );
+        _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
+        emit TransferCipher(sender, recipient, bytes(cipher_amount));
+
+        return true;
+    }
+
     function transfer(address recipient, uint256 amount) public virtual override returns (bool) {
         _transfer(_msgSender(), recipient, amount);
+
         require(_msgSender() != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
@@ -129,7 +156,35 @@ contract TestArbCustomToken is aeERC20, IArbToken {
             amount
         );
         _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
-        emit Transfer(_msgSender(), recipient, amount);
+        emit TransferCipher(_msgSender(), recipient, bytes(amount.toString()));
+        return true;
+    }
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public virtual override returns (bool) {
+        _transfer(sender, recipient, amount);
+
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        bytes[] memory list;
+        list = new bytes[](4);
+
+        bytes memory sender_cipher_base64_balance = _cipher_balances[sender];
+        bytes memory sender_cipher_base64 = subCipherPlain(sender_cipher_base64_balance, amount);
+        _cipher_balances[sender] = copy_bytes(sender_cipher_base64);
+
+        bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
+        bytes memory recipient_cipher_base64 = addCipherPlain(
+            recipient_cipher_base64_balance,
+            amount
+        );
+        _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
+        emit TransferCipher(sender, recipient, bytes(amount.toString()));
+
         return true;
     }
 
@@ -156,7 +211,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         bytes memory input = RLPEncode.encodeList(list);
 
         bytes memory result = ArbSys(address(100)).eigenCall(input);
-
+        require(_compare_bytes(result, RLPEncode.encodeBytes("")) != true, "Eigencall returns an empty string which means we encounter error" );
         return _rlp_decode_as_bytes(result);
     }
 
