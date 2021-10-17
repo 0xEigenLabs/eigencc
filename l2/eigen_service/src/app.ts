@@ -1,10 +1,13 @@
 import express from 'express';
+import jwt from "express-jwt";
 import { v4 as uuidv4 } from 'uuid';
 import * as log4js from "./log"
 import * as db_pk from "./database_pk";
 import * as db_txh from "./database_transaction_history";
 import * as util from "./util";
 import {Op} from "sequelize";
+
+import {JWT_SECRET} from "./login/config"
 
 import * as userdb from "./pid/pid"
 
@@ -58,7 +61,9 @@ app.get("/store", async function (req, res) {
 });
 
 // add new key
-app.post("/store", async function (req, res) {
+app.post("/store",
+         jwt({ secret: JWT_SECRET, algorithms: ['HS256'] }),
+         async function (req, res) {
   const digest = req.body.digest;
   const pk = req.body.public_key;
   if (!util.has_value(digest) || !util.has_value(pk)) {
@@ -175,7 +180,9 @@ app.get("/txh", async function (req, res) {
 });
 
 // add transaction
-app.post("/txh", async function (req, res) {
+app.post("/txh",
+         jwt({ secret: JWT_SECRET, algorithms: ['HS256'] }),
+         async function (req, res) {
   const txid = req.body.txid;
   const from = req.body.from;
   const to = req.body.to;
