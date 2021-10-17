@@ -2,9 +2,9 @@ import express from "express";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import bodyParser from "body-parser";
-//import cors from "cors";
 import querystring from "querystring";
-//import cookieParser from "cookie-parser";
+
+import * as userdb from "../pid/pid"
 import {
   SERVER_ROOT_URI,
   GOOGLE_CLIENT_ID,
@@ -13,21 +13,6 @@ import {
   COOKIE_NAME,
   UI_ROOT_URI,
 } from "./config";
-
-//const app = express();
-
-/*
-app.use(
-  cors({
-    // Sets Access-Control-Allow-Origin to the UI URI
-    origin: UI_ROOT_URI,
-    // Sets Access-Control-Allow-Credentials to true
-    credentials: true,
-  })
-);
-
-app.use(cookieParser());
-*/
 
 module.exports = function(app){
     const redirectURI = "auth/google";
@@ -85,7 +70,7 @@ module.exports = function(app){
             code,
             client_id: clientId,
             client_secret: clientSecret,
-            redirect_uri: "auth/code",
+            redirect_uri: redirectUri,
             grant_type: "authorization_code",
         };
 
@@ -103,9 +88,9 @@ module.exports = function(app){
         });
     }
     // Getting the user from Google with the code
-    app.post(`/${redirectURI}`, async (req, res) => {
-        console.log("res", req.body)
-        let code = req.body.code;
+    app.get(`/${redirectURI}`, async (req, res) => {
+        const code = req.query.code as string;
+        console.log("res", req.query)
         const { id_token, access_token } = await getTokens({
             code,
             clientId: GOOGLE_CLIENT_ID,
@@ -115,7 +100,7 @@ module.exports = function(app){
         console.log("token", id_token, access_token)
 
         // Fetch the user's profile with the access token and bearer
-        const googleUser = await axios
+        const user: any = await axios
         .get(
             `https://www.googleapis.com/oauth2/v1/userinfo?alt=json&access_token=${access_token}`,
             {
@@ -129,8 +114,42 @@ module.exports = function(app){
             console.error(`Failed to fetch user`);
             throw new Error(error.message);
         });
+        console.log("user", user)
 
-        const token = jwt.sign(googleUser, JWT_SECRET);
+        const exist_user: any = userdb.findByOpenID(user.id, userdb.UserKind.GOOGLE)
+        console.log("exist_user", exist_user)
+        if (Object.keys(exist_user).length == 0) {
+            //add to db
+            const user_info = {
+              kind: userdb.UserKind.GOOGLE,
+              email: user.email,
+              name: user.name,
+              given_name: user.given_name,
+              family_name: user.family_name,
+              unique_id: user.id,
+              picture: user.picture,
+              locale: user.locale,
+              verified_email: user.verified_email
+            }
+            console.log(user_info)
+            const result = await userdb.add(user_info)
+            console.log("add", result)
+        } else {
+            const user_info = {
+              email: user.email || exist_user.email,
+              name: user.name || exist_user.name,
+              given_name: user.given_name || exist_user.given_name,
+              family_name: user.family_name || exist_user.family_name,
+              picture: user.picture || exist_user.picture,
+              locale: user.locale || exist_user.locale,
+              verified_email: user.verified_email || exist_user.verified_email
+            }
+            const result = userdb.updateOrAdd(exist_user.user_id, user_info)
+            console.log("update", result)
+        }
+
+        const token = jwt.sign(user, JWT_SECRET);
+        console.log("user cookie", token)
 
         res.cookie(COOKIE_NAME, token, {
             maxAge: 900000,

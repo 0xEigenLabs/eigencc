@@ -1,8 +1,8 @@
 export const GOOGLE_CLIENT_ID =
   process.env.GOOGLE_CLIENT_ID ||
-  "413535929013-l5uu0h93choomq1i184r8ot4fem9kgrh.apps.googleusercontent.com";
+  "413535929013-us3b0rnd2l3uj85c17osktvv7e6o4o3t.apps.googleusercontent.com";
 export const GOOGLE_CLIENT_SECRET =
-  process.env.GOOGLE_CLIENT_SECRET || "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";
+  process.env.GOOGLE_CLIENT_SECRET || "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";
 export const SERVER_ROOT_URI = "http://localhost:3000";
 export const UI_ROOT_URI = "http://localhost:8000";
 export const JWT_SECRET = "shhhhh";

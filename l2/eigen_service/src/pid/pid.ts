@@ -10,10 +10,18 @@ const sequelize = new Sequelize({
   storage: './db_user.sqlite'
 });
 
+export enum UserKind {
+  GOOGLE,
+}
+
 const userdb = sequelize.define('user_st', {
-  user_id: DataTypes.STRING(128), // id in EigenSecret, in format of W3C DID
+  user_id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+  },
   kind: DataTypes.INTEGER, // 0: google, 1, twitter,,
-  unique_id: DataTypes.INTEGER, // id from third-paty
+  unique_id: DataTypes.STRING, // id from third-paty
   email: DataTypes.STRING,
   name: DataTypes.STRING,
   given_name: DataTypes.STRING,
@@ -25,7 +33,6 @@ const userdb = sequelize.define('user_st', {
 
 sequelize.sync().then(function() {
     return userdb.create({
-        user_id: 'eigen__',
         kind: 0,
         unique_id: "1",
         email: "1@a.com",
@@ -46,7 +53,7 @@ sequelize.sync().then(function() {
 });
 
 const add = function(user_info) {
-  return userdb.create({user_info})
+  return userdb.create(user_info)
 };
 
 const findAll = function() {
@@ -54,11 +61,17 @@ const findAll = function() {
 }
 
 const findByID = function(user_id: string) {
-    userdb.findOne({where: {user_id: user_id}}).then(function(row: any){
+    return userdb.findOne({where: {user_id: user_id}}).then(function(row: any){
+        console.log("yes", row)
+        return row
+    })
+}
+
+const findByOpenID = function(id: string, kind: number) {
+    return userdb.findOne({where: {unique_id: id, kind: kind}}).then(function(row: any){
         console.log(row)
         return row
     })
-    return {}
 }
 
 const updateOrAdd = function(user_id, new_info){
@@ -82,4 +95,4 @@ const updateOrAdd = function(user_id, new_info){
     });
 };
 
-export {updateOrAdd, findAll, add };
+export {updateOrAdd, findAll, add, findByOpenID, findByID};

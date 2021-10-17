@@ -92,32 +92,15 @@ app.get("/txhs", async function(req, res) {
 */
 
 // add new user
-app.post("/users", async function (req, res) {
-  const user_info = {
-    user_id: req.body.user_id || uuidv4(),
-    kind: req.body.kind || 0,
-    email: req.body.email,
-    name: req.body.name,
-    given_name: req.body.given_name,
-    family_name: req.body.family_name,
-    unique_id: req.body.unique_id,
-    picture: req.body.picture,
-    locale: req.body.locale,
-    verified_email: req.body.verifed_email
+app.get("/user/:user_id", async function (req, res) {
+  const user_id = req.params.user_id;
+  if (user_id === undefined) {
+      res.json(util.Err(-1, "invalid argument"))
+      return
   }
-  const result = userdb.add(user_info)
+  const result = await userdb.findByID(user_id);
+  console.log(result)
   res.json(util.Succ(result));
-});
-
-
-app.post("/login", async function (req, res) {
-    //login
-    res.json(util.Succ({}));
-});
-
-app.post("/auth", async function (req, res) {
-    console.log(req.body.code)
-    res.json(util.Succ({}));
 });
 
 app.get("/txhs", async function (req, res) {
