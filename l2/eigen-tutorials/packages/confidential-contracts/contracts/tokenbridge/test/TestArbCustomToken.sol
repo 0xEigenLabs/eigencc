@@ -226,7 +226,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
     }
 
     function decrypt(bytes memory cipher) public pure returns (bytes memory) {
-        require(_compare_bytes(cipher, ""), "cipher should not be empty");
+        require(!_compare_bytes(cipher, ""), "cipher should not be empty");
         return _call_eigen_call("decrypt", cipher, "", "");
     }
 
@@ -235,7 +235,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         pure
         returns (bytes memory)
     {
-        require(_compare_bytes(cipher2, ""), "cipher2 should not be empty");
+        require(!_compare_bytes(cipher2, ""), "cipher2 should not be empty");
         if (_compare_bytes(cipher1, "")) {
             return cipher2;
         } else {
@@ -256,13 +256,13 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         pure
         returns (bytes memory)
     {
-        require(_compare_bytes(cipher1, ""), "cipher1 should not be empty");
-        require(_compare_bytes(cipher2, ""), "cipher2 should not be empty");
+        require(!_compare_bytes(cipher1, ""), "cipher1 should not be empty");
+        require(!_compare_bytes(cipher2, ""), "cipher2 should not be empty");
         return _call_eigen_call("sub_cipher_cipher", cipher1, cipher2, "");
     }
 
-    function subCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {
-        require(_compare_bytes(cipher, ""), "cipher should not be empty");
+    function subCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {are_bytes(cipher, ""), "cipher should not be empty");
+        require(!_compare_bytes(cipher, ""), "cipher should not be empty");
         return _call_eigen_call("sub_cipher_plain", cipher, bytes(plain.toString()), "");
     }
 
