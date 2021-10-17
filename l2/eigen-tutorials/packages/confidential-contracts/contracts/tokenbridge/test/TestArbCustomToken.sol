@@ -123,7 +123,10 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         list = new bytes[](4);
 
         bytes memory sender_cipher_base64_balance = _cipher_balances[sender];
-        bytes memory sender_cipher_base64 = subCipherCipher(sender_cipher_base64_balance, cipher_amount);
+        bytes memory sender_cipher_base64 = subCipherCipher(
+            sender_cipher_base64_balance,
+            cipher_amount
+        );
         _cipher_balances[sender] = copy_bytes(sender_cipher_base64);
 
         bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
@@ -211,7 +214,10 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         bytes memory input = RLPEncode.encodeList(list);
 
         bytes memory result = ArbSys(address(100)).eigenCall(input);
-        require(_compare_bytes(result, RLPEncode.encodeBytes("")) != true, "Eigencall returns an empty string which means we encounter error" );
+        require(
+            _compare_bytes(result, RLPEncode.encodeBytes("")) != true,
+            "Eigencall returns an empty string which means we encounter error"
+        );
         return _rlp_decode_as_bytes(result);
     }
 
@@ -228,11 +234,19 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         pure
         returns (bytes memory)
     {
-        return _call_eigen_call("add_cipher_cipher", cipher1, cipher2, "");
+        if (_compare_bytes(cipher1, "")) {
+            return cipher2;
+        } else {
+            return _call_eigen_call("add_cipher_cipher", cipher1, cipher2, "");
+        }
     }
 
     function addCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {
-        return _call_eigen_call("add_cipher_plain", cipher, bytes(plain.toString()), "");
+        if (_compare_bytes(cipher, "")) {
+            return encrypt(plain);
+        } else {
+            return _call_eigen_call("add_cipher_plain", cipher, bytes(plain.toString()), "");
+        }
     }
 
     function subCipherCipher(bytes memory cipher1, bytes memory cipher2)
