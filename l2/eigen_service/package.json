@@ -24,6 +24,7 @@
     "elliptic": "^6.5.4",
     "ethers": "^5.4.7",
     "express": "^4.17.1",
+    "express-jwt": "^6.1.0",
     "googleapis": "^88.2.0",
     "jsonwebtoken": "^8.5.1",
     "log4js": "^6.3.0",

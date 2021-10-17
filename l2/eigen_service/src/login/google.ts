@@ -150,9 +150,13 @@ module.exports = function(app){
 
         const token = jwt.sign(user, JWT_SECRET);
         console.log("user cookie", token)
+        
+        // check 
+        //const decoded = jwt.verify(token, JWT_SECRET);
+        //console.log("decode", decoded)
 
         res.cookie(COOKIE_NAME, token, {
-            maxAge: 900000,
+            maxAge: 9000,
             httpOnly: true,
             secure: false,
         });
