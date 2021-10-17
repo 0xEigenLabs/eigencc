@@ -1,6 +1,7 @@
 import express from "express";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import bodyParser from "body-parser";
 //import cors from "cors";
 import querystring from "querystring";
 //import cookieParser from "cookie-parser";
@@ -52,6 +53,11 @@ module.exports = function(app){
     app.get("/auth/google/url", (req, res) => {
         return res.send(getGoogleAuthURL());
     });
+    // Getting code
+    app.post("/auth/code", (req, res) => {
+        console.log(req.body)
+        return res.json("{}")
+    });
 
     function getTokens({
         code,
@@ -79,10 +85,11 @@ module.exports = function(app){
             code,
             client_id: clientId,
             client_secret: clientSecret,
-            redirect_uri: redirectUri,
+            redirect_uri: "auth/code",
             grant_type: "authorization_code",
         };
 
+        console.log(values)
         return <any>axios
         .post(url, querystring.stringify(values), {
             headers: {
@@ -91,19 +98,14 @@ module.exports = function(app){
         })
         .then((res) => res.data)
         .catch((error) => {
-            console.error(`Failed to fetch auth tokens`);
+            console.error(`Failed to fetch auth tokens`, error);
             throw new Error(error.message);
         });
     }
     // Getting the user from Google with the code
     app.post(`/${redirectURI}`, async (req, res) => {
-        let code // = req.query.code as string;
-        req.on('data', function(data){
-            const obj = data.toString()
-            console.log(obj)
-            code = obj.toString()
-        })
-
+        console.log("res", req.body)
+        let code = req.body.code;
         const { id_token, access_token } = await getTokens({
             code,
             clientId: GOOGLE_CLIENT_ID,

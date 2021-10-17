@@ -1,6 +1,5 @@
 import express from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import bodyParser from "body-parser";
 import * as log4js from "./log"
 import * as db_pk from "./database_pk";
 import * as db_txh from "./database_transaction_history";
@@ -9,11 +8,13 @@ import {Op} from "sequelize";
 
 import * as userdb from "./pid/pid"
 
-const logger = log4js.logger("Eigen");
+import bodyParser from "body-parser";
 const app = express();
-app.use(log4js.useLog());
-
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false}));
+
+const logger = log4js.logger("Eigen");
+app.use(log4js.useLog());
 /*
 app.use({
     cors({
@@ -115,11 +116,8 @@ app.post("/login", async function (req, res) {
 });
 
 app.post("/auth", async function (req, res) {
-    req.on('data', function(data){
-        const obj = data.toString()
-        console.log(obj)
-        res.json(util.Succ({}));
-    })
+    console.log(req.body.code)
+    res.json(util.Succ({}));
 });
 
 app.get("/txhs", async function (req, res) {
