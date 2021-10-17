@@ -79,6 +79,19 @@ curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/txh/{txid}"
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action=search_l2&from=0x1&page=1&page_size=10&order=1"
 ```
 
+### Login by Oauth
+
+#### Google OAuth
+1. Get google oauth url
+```
+curl http://localhost:3000/auth/google/url
+```
+2. Submit login request by copying the above url responsed to browser
+
+3. Choose an account and authenticate the login request
+
+4. Redirect the UI root url with jwt token
+
 ## Deployment in production
 
 ### Build

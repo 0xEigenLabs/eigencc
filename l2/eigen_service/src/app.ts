@@ -1,16 +1,43 @@
 import express from 'express';
-import bodyParser from "body-parser";
+import { v4 as uuidv4 } from 'uuid';
 import * as log4js from "./log"
 import * as db_pk from "./database_pk";
 import * as db_txh from "./database_transaction_history";
 import * as util from "./util";
 import {Op} from "sequelize";
 
-const logger = log4js.logger("Eigen");
-const app = express();
-app.use(log4js.useLog());
+import * as userdb from "./pid/pid"
 
+import bodyParser from "body-parser";
+const app = express();
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false}));
+
+const logger = log4js.logger("Eigen");
+app.use(log4js.useLog());
+/*
+app.use({
+    cors({
+    // Sets Access-Control-Allow-Origin to the UI URI
+    origin: UI_ROOT_URI,
+    // Sets Access-Control-Allow-Credentials to true
+    credentials: true
+  })
+})
+
+*/
+app.use((req, res, next) => {
+  if(req.path !== '/' && !req.path.includes('.')){
+    res.set({
+      'Access-Control-Allow-Credentials': true, //允许后端发送cookie
+      'Access-Control-Allow-Origin': req.headers.origin || '*', //任意域名都可以访问,或者基于我请求头里面的域
+      'Access-Control-Allow-Headers': 'X-Requested-With,Content-Type', //设置请求头格式和类型
+      'Access-Control-Allow-Methods': 'PUT,POST,GET,DELETE,OPTIONS',//允许支持的请求方式
+      'Content-Type': 'application/json; charset=utf-8'//默认与允许的文本格式json和编码格式
+    })
+  }
+  req.method === 'OPTIONS' ? res.status(204).end() : next()
+})
 
 // query key
 app.get("/stores", async function (req, res) {
@@ -63,6 +90,18 @@ app.get("/txhs", async function(req, res) {
     return res.json(util.Succ(await db_txh.findAll()))
 })
 */
+
+// add new user
+app.get("/user/:user_id", async function (req, res) {
+  const user_id = req.params.user_id;
+  if (user_id === undefined) {
+      res.json(util.Err(-1, "invalid argument"))
+      return
+  }
+  const result = await userdb.findByID(user_id);
+  console.log(result)
+  res.json(util.Succ(result));
+});
 
 app.get("/txhs", async function (req, res) {
   const action = req.query.action;
@@ -181,6 +220,8 @@ app.put("/txh/:txid", async function (req, res) {
   });
   res.json(util.Succ(result));
 });
+
+require('./login/google')(app);
 
 app.listen(3000, function () {
   console.log("Eigen Service listening on port 3000!");
