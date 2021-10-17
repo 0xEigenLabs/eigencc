@@ -261,7 +261,7 @@ contract TestArbCustomToken is aeERC20, IArbToken {
         return _call_eigen_call("sub_cipher_cipher", cipher1, cipher2, "");
     }
 
-    function subCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {are_bytes(cipher, ""), "cipher should not be empty");
+    function subCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {
         require(!_compare_bytes(cipher, ""), "cipher should not be empty");
         return _call_eigen_call("sub_cipher_plain", cipher, bytes(plain.toString()), "");
     }
