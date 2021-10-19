@@ -49,6 +49,7 @@ enum OperatorKind {
     AddCipherPlain,
     SubCipherCipher,
     SubCipherPlain,
+    ReEncrypt,
     Encrypt,
     Decrypt,
     CompareCipherCipher,
@@ -115,6 +116,7 @@ impl Worker for OperatorWorker {
                     "sub_cipher_plain" => OperatorKind::SubCipherPlain,
                     "compare_cipher_cipher" => OperatorKind::CompareCipherCipher,
                     "compare_cipher_plain" => OperatorKind::CompareCipherPlain,
+                    "re_encrypt" => OperatorKind::ReEncrypt,
                     _ => unreachable!(),
                 };
 
@@ -162,7 +164,7 @@ impl Worker for OperatorWorker {
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
         match input.op {
-            OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher => {
+            OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher | OperatorKind::ReEncrypt => {
                 // 1. Cipher is encoded as base64, should be decoded
                 let cipher_operand_1 = base64::decode(&input.operand_1)
                     .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
@@ -192,8 +194,8 @@ impl Worker for OperatorWorker {
 
                 // 3. Do calculate
                 let result = match input.op {
-                    OperatorKind::AddCipherCipher => op1 + op2,
-                    OperatorKind::SubCipherCipher if op1 >= op2 => op1 - op2,
+                    OperatorKind::AddCipherCipher => (op1 + op2).to_bytes_be(),
+                    OperatorKind::SubCipherCipher if op1 >= op2 => (op1 - op2).to_bytes_be(),
                     _ => return Err(Error::from(ErrorKind::InvalidInputError)),
                 };
 
@@ -208,7 +210,7 @@ impl Worker for OperatorWorker {
                     &public_key,
                     &s1,
                     &s2,
-                    &result.to_bytes_be(),
+                    &result,
                 )
                 .map_err(|_| Error::from(ErrorKind::CryptoError))?;
 
@@ -301,6 +303,25 @@ impl Worker for OperatorWorker {
                 let b = BigUint::from_bytes_be(&plain[..]);
 
                 Ok(b.to_str_radix(10))
+            }
+            OperatorKind::ReEncrypt => {
+                let cipher_operand = base64::decode(&input.operand_1)
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                let cipher_operand2 = base64::decode(&input.operand_2)
+                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                let key_pair = register_func::get_key_pair();
+                let s1 = vec![];
+                let s2 = vec![];
+                let key =
+                    eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_operand, &s1, &s2)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                let msg =
+                    eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_operand2, &s1, &s2)
+                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+
+                let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&key, &msg)
+                        .map_err(|_| Error::from(ErrorKind::CryptoError))?;
+                Ok(String::from_utf8(result).map_err(|_| Error::from(ErrorKind::InvalidInputError))?)
             }
             OperatorKind::CompareCipherCipher | OperatorKind::CompareCipherPlain => {
                 let key_pair = register_func::get_key_pair();

@@ -26,15 +26,15 @@
     "ethers": "^5.4.6",
     "hardhat": "^2.0.7",
     "hardhat-deploy": "^0.7.0-beta.40",
+    "hex2ascii": "^0.0.3",
     "int64-buffer": "^1.0.1",
     "js-base64": "^3.6.1",
     "node-fetch": "^2.6.1",
     "rlp": "^2.2.6",
+    "solidity-rlp": "^2.0.5",
     "ts-node": "^9.1.1",
     "typechain": "5.1.2",
-    "typescript": "^4.4.2",
-    "solidity-rlp": "^2.0.5",
-    "hex2ascii": "^0.0.3"
+    "typescript": "^4.4.2"
   },
   "dependencies": {
     "@typechain/ethers-v5": "^7.0.1"
