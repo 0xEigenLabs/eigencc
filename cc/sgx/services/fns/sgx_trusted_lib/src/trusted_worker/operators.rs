@@ -16,7 +16,6 @@
 // under the License.
 
 // Insert std prelude in the top for the sgx feature
-use std::convert::TryInto;
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
 use std::vec;
@@ -26,7 +25,7 @@ use crate::trusted_worker::register_func;
 use crate::worker::{Worker, WorkerContext};
 use eigen_core::{Error, ErrorKind, Result};
 
-use num_bigint::{BigInt, BigUint};
+use num_bigint::{BigUint};
 
 pub struct OperatorWorker {
     worker_id: u32,
@@ -80,7 +79,7 @@ impl Worker for OperatorWorker {
     fn prepare_input(&mut self, dynamic_input: Option<String>) -> Result<()> {
         let msg = dynamic_input.ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
-        // `args` should be "op,arity,op1,op2,op3,..."
+        // `args` should be "op|arity,,op1,op2,op3,..."
         // now `op` may be 'add' or 'sub'
 
         let splited = msg.split(",").collect::<Vec<_>>();
@@ -89,7 +88,8 @@ impl Worker for OperatorWorker {
             return Err(Error::from(ErrorKind::InvalidInputError));
         }
 
-        let op = splited[0];
+        let arity = splited[0].chars().last().unwrap() as u32 - '0' as u32;
+        let op = &splited[0][0..splited.len() - 1];
 
         match op {
             "add_cipher_cipher"
@@ -98,10 +98,6 @@ impl Worker for OperatorWorker {
             | "sub_cipher_plain"
             | "compare_cipher_cipher"
             | "compare_cipher_plain" => {
-                let arity = splited[1]
-                    .parse::<u8>()
-                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-
                 if arity != 2 && splited.len() != 4 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
@@ -127,10 +123,6 @@ impl Worker for OperatorWorker {
                 });
             }
             "encrypt" | "decrypt" => {
-                let arity = splited[1]
-                    .parse::<u8>()
-                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-
                 if arity != 1 && splited.len() != 3 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
@@ -164,7 +156,7 @@ impl Worker for OperatorWorker {
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
 
         match input.op {
-            OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher | OperatorKind::ReEncrypt => {
+            OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher => {
                 // 1. Cipher is encoded as base64, should be decoded
                 let cipher_operand_1 = base64::decode(&input.operand_1)
                     .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;

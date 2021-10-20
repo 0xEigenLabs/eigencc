@@ -22,7 +22,7 @@ use std::prelude::v1::*;
 use std::str;
 use std::vec;
 use crate::worker::{Worker, WorkerContext};
-use eigen_core::{Error, ErrorKind, Result};
+use eigen_core::Result;
 
 use eigen_crypto::sign::ecdsa::{KeyPair, EcdsaKeyPair};
 use rand::Rng;
