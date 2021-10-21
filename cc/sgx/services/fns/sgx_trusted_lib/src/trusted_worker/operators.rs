@@ -111,6 +111,7 @@ impl Worker for OperatorWorker {
         if (arity == 2) {
             operand_2 = splited[2].to_string();
         } else if (arity == 3) {
+            operand_2 = splited[2].to_string();
             operand_3 = splited[3].to_string();
         } 
 
