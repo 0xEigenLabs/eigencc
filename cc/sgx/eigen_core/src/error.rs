@@ -141,6 +141,8 @@ pub enum ErrorKind {
     PyError,
     /// RPC input/output is invalid.
     RpcProtocolError,
+    ///base64 decode error
+    DecodeError,
     /// Others.
     Unknown,
 }
@@ -215,6 +217,7 @@ impl ErrorKind {
             ErrorKind::MsgSizeLimitExceedError => "message size exceeds limit",
             ErrorKind::PyError => "unhandled py exception",
             ErrorKind::RpcProtocolError => "invalid rpc protocol",
+            ErrorKind::DecodeError => "decode error",
             ErrorKind::Unknown => "unknown error",
         }
     }
@@ -268,6 +271,7 @@ impl From<u32> for Error {
             0x0000_1013 => ErrorKind::MsgSizeLimitExceedError,
             0x0000_1014 => ErrorKind::PyError,
             0x0000_1015 => ErrorKind::RpcProtocolError,
+            0x0000_1016 => ErrorKind::DecodeError,
             _ => ErrorKind::Unknown,
         };
 
@@ -317,6 +321,7 @@ impl Into<u32> for Error {
             ErrorKind::MsgSizeLimitExceedError => 0x0000_1013,
             ErrorKind::PyError => 0x0000_1014,
             ErrorKind::RpcProtocolError => 0x0000_1015,
+            ErrorKind::DecodeError => 0x0000_1016,
             ErrorKind::Unknown => 0xffff_ffff,
         }
     }
