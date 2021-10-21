@@ -84,12 +84,12 @@ impl Worker for OperatorWorker {
 
         let splited = msg.split(",").collect::<Vec<_>>();
 
-        if splited.len() <= 2 {
+        if splited.len() < 2 {
             return Err(Error::from(ErrorKind::InvalidInputError));
         }
 
         let arity = splited[0].chars().last().unwrap() as u32 - '0' as u32;
-        let op = &splited[0][0..splited.len() - 1];
+        let op = &splited[0][0..splited[0].len() - 1];
 
         match op {
             "add_cipher_cipher"
@@ -98,12 +98,12 @@ impl Worker for OperatorWorker {
             | "sub_cipher_plain"
             | "compare_cipher_cipher"
             | "compare_cipher_plain" => {
-                if arity != 2 && splited.len() != 4 {
+                if arity != 2 || splited.len() != 3 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
 
-                let operand_1 = splited[2];
-                let operand_2 = splited[3];
+                let operand_1 = splited[1];
+                let operand_2 = splited[2];
 
                 let op_kind = match op {
                     "add_cipher_cipher" => OperatorKind::AddCipherCipher,
@@ -123,16 +123,15 @@ impl Worker for OperatorWorker {
                 });
             }
             "encrypt" | "decrypt" => {
-                if arity != 1 && splited.len() != 3 {
+                if arity != 1 || splited.len() != 2 {
                     return Err(Error::from(ErrorKind::InvalidInputError));
                 }
 
-                let operand = splited[2];
+                let operand = splited[1];
 
                 let op_kind = match op {
                     "encrypt" => OperatorKind::Encrypt,
-                    "decrypt" => OperatorKind::Decrypt,
-                    _ => unreachable!(),
+                    "decrypt" => OperatorKind::Decrypt
                 };
 
                 self.input = Some(OperatorWorkerInput {
@@ -142,7 +141,7 @@ impl Worker for OperatorWorker {
                 });
             }
             _ => {
-                return Err(Error::from(ErrorKind::InvalidInputError));
+                return Err(Error::from(ErrorKind::ParseError));
             }
         }
 
