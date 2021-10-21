@@ -79,6 +79,7 @@ impl Worker for OperatorWorker {
 
     fn prepare_input(&mut self, dynamic_input: Option<String>) -> Result<()> {
         let msg = dynamic_input.ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+        error!("prepare_input {}", msg);
 
         // `args` should be "op|arity,,op1,op2,op3,..."
         // now `op` may be 'add' or 'sub'
@@ -88,6 +89,7 @@ impl Worker for OperatorWorker {
         if splited.len() < 2 {
             return Err(Error::from(ErrorKind::InvalidInputError));
         }
+        error!("splited len {}", splited.len());
 
         let arity = splited[0].chars().last().unwrap() as u32 - '0' as u32;
         let op = &splited[0][0..splited[0].len() - 1];
@@ -129,6 +131,7 @@ impl Worker for OperatorWorker {
             .input
             .take()
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+        error!("execute input ok");
 
         match input.op {
             OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher => {
