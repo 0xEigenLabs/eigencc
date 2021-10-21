@@ -111,45 +111,54 @@ app.get("/user/:user_id", async function (req, res) {
   res.json(util.Succ(result));
 });
 
-// send friend request
-app.post("/user/friend/request", async function (req, res) {
-  const requester_id = req.params.requester_id;
-  const responder_id = req.params.responder_id;
+// send or confirm a friend request
+app.post("/user", async function (req, res) {
+  const action = req.query.action;
+  const requester_id = req.query.requester_id;
+  const responder_id = req.query.responder_id;
+  var result;
   if (requester_id === undefined || responder_id === undefined) {
+    console.log(
+      "Missing IDs when request or confirm friend.",
+      requester_id,
+      responder_id
+    );
     res.json(util.Err(-1, "invalid argument"));
     return;
   }
-  const result = await friend_list.addFriendRequest(requester_id, responder_id);
-  console.log(result);
-  res.json(util.Succ(result));
-});
-
-// confirm a friend request
-app.post("/user/friend/confirm", async function (req, res) {
-  const requester_id = req.params.requester_id;
-  const responder_id = req.params.responder_id;
-  if (requester_id === undefined || responder_id === undefined) {
-    res.json(util.Err(-1, "invalid argument"));
-    return;
+  switch (action) {
+    case "request":
+      result = await friend_list.request(requester_id, responder_id);
+      console.log("Send friend request success!");
+      return res.json(util.Succ(result));
+    case "confirm":
+      result = await friend_list.confirm(requester_id, responder_id);
+      console.log("Confirm a friend request success!");
+      return res.json(util.Succ(result));
+    default:
+      res.json(util.Err(-1, "invalid action"));
+      return;
   }
-  const result = await friend_list.confirmFriendRequest(
-    requester_id,
-    responder_id
-  );
-  console.log(result);
-  res.json(util.Succ(result));
 });
 
 // get friend list
-app.get("/user/friends", async function (req, res) {
-  const user_id = req.params.user_id;
-  if (user_id === undefined) {
-    res.json(util.Err(-1, "invalid argument"));
-    return;
+app.get("/user", async function (req, res) {
+  const action = req.query.action;
+
+  switch (action) {
+    case "friends":
+      const user_id = req.query.user_id;
+      if (user_id === undefined) {
+        res.json(util.Err(-1, "invalid argument"));
+        return;
+      }
+      const result = await friend_list.getFriendListByUserId(user_id);
+      console.log(result);
+      return res.json(util.Succ(result));
+    default:
+      res.json(util.Err(-1, "invalid action"));
+      return;
   }
-  const result = await friend_list.getFriendListByUserId(user_id);
-  console.log(result);
-  res.json(util.Succ(result));
 });
 
 app.get("/txhs", async function (req, res) {

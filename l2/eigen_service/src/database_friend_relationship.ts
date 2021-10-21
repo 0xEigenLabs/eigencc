@@ -60,7 +60,8 @@ sequelize
     console.log("Unable to connect to the database:", err);
   });
 
-const addFriendRequest = function (requester_id, responder_id) {
+// TODO: Duplicate request should return error message
+const request = function (requester_id, responder_id) {
   if (requester_id < responder_id) {
     return friend_relationship_table.create({
       user_first_id: requester_id,
@@ -79,7 +80,7 @@ const addFriendRequest = function (requester_id, responder_id) {
   }
 };
 
-const confirmFriendRequest = function (requester_id, responder_id) {
+const confirm = function (requester_id, responder_id) {
   if (requester_id < responder_id) {
     friend_relationship_table
       .findOne({
@@ -171,12 +172,36 @@ const confirmFriendRequest = function (requester_id, responder_id) {
 // TODO: Add functions to remove friend, block user
 
 const getFriendListByUserId = function (user_id) {
-  return friend_relationship_table.findAll({
-    where: {
-      [Op.or]: [{ user_first_id: user_id }, { user_second_id: user_id }],
-      type: FRIENDS,
-    },
-  });
+  return (async (user_id) => {
+    const first: any = await friend_relationship_table.findAll({
+      attributes: [["user_second_id", "user_id"]],
+      where: {
+        user_first_id: user_id,
+        type: FRIENDS,
+      },
+      raw: true,
+    });
+    console.log(first);
+    const friends = new Set();
+    for (let i = 0; i < first.length; i++) {
+      friends.add(first[i].user_id);
+    }
+
+    const second: any = await friend_relationship_table.findAll({
+      attributes: [["user_first_id", "user_id"]],
+      where: {
+        user_second_id: user_id,
+        type: FRIENDS,
+      },
+      raw: true,
+    });
+    console.log(second);
+    for (let i = 0; i < second.length; i++) {
+      friends.add(second[i].user_id);
+    }
+
+    return Array.from(friends);
+  })(user_id);
 };
 
-export { addFriendRequest, confirmFriendRequest, getFriendListByUserId };
+export { request, confirm, getFriendListByUserId };

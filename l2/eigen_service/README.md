@@ -7,6 +7,7 @@
 ## Usage
 
 ### Compile
+
 ```
 yarn && yarn build
 yarn test
@@ -51,41 +52,62 @@ const TX_TYPE_L2ToL2 = 0x3
 #### API
 
 ```
-#query
+# query
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txh?txid=1"
 
-#search all (with/without filters)
+# search all (with/without filters)
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action=search&from=0x1"
 
-#query all transactions with the reverse time order (also support page)
+# query all transactions with the reverse time order (also support page)
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action=search&order=1"
 
-#query all transactions by page number
+# query all transactions by page number
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action=search&page=1&page_size=10"
 
-#query the count of all transactions on L2 (L2 -> L1, L2 -> L2)
+# query the count of all transactions on L2 (L2 -> L1, L2 -> L2)
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txh?action=transaction_count_l2"
 
-#query the count of all accounts on L2 ('from' on L2 -> L1, 'from' and 'to' on L2 -> L2)
+# query the count of all accounts on L2 ('from' on L2 -> L1, 'from' and 'to' on L2 -> L2)
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txh?action=account_count_l2"
 
-#add
+# add
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/txh" -d '{"txid": "1", "from": "0x1", "to": "0x1", "type":0, "value": 1, "block_num": 1027, "name": "ERC20"}'
 
-#update
+# update
 curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/txh/{txid}" -d '{"status": 1, "sub_txid": "2121"}'
 
-#query all transactions on L2 (L1 -> L2 and L2 -> L1, with/witout filters, also support page and reverse order)
+# query all transactions on L2 (L1 -> L2 and L2 -> L1, with/witout filters, also support page and reverse order)
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action=search_l2&from=0x1&page=1&page_size=10&order=1"
+```
+
+### User Management
+
+#### API
+
+```
+# Add a user
+TODO
+
+# Send a friend request
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=request&requester_id=1&responder_id=2"
+
+# Confirm a friend request
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=confirm&requester_id=1&responder_id=2"
+
+# Get friends list
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=friends&user_id=1"
 ```
 
 ### Login by Oauth
 
 #### Google OAuth
+
 1. Get google oauth url
+
 ```
 curl http://localhost:3000/auth/google/url
 ```
+
 2. Submit login request by copying the above url responsed to browser
 
 3. Choose an account and authenticate the login request
