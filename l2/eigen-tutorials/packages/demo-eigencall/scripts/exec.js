@@ -5,7 +5,7 @@ const RLP = require('rlp')
 const { Base64 } = require('js-base64');
 const { Uint64BE } = require("int64-buffer");
 const fetch = require('node-fetch');
-const ecies = require('../../../../eigen_service/src/ecies')
+const ecies = require('./ecies')
 const EC = require('elliptic').ec;
 const ec = new EC('p256');
 
@@ -14,7 +14,7 @@ require('dotenv').config()
 requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC', 'PKCS'])
 
 function compose_decrypt(cipher) {
-  return RLP.encode(["decrypt1", Base64.fromUint8Array(cipher), "", ""])
+  return RLP.encode(["decrypt1",Base64.fromUint8Array(cipher), "", ""])
 }
 
 function compose_encrypt(num) {
@@ -22,23 +22,23 @@ function compose_encrypt(num) {
 }
 
 function compose_add_cipher_cipher(cipher1, cipher2) {
-  return RLP.encode(["add_cipher_cipher2", Base64.fromUint8Array(cipher1), Base64.fromUint8Array(cipher2), ""])
+  return RLP.encode(["add_cipher_cipher2",Base64.fromUint8Array(cipher1), Base64.fromUint8Array(cipher2), ""])
 }
 
 function compose_add_cipher_plain(cipher, plain) {
-  return RLP.encode(["add_cipher_plain2", Base64.fromUint8Array(cipher), plain.toString(), ""])
+  return RLP.encode(["add_cipher_plain2",Base64.fromUint8Array(cipher),  plain.toString(), ""])
 }
 
 function compose_sub_cipher_cipher(cipher1, cipher2) {
-  return RLP.encode(["sub_cipher_cipher2", Base64.fromUint8Array(cipher1), Base64.fromUint8Array(cipher2), ""])
+  return RLP.encode(["sub_cipher_cipher2",Base64.fromUint8Array(cipher1), Base64.fromUint8Array(cipher2), ""])
 }
 
 function compose_sub_cipher_plain(cipher, plain) {
-  return RLP.encode(["sub_cipher_plain2", Base64.fromUint8Array(cipher), plain.toString(), ""])
+  return RLP.encode(["sub_cipher_plain2",Base64.fromUint8Array(cipher),  plain.toString(), ""])
 }
 
 const encrypt = async (contract, num) => {
-  var encrypt_operator_encoding_string = compose_encrypt(num)
+  var encrypt_operator_encoding_string =  compose_encrypt(num)
   var tx = await contract.call_eigenCall(encrypt_operator_encoding_string, {
     gasPrice: 0,
     gasLimit: 250000
@@ -72,6 +72,7 @@ const decrypt = async (contract, cipher) => {
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
   var plain = RLP.decode(rlp_encoded_return_value).toString()
+  console.log(plain)
 
   return parseInt(plain)
 }
@@ -175,9 +176,9 @@ const main = async () => {
   await eigenLog('Simple eigenCall demo')
 
   const res = await fetch(process.env['PKCS'] + '/store?digest=1', {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' }
-  })
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    })
     .then(response => response.json())
 
   expect(res.errno).to.equal(0)
@@ -200,7 +201,7 @@ const main = async () => {
     await ethers.getContractFactory('EigencallDemo')
   ).connect(l2Wallet)
   console.log('Deploying EigencallDemo contract to L2')
-  const l2eigencalldemo = await L2EigencallDemo.deploy({ gasLimit: 250000 })
+  const l2eigencalldemo = await L2EigencallDemo.deploy({gasLimit: 250000})
   await l2eigencalldemo.deployed()
   console.log(`EigencallDemo contract is deployed to ${l2eigencalldemo.address}`)
 
@@ -212,15 +213,15 @@ const main = async () => {
   // 'decrypt' test
   console.log("Going to 'decrypt' ", cipher)
   var decrypt_number = await decrypt(l2eigencalldemo, cipher)
-  console.log("Success!")
+  console.log("Success!", decrypt_number)
 
   expect(decrypt_number).to.equal(num)
   console.log(`${num} -> encrypt -> decrypt is still ${num}`)
   ////////////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////////////
-    // Self 'encrypt' and then 'decrypt' test
-    var num = 123
+  // Self 'encrypt' and then 'decrypt' test
+  var num = 123
   console.log("Going to 'encrypt' ", num)
   var cipher = await encrypt(l2eigencalldemo, num)
   console.log("Success!")
@@ -235,8 +236,8 @@ const main = async () => {
   ////////////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////////////
-    // 'add_cipher_cipher' test
-    var num1 = 100
+  // 'add_cipher_cipher' test
+  var num1 = 100
   var num2 = 1
 
   console.log(`Going to 'add_cipher_cipher' ${num1}, ${num2}`)
@@ -251,8 +252,8 @@ const main = async () => {
   ////////////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////////////
-    // 'add_cipher_plain' test
-    var num1 = 100
+  // 'add_cipher_plain' test
+  var num1 = 100
   var num2 = 1
 
   console.log(`Going to 'add_cipher_plain' ${num1}, ${num2}`)
@@ -266,8 +267,8 @@ const main = async () => {
   ////////////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////////////
-    // 'sub_cipher_cipher' test
-    var num1 = 100
+  // 'sub_cipher_cipher' test
+  var num1 = 100
   var num2 = 1
 
   console.log(`Going to 'sub_cipher_cipher' ${num1}, ${num2}`)
@@ -282,8 +283,8 @@ const main = async () => {
   ////////////////////////////////////////////////////////////////////////////////////
 
   ////////////////////////////////////////////////////////////////////////////////////
-    // 'sub_cipher_plain' test
-    var num1 = 100
+  // 'sub_cipher_plain' test
+  var num1 = 100
   var num2 = 1
 
   console.log(`Going to 'sub_cipher_plain' ${num1}, ${num2}`)
