@@ -8,7 +8,7 @@
     "prebuild_close": "./node_modules/.bin/tslint -c tslint.json -p tsconfig.json --fix",
     "build": "./node_modules/.bin/tsc",
     "test": "mocha ./build/**/*.test.js",
-    "clean": "rm -f ./db_pk.sqlite & rm -f ./db_transaction_history.sqlite"
+    "clean": "rm -f ./db_*.sqlite"
   },
   "devDependencies": {
     "@types/mocha": "^9.0.0",
