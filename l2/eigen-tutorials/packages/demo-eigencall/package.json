@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "hardhat compile",
-    "pkcs": "cp -r ../../../../cc/sgx/sdk/c_sdk/include/eigen tools && docker run --rm --net=host -v $(pwd):/work -w /work -it ieigen/fns:v9 bash -c ./tools/run.sh",
+    "pkcs": "cp -r ../../../../cc/sgx/sdk/c_sdk/include/eigen tools && cd tools && docker run --rm --net=host -v $(pwd):/work -w /work -it --entrypoint '' ieigen/fns:v1 bash run.sh",
     "exec": "hardhat run scripts/exec.js --network l2"
   },
   "devDependencies": {
