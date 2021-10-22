@@ -91,14 +91,14 @@ const main = async () => {
   //transfer
   const amount = 100;
   let cipher_amount = ecies_encrypt(public_key, amount);
-  let tx = l2ccInstance.cipherTransfer(receiver, cipher_amount, {
+  tx = l2ccInstance.cipherTransfer(receiver, cipher_amount, {
     gasPrice: 1,
     gasLimit: 25000,
   })
 
 
   // balance
-  let tx = await l2ccInstance.cipherBalanceOf(receiver, secret, {
+  tx = await l2ccInstance.cipherBalanceOf(receiver, secret, {
     gasPrice: 1,
     GasLimit: 25000,
   })
