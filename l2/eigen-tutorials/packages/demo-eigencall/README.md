@@ -16,6 +16,13 @@ cp .env-sample .env
 
 Please see [README.md](https://github.com/ieigen/ieigen/blob/main/l2/eigen_service/README.md) to know how to start up `eigen_service`.
 
+
+### Build
+
+```
+yarn && yarn build
+```
+
 ### Build `teesdk_util`
 
 `teesdk_util` uses dynamic link library `libsdk_c.so`, so firstly we should build `libsdk_c.so`, please see [README.md](https://github.com/ieigen/ieigen/blob/main/cc/README.md).
