@@ -6,6 +6,7 @@ import {
     DepositTokenEventResult,
     ArbTokenBridge__factory,
     EthERC20Bridge__factory,
+    OutgoingMessageState,
 } from 'arb-ts';
 import { PayableOverrides } from '@ethersproject/contracts'
 
@@ -75,7 +76,7 @@ const deployL1AndL2 = async () => {
     arbCustomToken = await customTokenFactory2.deploy(
         bridge.arbTokenBridge.address,
         l1CustomToken.address,
-        { gasLimit: 8000000, gasPrice: 1 }
+        { gasLimit: 800000, gasPrice: 1 }
     )
     await wait(10000)
     console.log("deploy TestArbCustomToken after deploy");
@@ -223,12 +224,16 @@ const approveToken = async (
     console.log("approve ", allowed)
 }
 
-const withdraw = async (arbCustomTokenAddr: string, tokenWithdrawAmount: BigNumber) => {
+const withdraw = async (l1CustomTokenAddr: string, arbCustomTokenAddr: string, tokenWithdrawAmount: BigNumber) => {
     console.log("Withdraw")
     const l2CustomToken = TestArbCustomToken__factory.connect(arbCustomTokenAddr, l2TestWallet)
 
     const initialBridgeTokenBalance = await l2CustomToken.balanceOf(l2TestWallet.address);
     console.log("balance in l2 token", initialBridgeTokenBalance?.toString());
+
+    const l1CustomToken = TestCustomTokenL1__factory.connect(l1CustomTokenAddr, ethProvider);
+    const initialBridgeTokenBalanceL1 = await l1CustomToken.balanceOf(bridge.ethERC20Bridge.address);
+    console.log("balance in l1 token", initialBridgeTokenBalanceL1.toString());
 
     const withdrawRes = await l2CustomToken.withdraw(
         l1TestWallet.address,
@@ -241,6 +246,41 @@ const withdraw = async (arbCustomTokenAddr: string, tokenWithdrawAmount: BigNumb
         await bridge.getWithdrawalsInL2Transaction(withdrawRec)
     )[0]
     console.log("withdraw data", withdrawEventData)
+
+    const txHash = withdrawRec.transactionHash
+    console.log("withdraw hash:", txHash)
+    const initiatingTxnReceipt = await bridge.l2Provider.getTransactionReceipt(txHash);
+    const outGoingMessagesFromTxn = await bridge.getWithdrawalsInL2Transaction(initiatingTxnReceipt)
+    console.log(outGoingMessagesFromTxn)
+    const { batchNumber, indexInBatch } = outGoingMessagesFromTxn[0]
+    if (!batchNumber.eq(withdrawEventData.batchNumber) ||
+        !indexInBatch.eq(withdrawEventData.indexInBatch)) {
+        console.log("Invalid batchNumber or indexInBatch")
+        process.exit(-1)
+    }
+
+    console.log("from outgoing msg", outGoingMessagesFromTxn[0])
+    const outgoingMessageState = await bridge.getOutGoingMessageState(
+        batchNumber,
+        indexInBatch
+    )
+    /*
+    // Should check, @IeigenHaimi
+    if (!(outgoingMessageState === OutgoingMessageState.CONFIRMED)) {
+        console.log("not confirmed")
+        process.exit(-1)
+    }
+    */
+
+    const receipt = await bridge.triggerL2ToL1Transaction(
+        batchNumber,
+        indexInBatch
+    )
+    if (receipt.status != 1) {
+        console.log("trigger failed")
+        process.exit(-1)
+    }
+
     const curBridgeTokenBalance = await l2CustomToken.balanceOf(l2TestWallet.address);
     console.log("balance in l2 token", curBridgeTokenBalance?.toString());
     const offset = initialBridgeTokenBalance?.sub(curBridgeTokenBalance || 0);
@@ -249,6 +289,10 @@ const withdraw = async (arbCustomTokenAddr: string, tokenWithdrawAmount: BigNumb
         console.log("invalid withdraw")
         process.exit(-1);
     }
+    const curTokenBalanceL1 = await l1CustomToken.balanceOf(bridge.ethERC20Bridge.address);
+    console.log("balance in l1 token", curTokenBalanceL1.toString());
+    const offset2 = curTokenBalanceL1?.sub(initialBridgeTokenBalanceL1 || 0);
+    console.log("eq", offset2?.toString(), tokenWithdrawAmount.toString())
 }
 
 const getWalletBalance = async () => {
@@ -270,7 +314,7 @@ const depositETH = async(ethToL2DepositAmount: BigNumber) => {
     console.log("deployments.ethERC20Bridge balance: ", bridgeEthBalance.toString()) 
 
     if (bridgeEthBalance.gt(BigNumber.from(0))) {
-        return;
+        console.log("Skip deposit ethERC20Bridge")
     }
     /*
     let balance = await getWalletBalance() 
@@ -288,6 +332,7 @@ const depositETH = async(ethToL2DepositAmount: BigNumber) => {
     }
 }
 
+/*
 const eigenCallDemo = async (
     arbCustomTokenAddr: string
 ) => {
@@ -328,6 +373,7 @@ const eigenCallDemo = async (
     const curBridgeTokenCipherBalance = await l2CustomToken.cipherBalanceOf(l2TestWallet.address);
     console.log("cipher balance in l2 token", hex2ascii(curBridgeTokenCipherBalance?.toString()));
 }
+*/
 
 const main = async () => {	
 	/*
@@ -366,8 +412,7 @@ const main = async () => {
 
     let amount = BigNumber.from(120000)
     await deposit(tokenPair.l1CustomToken, amount)
-    await withdraw(tokenPair.l2CustomToken, amount)
-    await eigenCallDemo(tokenPair.l2CustomToken)
+    await withdraw(tokenPair.l1CustomToken, tokenPair.l2CustomToken, amount)
 }
 
 main()

@@ -23,7 +23,7 @@ $ cmake .. && make # or use SIM mode: cmake .. -DSGX_SIM_MODE=on && make
 
 Build $IMAGE image by [Dockerfile](https://github.com/ieigen/ieigen/blob/main/cc/sgx/dcap/Dockerfile)
 
-Or, you can build it by docker:
+you also can build it by docker:
 ```
 docker build -t ieigen/dev:v1 -f release.Dockerfile .
 ```
