@@ -1,4 +1,4 @@
-FROM  ieigen/fns:v4 as fns_builder
+FROM  ieigen/fns:v1 as fns_builder
 
 COPY $PWD/sgx/ /app/
 WORKDIR /app
