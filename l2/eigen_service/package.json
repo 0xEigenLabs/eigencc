@@ -8,7 +8,8 @@
     "prebuild_close": "./node_modules/.bin/tslint -c tslint.json -p tsconfig.json --fix",
     "build": "./node_modules/.bin/tsc",
     "test": "mocha ./build/**/*.test.js",
-    "clean": "rm -f ./db_*.sqlite"
+    "clean": "rm -f ./db_*.sqlite",
+    "deploy": "docker build -t ieigen/service:v1 . && docker build -t ieigen/service:v1 ."
   },
   "devDependencies": {
     "@types/mocha": "^9.0.0",
