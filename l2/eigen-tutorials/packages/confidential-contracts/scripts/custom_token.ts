@@ -43,7 +43,7 @@ const l1GasPrice = 1;
 const gasLimit = 9646610
 const maxGas = 9646610
 
-const deployL1AndL2 = async () => {
+export const deployL1AndL2 = async () => {
     let l1CustomToken: TestCustomTokenL1
     console.log("pre funded balance", (await l1TestWallet.getBalance()).toString());
 
@@ -89,7 +89,7 @@ const deployL1AndL2 = async () => {
     return { l1CustomToken: l1CustomToken.address, l2CustomToken: arbCustomToken.address }
 }
 
-const registerTokenOnL2 = async (l1CustomTokenAddr: string, l2CustomTokenAddr: string) => {
+export const registerTokenOnL2 = async (l1CustomTokenAddr: string, l2CustomTokenAddr: string) => {
     const l1CustomToken = TestCustomTokenL1__factory.connect(l1CustomTokenAddr, l1TestWallet);
     const arbCustomToken = TestArbCustomToken__factory.connect(l2CustomTokenAddr, l2TestWallet);
     console.log("registerTokenOnL2 on ", arbCustomToken.address);
@@ -120,7 +120,7 @@ const registerTokenOnL2 = async (l1CustomTokenAddr: string, l2CustomTokenAddr: s
     return seqNum[0]
 }
 
-const deposit = async (l1CustomTokenAddr: string, tokenDepositAmount: BigNumber) => {
+export const deposit = async (l1CustomTokenAddr: string, tokenDepositAmount: BigNumber) => {
     let l1CustomToken: TestCustomTokenL1
 
     l1CustomToken = TestCustomTokenL1__factory.connect(l1CustomTokenAddr, ethProvider);
@@ -207,7 +207,7 @@ const deposit = async (l1CustomTokenAddr: string, tokenDepositAmount: BigNumber)
     }
 }
 
-const approveToken = async (
+export const approveToken = async (
     erc20L1Address: string
 ) => {
     const approveRes = await bridge.approveToken(erc20L1Address)
@@ -220,7 +220,7 @@ const approveToken = async (
     console.log("approve ", allowed)
 }
 
-const withdraw = async (l1CustomTokenAddr: string, arbCustomTokenAddr: string, tokenWithdrawAmount: BigNumber) => {
+export const withdraw = async (l1CustomTokenAddr: string, arbCustomTokenAddr: string, tokenWithdrawAmount: BigNumber) => {
     console.log("Withdraw")
     const l2CustomToken = TestArbCustomToken__factory.connect(arbCustomTokenAddr, l2TestWallet)
 
@@ -291,14 +291,14 @@ const withdraw = async (l1CustomTokenAddr: string, arbCustomTokenAddr: string, t
     console.log("eq", offset2?.toString(), tokenWithdrawAmount.toString())
 }
 
-const getWalletBalance = async () => {
+export const getWalletBalance = async () => {
       const testWalletL1EthBalance = await bridge.getAndUpdateL1EthBalance()
       const testWalletL2EthBalance = await bridge.getAndUpdateL2EthBalance()
       console.log(testWalletL1EthBalance.toString(), testWalletL2EthBalance.toString())
       return [testWalletL1EthBalance, testWalletL2EthBalance]
 }
 
-const depositETH = async(ethToL2DepositAmount: BigNumber) => {
+export const depositETH = async(ethToL2DepositAmount: BigNumber) => {
     const res2 = await bridge.depositETH(ethToL2DepositAmount, l1TestWallet.address)
     const rec2 = await res2.wait();
     console.log(rec2) 
@@ -411,9 +411,11 @@ const main = async () => {
     await withdraw(tokenPair.l1CustomToken, tokenPair.l2CustomToken, amount)
 }
 
+/*
 main()
     .then(() => process.exit(0))
     .catch(error => {
         console.error(error)
         process.exit(1)
     })
+*/

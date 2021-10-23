@@ -248,6 +248,7 @@ contract TestCCCustomToken is aeERC20, IArbToken {
 
     function cipherBalanceOf(address account, bytes memory secret) public view returns (bytes memory) {
         bytes memory balance = _cipher_balances[account];
+        require(balance.length > 0, "Balance is empty");
         // re-encrypt by user's secret
         return execute("re_encrypt2", balance, secret, "");
     }

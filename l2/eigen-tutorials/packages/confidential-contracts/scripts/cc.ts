@@ -24,6 +24,13 @@ import {
     OutgoingMessageState,
 } from 'arb-ts';
 
+import {
+    approveToken,
+    depositETH,
+    deposit,
+    registerTokenOnL2
+} from "./custom_token"
+
 const deployments = require('../deployment.json');
 require('dotenv').config()
 const wait = async (i: number) => {
@@ -51,6 +58,7 @@ const gasLimit = 9646610
 const maxGas = 9646610
 
 const symmetricCypherName = 'aes-256-gcm'
+
 const deployL1AndL2 = async () => {
     let l1CustomToken: TestCustomTokenL1
     console.log("pre funded balance", (await l1TestWallet.getBalance()).toString());
@@ -95,37 +103,6 @@ const deployL1AndL2 = async () => {
 
     await (1000000)
     return { l1CustomToken: l1CustomToken.address, l2CustomToken: arbCustomToken.address }
-}
-
-const registerTokenOnL2 = async (l1CustomTokenAddr: string, l2CustomTokenAddr: string) => {
-    const l1CustomToken = TestCustomTokenL1__factory.connect(l1CustomTokenAddr, l1TestWallet);
-    const arbCustomToken = TestCCCustomToken__factory.connect(l2CustomTokenAddr, l2TestWallet);
-    console.log("registerTokenOnL2 on ", arbCustomToken.address);
-    const registerRes = await l1CustomToken.registerTokenOnL2(
-        arbCustomToken.address,
-        BigNumber.from(599940),
-        BigNumber.from(599940),
-        BigNumber.from(10),
-        l1TestWallet.address,
-        { gasLimit: 599940, gasPrice: 10 }
-    );
-    const registerRec = await registerRes.wait();
-    if (registerRec.status != 1) {
-        throw new Error("registerTokenOnL2 failed")
-    }
-    const l2txhash = await bridge.getL2TxHashByRetryableTicket(registerRec)
-    console.log("getL2TxHashByRetryableTicket", l2txhash)
-    /*
-    const activateCustomTokenEvents = await bridge.getActivateCustomTokenEventResult(
-    	registerRec
-    )
-    console.log(activateCustomTokenEvents)
-   */
-    const seqNum = await bridge.getInboxSeqNumFromContractTransaction(registerRec)
-    if (seqNum === undefined || seqNum.length <= 0) {
-    	throw new Error("get seq num error")
-    }
-    return seqNum[0]
 }
 
 function ecies_encrypt(public_key: any, num: any) {
@@ -175,14 +152,28 @@ const main = async () => {
 
   console.log("----------------------------------------------------")
 
+  await depositETH(utils.parseEther("10"))
+
   const tokenPair = await deployL1AndL2()
+  console.log(tokenPair)
+
+  let seqNum = await registerTokenOnL2(tokenPair.l1CustomToken, tokenPair.l2CustomToken)
+  console.log("seqNum", seqNum)
+
+  const registerRec = await bridge.waitForRetriableReceipt(seqNum)
+  console.log(registerRec)
+  wait(15 * 1000)
+  await approveToken(tokenPair.l1CustomToken)
+
+  let amountDeposit = BigNumber.from(120000)
+  await deposit(tokenPair.l1CustomToken, amountDeposit)
 
   const secret = "01234567891234560123456789123456";
   const cipherSecret = Base64.encode(ecies_encrypt(publicKey, secret));
   console.log("cipher secret", cipherSecret)
   // balance
   const l2ccInstance = TestCCCustomToken__factory.connect(tokenPair.l2CustomToken, l2TestWallet);
-  let tx = await l2ccInstance.cipherBalanceOf(l2TestWallet.address, cipherSecret, {
+  let tx = await l2ccInstance.cipherBalanceOf(l2TestWallet.address, Buffer.from(cipherSecret), {
     gasPrice: 1,
     gasLimit: 25000,
   })
@@ -200,7 +191,7 @@ const main = async () => {
   })
 
   // balance
-  tx = await l2ccInstance.cipherBalanceOf(receiver, cipherSecret, {
+  tx = await l2ccInstance.cipherBalanceOf(receiver, Buffer.from(cipherSecret), {
     gasPrice: 1,
     gasLimit: 25000,
   })
