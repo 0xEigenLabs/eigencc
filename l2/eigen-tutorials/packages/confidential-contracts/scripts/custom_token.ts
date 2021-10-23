@@ -1,11 +1,7 @@
 import { BigNumber, Wallet, providers, constants, utils } from "ethers";
 import {
     Bridge,
-    Inbox__factory,
-    L2ToL1EventResult,
     DepositTokenEventResult,
-    ArbTokenBridge__factory,
-    EthERC20Bridge__factory,
     OutgoingMessageState,
 } from 'arb-ts';
 import { PayableOverrides } from '@ethersproject/contracts'
@@ -151,10 +147,10 @@ const deposit = async (l1CustomTokenAddr: string, tokenDepositAmount: BigNumber)
 
     const depostiRes = await bridge.deposit(
         l1CustomToken.address,
-        tokenDepositAmount, 
+        tokenDepositAmount,
 	{
-		maxGas: BigNumber.from(maxGas), 
-		gasPriceBid:BigNumber.from(1), 
+		maxGas: BigNumber.from(maxGas),
+		gasPriceBid:BigNumber.from(1),
 		maxSubmissionPrice: BigNumber.from(1)
 	}, 
 	l1TestWallet.address,

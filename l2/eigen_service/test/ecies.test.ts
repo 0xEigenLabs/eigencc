@@ -3,8 +3,7 @@ import * as elliptic from "elliptic"
 const EC = elliptic.ec;
 const ec = new EC("p256");
 import * as mocha from 'mocha';
-import * as chai from 'chai';
-const expect = chai.expect;
+import {expect} from 'chai';
 
 import * as ecies from "../src/ecies";
 import * as crypto from "crypto";

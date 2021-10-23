@@ -1,7 +1,6 @@
 import * as sec from "../src/secretshare"
 import * as mocha from 'mocha';
-import * as chai from 'chai';
-const expect = chai.expect;
+import {expect} from 'chai';
 
 describe("secret share lib", () => {
     it("should be combine correctly", () => {
