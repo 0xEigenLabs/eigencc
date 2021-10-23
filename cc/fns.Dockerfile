@@ -11,4 +11,4 @@ FROM teaclave/teaclave-build-ubuntu-1804-sgx-2.9.1 as fns_release
 COPY --from=fns_builder /app/release/ /app/release/
 WORKDIR /app/release/services
 EXPOSE 8082
-ENTRYPOINT ["/bin/bash", "-c", "source /opt/sgxsdk/environment && ./fns"]
+ENTRYPOINT ["/bin/bash", "-c", "source /opt/sgxsdk/environment; ./fns"]
