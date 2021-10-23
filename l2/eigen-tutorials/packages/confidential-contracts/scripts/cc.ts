@@ -29,7 +29,7 @@ import {
     depositETH,
     deposit,
     registerTokenOnL2
-} from "./custom_token"
+} from "./common"
 
 const deployments = require('../deployment.json');
 require('dotenv').config()
@@ -130,6 +130,43 @@ function ecies_encrypt(public_key: any, num: any) {
   return cipher
 }
 
+const eigenCallDemo = async (
+    arbCustomTokenAddr: string
+) => {
+
+    console.log("Withdraw")
+    const l2CustomToken = TestCCCustomToken__factory.connect(arbCustomTokenAddr, l2TestWallet)
+    // Here is example how we encrypt and descrypt
+    const value = 123;
+
+    const cipher = await l2CustomToken.encrypt(value);
+    console.log("Encrypt the value: ", Base64.decode(cipher?.toString()));
+
+    const plain = await l2CustomToken.decrypt(cipher?.toString());
+    console.log("Decrypt the cipher:  ", Base64.decode(plain?.toString()));
+
+    // Here is example how we compare cipher with cipher or plain
+    const value_1 = 122;
+    const value_2 = 123;
+    const value_3 = 124;
+
+    const cipher_1 = await l2CustomToken.encrypt(value_1);
+    const cipher_2 = await l2CustomToken.encrypt(value_2);
+    const cipher_3 = await l2CustomToken.encrypt(value_3);
+
+    const result_cipher_cipher_1 = await l2CustomToken.compareCipherCipher(cipher, cipher_1); // 123 > 122, yields 1
+    const result_cipher_cipher_2 = await l2CustomToken.compareCipherCipher(cipher, cipher_2); // 123 = 123, yields 0
+    const result_cipher_cipher_3 = await l2CustomToken.compareCipherCipher(cipher, cipher_3); // 123 < 124, yields -1
+
+    console.log("Compare cipher with cipher results: ", result_cipher_cipher_1, result_cipher_cipher_2, result_cipher_cipher_3)
+
+    const result_cipher_plain_1 = await l2CustomToken.compareCipherPlain(cipher, value_1); // 123 > 122, yields 1
+    const result_cipher_plain_2 = await l2CustomToken.compareCipherPlain(cipher, value_2); // 123 = 123, yields 0
+    const result_cipher_plain_3 = await l2CustomToken.compareCipherPlain(cipher, value_3); // 123 < 124, yields -1
+
+    console.log("Compare cipher with plain results: ", result_cipher_plain_1, result_cipher_plain_2, result_cipher_plain_3)
+}
+
 const main = async () => {
   await eigenLog('Simple Confidential Contract Demo')
 
@@ -152,21 +189,24 @@ const main = async () => {
 
   console.log("----------------------------------------------------")
 
-  await depositETH(utils.parseEther("10"))
+  await depositETH(bridge, l1TestWallet, l2TestWallet, utils.parseEther("1"))
 
   const tokenPair = await deployL1AndL2()
   console.log(tokenPair)
 
-  let seqNum = await registerTokenOnL2(tokenPair.l1CustomToken, tokenPair.l2CustomToken)
+  let seqNum = await registerTokenOnL2(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, tokenPair.l2CustomToken)
   console.log("seqNum", seqNum)
 
   const registerRec = await bridge.waitForRetriableReceipt(seqNum)
   console.log(registerRec)
   wait(15 * 1000)
-  await approveToken(tokenPair.l1CustomToken)
+  await approveToken(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken)
 
-  let amountDeposit = BigNumber.from(120000)
-  await deposit(tokenPair.l1CustomToken, amountDeposit)
+  let amountDeposit = BigNumber.from(1200000)
+  await deposit(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, amountDeposit)
+  console.log("deposit done cccc")
+
+  await eigenCallDemo(tokenPair.l2CustomToken)
 
   const secret = "01234567891234560123456789123456";
   const cipherSecret = Base64.encode(ecies_encrypt(publicKey, secret));
