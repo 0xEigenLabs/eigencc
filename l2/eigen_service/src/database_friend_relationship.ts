@@ -169,7 +169,96 @@ const confirm = function (requester_id, responder_id) {
   }
 };
 
-// TODO: Add functions to remove friend, block user
+const remove = function (requester_id, responder_id) {
+  if (requester_id < responder_id) {
+    friend_relationship_table
+      .findOne({
+        where: { user_first_id: requester_id, user_second_id: responder_id },
+      })
+      .then(function (row: any) {
+        if (row === null) {
+          console.log(
+            "User: ",
+            requester_id,
+            " has not sent request to ",
+            responder_id
+          );
+          return false;
+        }
+
+        if (row.type === FRIENDS) {
+          return row
+            .update({
+              type: NOT_FRIENDS,
+            })
+            .then(function (result) {
+              console.log("Update success: " + result);
+              return true;
+            })
+            .catch(function (err) {
+              console.log("Update error: " + err);
+              return false;
+            });
+        } else {
+          console.log(
+            "User: ",
+            requester_id,
+            " and ",
+            responder_id,
+            " are not frinds, the relationship between them is ",
+            row.type
+          );
+          return false;
+        }
+      });
+  } else if (requester_id > responder_id) {
+    friend_relationship_table
+      .findOne({
+        where: { user_first_id: responder_id, user_second_id: requester_id },
+      })
+      .then(function (row: any) {
+        if (row === null) {
+          console.log(
+            "User: ",
+            requester_id,
+            " has not sent request to ",
+            responder_id
+          );
+          return false;
+        }
+
+        if (row.type === FRIENDS) {
+          return row
+            .update({
+              type: NOT_FRIENDS,
+            })
+            .then(function (result) {
+              console.log("Update success: " + result);
+              return true;
+            })
+            .catch(function (err) {
+              console.log("Update error: " + err);
+              return false;
+            });
+        } else {
+          console.log(
+            "User: ",
+            requester_id,
+            " and ",
+            responder_id,
+            " are not frinds, the relationship between them is ",
+            row.type
+          );
+          return false;
+        }
+      });
+  } else {
+    // Do nothing
+    return false;
+  }
+};
+
+// TODO: Add functions to block user
 
 const getFriendListByUserId = function (user_id) {
   return (async (user_id) => {
@@ -204,4 +293,4 @@ const getFriendListByUserId = function (user_id) {
   })(user_id);
 };
 
-export { request, confirm, getFriendListByUserId };
+export { request, confirm, remove, getFriendListByUserId };

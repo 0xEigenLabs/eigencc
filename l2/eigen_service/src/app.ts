@@ -130,7 +130,7 @@ app.post("/user", async function (req, res) {
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "invalid argument"));
+        res.json(util.Err(-1, "missing IDs when request or confirm friend"));
         return;
       }
 
@@ -140,7 +140,7 @@ app.post("/user", async function (req, res) {
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "invalid argument"));
+        res.json(util.Err(-1, "one of the user does not exist"));
         return;
       }
 
@@ -154,7 +154,7 @@ app.post("/user", async function (req, res) {
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "invalid argument"));
+        res.json(util.Err(-1, "missing IDs when request or confirm friend"));
         return;
       }
 
@@ -164,13 +164,18 @@ app.post("/user", async function (req, res) {
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "invalid argument"));
+        res.json(util.Err(-1, "one of the user does not exist"));
         return;
       }
 
       result = await friend_list.confirm(requester_id, responder_id);
-      console.log("Confirm a friend request success!");
-      return res.json(util.Succ(result));
+      if (!result) {
+        console.log("Confirm a friend request success!");
+        return res.json(util.Succ(result));
+      } else {
+        console.log("Confirm a friend request fail!");
+        return res.json(util.Err(-1, "fail to confirm a friend request"));
+      }
     case "friend_remove":
       if (requester_id === undefined || responder_id === undefined) {
         console.log(
@@ -178,8 +183,14 @@ app.post("/user", async function (req, res) {
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "invalid argument"));
-        return;
+        result = await friend_list.remove(requester_id, responder_id);
+        if (!result) {
+          console.log("Remove a friend success!");
+          return res.json(util.Succ(result));
+        } else {
+          console.log("Remove a friend fail!");
+          return res.json(util.Err(-1, "fail to remove friend"));
+        }
       }
 
       if (!userdb.findByID(requester_id) || userdb.findByID(responder_id)) {
@@ -188,13 +199,18 @@ app.post("/user", async function (req, res) {
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "invalid argument"));
+        res.json(util.Err(-1, "one of the user does not exist"));
         return;
       }
 
       result = await friend_list.confirm(requester_id, responder_id);
-      console.log("Confirm a friend request success!");
-      return res.json(util.Succ(result));
+      if (!result) {
+        console.log("Confirm a friend request success!");
+        return res.json(util.Succ(result));
+      } else {
+        console.log("Remove a friend fail!");
+        return res.json(util.Err(-1, "fail to confirm a friend request"));
+      }
     default:
       res.json(util.Err(-1, "invalid action"));
       return;
@@ -213,8 +229,12 @@ app.get("/user", async function (req, res) {
         return;
       }
       const result = await friend_list.getFriendListByUserId(user_id);
-      console.log(result);
-      return res.json(util.Succ(result));
+      if (!result) {
+        console.log(result);
+        return res.json(util.Succ(result));
+      } else {
+        return res.json(util.Err(-1, "fail to get friend list"));
+      }
     default:
       res.json(util.Err(-1, "invalid action"));
       return;
