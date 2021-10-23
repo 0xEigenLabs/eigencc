@@ -123,7 +123,6 @@ app.post("/user", async function (req, res) {
       result = userdb.add(req.query);
       console.log("Create a new user");
       return res.json(util.Succ(result));
-      return;
     case "request":
       if (requester_id === undefined || responder_id === undefined) {
         console.log(
@@ -134,6 +133,17 @@ app.post("/user", async function (req, res) {
         res.json(util.Err(-1, "invalid argument"));
         return;
       }
+
+      if (!userdb.findByID(requester_id) || userdb.findByID(responder_id)) {
+        console.log(
+          "One of the user does not exist",
+          requester_id,
+          responder_id
+        );
+        res.json(util.Err(-1, "invalid argument"));
+        return;
+      }
+
       result = await friend_list.request(requester_id, responder_id);
       console.log("Send friend request success!");
       return res.json(util.Succ(result));
@@ -147,6 +157,17 @@ app.post("/user", async function (req, res) {
         res.json(util.Err(-1, "invalid argument"));
         return;
       }
+
+      if (!userdb.findByID(requester_id) || userdb.findByID(responder_id)) {
+        console.log(
+          "One of the user does not exist",
+          requester_id,
+          responder_id
+        );
+        res.json(util.Err(-1, "invalid argument"));
+        return;
+      }
+
       result = await friend_list.confirm(requester_id, responder_id);
       console.log("Confirm a friend request success!");
       return res.json(util.Succ(result));
