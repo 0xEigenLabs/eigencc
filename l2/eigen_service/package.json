@@ -9,7 +9,7 @@
     "build": "./node_modules/.bin/tsc",
     "test": "mocha ./build/**/*.test.js",
     "clean": "rm -f ./db_*.sqlite",
-    "deploy": "docker build -t ieigen/service:v1 . && docker build -t ieigen/service:v1 ."
+    "deploy": "yarn build && docker build -t ieigen/service:v1 . && docker build -t ieigen/service:v1 ."
   },
   "devDependencies": {
     "@types/mocha": "^9.0.0",
