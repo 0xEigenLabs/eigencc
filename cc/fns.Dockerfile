@@ -4,6 +4,7 @@ COPY $PWD/sgx/ /app/
 WORKDIR /app
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup default nightly-2020-10-25
+RUN rm -rf /app/release
 RUN mkdir -p build && cd build && cmake .. -DSGX_SIM_MODE=on && make
 
 FROM teaclave/teaclave-build-ubuntu-1804-sgx-2.9.1 as fns_release

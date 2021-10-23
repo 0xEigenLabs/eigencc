@@ -25,7 +25,7 @@ Build $IMAGE image by [Dockerfile](https://github.com/ieigen/ieigen/blob/main/cc
 
 you also can build it by docker:
 ```
-docker build -t ieigen/dev:v1 -f release.Dockerfile .
+docker build -t ieigen/dev:v1 -f fns.Dockerfile .
 ```
 
 ### Run

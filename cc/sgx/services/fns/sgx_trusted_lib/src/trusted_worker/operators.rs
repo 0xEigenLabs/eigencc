@@ -115,7 +115,7 @@ impl Worker for OperatorWorker {
         } else if (arity == 3) {
             operand_2 = splited[2].to_string();
             operand_3 = splited[3].to_string();
-        } 
+        }
 
         self.input = Some(OperatorWorkerInput {
             op: op_kind,
@@ -291,7 +291,8 @@ impl Worker for OperatorWorker {
 
                 let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&key, &msg)
                         .map_err(|_| Error::from(ErrorKind::CryptoError))?;
-                Ok(String::from_utf8(result).map_err(|_| Error::from(ErrorKind::OutputGenerationError))?)
+                let result = base64::encode(&result);
+                Ok(result)
             }
             OperatorKind::CompareCipherCipher | OperatorKind::CompareCipherPlain => {
                 let key_pair = register_func::get_key_pair();
