@@ -85,8 +85,8 @@ curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action
 #### API
 
 ```
-# Add a user
-TODO
+# Ceate information for a new user
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=new&kind=0&unique_id=1&email=1@a.com&name=eig&given_name=1&family_name=2&locale=en-US&verified_email=0&picture=1&secret=1"
 
 # Send a friend request
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=request&requester_id=1&responder_id=2"

@@ -111,27 +111,42 @@ app.get("/user/:user_id", async function (req, res) {
   res.json(util.Succ(result));
 });
 
-// send or confirm a friend request
+// create new user, send or confirm a friend request
 app.post("/user", async function (req, res) {
   const action = req.query.action;
   const requester_id = req.query.requester_id;
   const responder_id = req.query.responder_id;
   var result;
-  if (requester_id === undefined || responder_id === undefined) {
-    console.log(
-      "Missing IDs when request or confirm friend.",
-      requester_id,
-      responder_id
-    );
-    res.json(util.Err(-1, "invalid argument"));
-    return;
-  }
+
   switch (action) {
+    case "new":
+      result = userdb.add(req.query);
+      console.log("Create a new user");
+      return res.json(util.Succ(result));
+      return;
     case "request":
+      if (requester_id === undefined || responder_id === undefined) {
+        console.log(
+          "Missing IDs when request or confirm friend.",
+          requester_id,
+          responder_id
+        );
+        res.json(util.Err(-1, "invalid argument"));
+        return;
+      }
       result = await friend_list.request(requester_id, responder_id);
       console.log("Send friend request success!");
       return res.json(util.Succ(result));
     case "confirm":
+      if (requester_id === undefined || responder_id === undefined) {
+        console.log(
+          "Missing IDs when request or confirm friend.",
+          requester_id,
+          responder_id
+        );
+        res.json(util.Err(-1, "invalid argument"));
+        return;
+      }
       result = await friend_list.confirm(requester_id, responder_id);
       console.log("Confirm a friend request success!");
       return res.json(util.Succ(result));

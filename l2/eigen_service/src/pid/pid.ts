@@ -45,6 +45,7 @@ sequelize
       locale: "en-US",
       verified_email: 0,
       picture: "1",
+      secret: "1",
     });
   })
   .then(function (row: any) {
