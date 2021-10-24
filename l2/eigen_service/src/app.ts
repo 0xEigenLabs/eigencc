@@ -45,15 +45,7 @@ app.use({
 //   req.method === "OPTIONS" ? res.status(204).end() : next();
 // });
 
-app.use(cors);
-app.use(express.json());
-const allowedOrigins = ["*"];
-
-const options: cors.CorsOptions = {
-  origin: allowedOrigins,
-};
-
-app.use(cors(options));
+app.use(cors());
 
 // query key
 app.get("/stores", async function (req, res) {
