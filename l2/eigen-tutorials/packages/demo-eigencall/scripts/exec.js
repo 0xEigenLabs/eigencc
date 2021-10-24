@@ -2,7 +2,6 @@ const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const { eigenLog, requireEnvVariables } = require('arb-shared-dependencies')
 const RLP = require('rlp')
-const { Base64 } = require('js-base64');
 const { Uint64BE } = require("int64-buffer");
 const fetch = require('node-fetch');
 const ecies = require('./ecies')
@@ -14,7 +13,7 @@ require('dotenv').config()
 requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC', 'PKCS'])
 
 function compose_decrypt(cipher) {
-  return RLP.encode(["decrypt1",Base64.fromUint8Array(cipher), "", ""])
+  return RLP.encode(["decrypt1", cipher.toString("hex"), "", ""])
 }
 
 function compose_encrypt(num) {
@@ -22,19 +21,19 @@ function compose_encrypt(num) {
 }
 
 function compose_add_cipher_cipher(cipher1, cipher2) {
-  return RLP.encode(["add_cipher_cipher2",Base64.fromUint8Array(cipher1), Base64.fromUint8Array(cipher2), ""])
+  return RLP.encode(["add_cipher_cipher2",cipher1.toString("hex"), cipher2.toString("hex"), ""])
 }
 
 function compose_add_cipher_plain(cipher, plain) {
-  return RLP.encode(["add_cipher_plain2",Base64.fromUint8Array(cipher),  plain.toString(), ""])
+  return RLP.encode(["add_cipher_plain2",cipher.toString("hex"),  plain.toString(), ""])
 }
 
 function compose_sub_cipher_cipher(cipher1, cipher2) {
-  return RLP.encode(["sub_cipher_cipher2",Base64.fromUint8Array(cipher1), Base64.fromUint8Array(cipher2), ""])
+  return RLP.encode(["sub_cipher_cipher2",cipher1.toString("hex"), cipher2.toString("hex"), ""])
 }
 
 function compose_sub_cipher_plain(cipher, plain) {
-  return RLP.encode(["sub_cipher_plain2",Base64.fromUint8Array(cipher),  plain.toString(), ""])
+  return RLP.encode(["sub_cipher_plain2",cipher.toString("hex"),  plain.toString(), ""])
 }
 
 const encrypt = async (contract, num) => {
@@ -46,14 +45,12 @@ const encrypt = async (contract, num) => {
 
   var receipt = await tx.wait()
   var event = receipt.events.pop()
-
   rlp_encoded_return_value = event.args.returnValue;
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
-  var cipher = Base64.toUint8Array(cipher_base64)
-  return cipher
+  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
+  return cipher_hex.toString("hex")
 }
 
 const decrypt = async (contract, cipher) => {
@@ -91,9 +88,8 @@ const add_cipher_cipher = async (contract, cipher1, cipher2) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
-  var cipher = Base64.toUint8Array(cipher_base64)
-  return cipher
+  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
+  return cipher_hex.toString("hex")
 }
 
 const add_cipher_plain = async (contract, cipher, plain) => {
@@ -110,9 +106,8 @@ const add_cipher_plain = async (contract, cipher, plain) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
-  var cipher = Base64.toUint8Array(cipher_base64)
-  return cipher
+  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
+  return cipher_hex.toString("hex")
 }
 
 const sub_cipher_cipher = async (contract, cipher1, cipher2) => {
@@ -129,9 +124,8 @@ const sub_cipher_cipher = async (contract, cipher1, cipher2) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
-  var cipher = Base64.toUint8Array(cipher_base64)
-  return cipher
+  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
+  return cipher_hex.toString("hex")
 }
 
 const sub_cipher_plain = async (contract, cipher, plain) => {
@@ -148,9 +142,8 @@ const sub_cipher_plain = async (contract, cipher, plain) => {
 
   expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
 
-  var cipher_base64 = RLP.decode(rlp_encoded_return_value).toString()
-  var cipher = Base64.toUint8Array(cipher_base64)
-  return cipher
+  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
+  return cipher_hex.toString("hex")
 }
 
 function ecies_encrypt(public_key, num) {
@@ -166,10 +159,8 @@ function ecies_encrypt(public_key, num) {
     s1: null, // optional shared information1
     s2: null // optional shared information2
   }
-
-  const cipher = ecies.encrypt(public_key, (new Uint64BE(num)).toBuffer(), options);
-
-  return cipher
+  let msg = (new Uint64BE(num)).toBuffer()
+  return ecies.encrypt(public_key, msg, options);
 }
 
 const main = async () => {
@@ -207,7 +198,7 @@ const main = async () => {
 
   ////////////////////////////////////////////////////////////////////////////////////
   // 'encrypt' test
-  var num = 123
+  var num = 12121212121212121211
   var cipher = ecies_encrypt(publicKey, num)
 
   // 'decrypt' test

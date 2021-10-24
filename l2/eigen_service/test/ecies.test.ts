@@ -9,13 +9,17 @@ import * as ecies from "../src/ecies";
 import * as crypto from "crypto";
 
 const msg = "Hello, Eigen, Privacy Computing!";
-const KEY = Buffer.from(crypto.randomBytes(32), 'utf8');
-const iv2 = Buffer.from(crypto.randomBytes(12), 'utf8');
-
-const encrypted2 = ecies.aes_enc('aes-256-gcm', iv2, KEY, msg)
-const decrypted2 = ecies.aes_dec('aes-256-gcm', KEY, encrypted2)
-if (decrypted2 != msg) {
-    throw new Error("decrypt failed")
+function test_aes() {
+    //const KEY = Buffer.from(crypto.randomBytes(32), 'utf8');
+    let KEY = Buffer.from("01234567890123456789123456123456");
+    const iv2 = Buffer.from(crypto.randomBytes(12), 'utf8');
+    let encrypted2 = ecies.aes_enc('aes-256-gcm', iv2, KEY, msg)
+    console.log("encrypt", encrypted2)
+    let base64Cipher = encrypted2.toString('hex');
+    console.log("encrypt", base64Cipher)
+    let encrypted2_ = Buffer.from(base64Cipher, "hex")
+    const decrypted2 = ecies.aes_dec('aes-256-gcm', KEY, encrypted2_)
+    expect(decrypted2 == msg, "decrypt failed")
 }
 // console.log("aes worker well", decrypted2, iv2);
 
@@ -72,5 +76,8 @@ describe('ecies library', () => {
     });
     it('ecies with js' , () => {
         test_ecies();
+    });
+    it('aes with js' , () => {
+        test_aes();
     });
 })
