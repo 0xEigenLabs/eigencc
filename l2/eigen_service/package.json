@@ -9,7 +9,7 @@
     "build": "./node_modules/.bin/tsc",
     "test": "mocha ./build/**/*.test.js",
     "clean": "rm -f ./db_*.sqlite",
-    "build_image": "yarn build && docker build -t ieigen/service:v1 .",
+    "build_image": "docker build -t ieigen/service:v1 .",
     "deploy": "yarn build_image && docker run --name=eigen-service -p 3000:3000 -d ieigen/service:v1"
   },
   "devDependencies": {
