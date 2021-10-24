@@ -124,8 +124,10 @@ app.post("/user", async function (req, res) {
 
   switch (action) {
     case "new":
-      result = userdb.add(req.query);
-      console.log("Create a new user");
+      // TODO: Remove this, just for test
+      result = await userdb.add(req.query);
+      console.log("Create a new user, id = ", result.user_id);
+      console.log(result);
       return res.json(util.Succ(result));
     case "friend_request":
       if (requester_id === undefined || responder_id === undefined) {
@@ -138,7 +140,10 @@ app.post("/user", async function (req, res) {
         return;
       }
 
-      if (!userdb.findByID(requester_id) || userdb.findByID(responder_id)) {
+      if (
+        !(await userdb.findByID(requester_id)) ||
+        !(await userdb.findByID(responder_id))
+      ) {
         console.log(
           "One of the user does not exist",
           requester_id,
@@ -162,7 +167,10 @@ app.post("/user", async function (req, res) {
         return;
       }
 
-      if (!userdb.findByID(requester_id) || userdb.findByID(responder_id)) {
+      if (
+        !(await userdb.findByID(requester_id)) ||
+        !(await userdb.findByID(responder_id))
+      ) {
         console.log(
           "One of the user does not exist",
           requester_id,
@@ -197,7 +205,10 @@ app.post("/user", async function (req, res) {
         }
       }
 
-      if (!userdb.findByID(requester_id) || userdb.findByID(responder_id)) {
+      if (
+        !(await userdb.findByID(requester_id)) ||
+        !(await userdb.findByID(responder_id))
+      ) {
         console.log(
           "One of the user does not exist",
           requester_id,
