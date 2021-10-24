@@ -28,7 +28,6 @@
     "hardhat": "^2.0.7",
     "hardhat-deploy": "^0.7.0-beta.40",
     "int64-buffer": "^1.0.1",
-    "js-base64": "^3.6.1",
     "rlp": "^2.2.6",
     "solidity-rlp": "^2.0.5",
     "ts-node": "^9.1.1",

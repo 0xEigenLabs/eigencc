@@ -1,13 +1,15 @@
 import { BigNumber, Wallet, providers, constants, utils } from "ethers";
 const { eigenLog, requireEnvVariables } = require('arb-shared-dependencies')
 const RLP = require('rlp')
-const { Base64 } = require('js-base64');
 const { Uint64BE } = require("int64-buffer");
+import * as crypto from "crypto";
+import { Buffer } from 'buffer';
 import fetch from "node-fetch"
 const ecies = require('../../../../eigen_service/src/ecies')
 const EC = require('elliptic').ec;
 const ec = new EC('p256');
 import { expect } from 'chai';
+const hex2ascii = require('hex2ascii')
 
 import { TestCCCustomToken__factory } from "../typechain/factories/TestCCCustomToken__factory"
 import { TestCustomTokenL1 } from "../typechain/TestCustomTokenL1";
@@ -113,21 +115,21 @@ function ecies_encrypt(public_key: any, num: any) {
     macName: 'sha256',
     macLength: 32,
     curveName: 'prime256v1',
-    symmetricCypherName: 'aes-256-gcm',
+    symmetricCypherName: symmetricCypherName,
     keyFormat: 'uncompressed',
     s1: null, // optional shared information1
     s2: null // optional shared information2
   }
 
   let msg
-  if (isNaN(num)) {
+  if (!isNaN(num)) {
     msg = (new Uint64BE(num)).toBuffer()
+    console.log("number")
   } else {
     msg = num
+    console.log("bytes")
   }
-  const cipher = ecies.encrypt(public_key, msg, options);
-
-  return cipher
+  return ecies.encrypt(public_key, msg, options);
 }
 
 const eigenCallDemo = async (
@@ -140,10 +142,12 @@ const eigenCallDemo = async (
     const value = 123;
 
     const cipher = await l2CustomToken.encrypt(value);
-    console.log("Encrypt the value: ", Base64.decode(cipher?.toString()));
+    console.log("Encrypt the value: ", hex2ascii(cipher?.toString()));
 
     const plain = await l2CustomToken.decrypt(cipher?.toString());
-    console.log("Decrypt the cipher:  ", Base64.decode(plain?.toString()));
+    console.log("Decrypt the cipher:  ", hex2ascii(plain?.toString()));
+
+    //TODO debug
 
     // Here is example how we compare cipher with cipher or plain
     const value_1 = 122;
@@ -192,7 +196,7 @@ const main = async () => {
   await depositETH(bridge, l1TestWallet, l2TestWallet, utils.parseEther("1"))
 
   const tokenPair = await deployL1AndL2()
-  console.log(tokenPair)
+  console.log("token pair", tokenPair)
 
   let seqNum = await registerTokenOnL2(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, tokenPair.l2CustomToken)
   console.log("seqNum", seqNum)
@@ -206,38 +210,56 @@ const main = async () => {
   await deposit(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, amountDeposit)
   console.log("deposit done cccc")
 
-  await eigenCallDemo(tokenPair.l2CustomToken)
+  //await eigenCallDemo(tokenPair.l2CustomToken)
 
-  const secret = "01234567891234560123456789123456";
-  const cipherSecret = Base64.encode(ecies_encrypt(publicKey, secret));
+  // generate ramdom secret
+  let secret = Buffer.alloc(32);
+  crypto.randomFill(secret, (err, buf) => {
+    if (err) throw err;
+    console.log(Buffer.from(buf).toString('hex'));
+  });
+  //secret = Buffer.from("01234567890123456789123456123456");
+
+  const cipherSecret = ecies_encrypt(publicKey, secret).toString('hex');
   console.log("cipher secret", cipherSecret)
   // balance
   const l2ccInstance = TestCCCustomToken__factory.connect(tokenPair.l2CustomToken, l2TestWallet);
+
+  let otx = await l2ccInstance.balanceOf(l2TestWallet.address);
+  console.log("cipher balance in l2 token", otx?.toString());
+
   let tx = await l2ccInstance.cipherBalanceOf(l2TestWallet.address, Buffer.from(cipherSecret), {
     gasPrice: 1,
     gasLimit: 25000,
   })
-  console.log("cipher balance in l2 token", Base64.decode(tx?.toString()));
+  console.log("cipher balance in l2 token cipher", hex2ascii(tx?.toString()));
+
   //decript
-  let balance = ecies.aes_dec(symmetricCypherName, secret, Base64.decode(tx?.toString()))
-  expect(balance).to.eq(0)
+  let txt = Buffer.from(tx?.toString("hex"))
+  let balance = ecies.aes_dec(symmetricCypherName, secret, txt)
+  //expect(balance).to.eq(0)
+  console.log("cipher balance in l2 token cipher", hex2ascii(balance));
 
   //transfer
   const amount = 100;
-  let cipher_amount = Base64.encode(ecies_encrypt(public_key, amount));
-  let transferTx = l2ccInstance.cipherTransfer(receiver, cipher_amount, {
+  let cipher_amount = ecies_encrypt(publicKey, amount).toString('hex');
+  let transferTx = await l2ccInstance.cipherTransfer(receiver, Buffer.from(cipher_amount), {
     gasPrice: 1,
     gasLimit: 25000,
   })
+  console.log("cipher transfer", transferTx?.toString(), hex2ascii(transferTx?.toString()));
+  let rec = await transferTx.wait(); 
+  let event = rec.events.pop();
+  console.log("events", event.args.from, event.args.to, event.args.value, event)
 
   // balance
-  tx = await l2ccInstance.cipherBalanceOf(receiver, Buffer.from(cipherSecret), {
+  tx = await l2ccInstance.cipherBalanceOf(receiver, secret, {
     gasPrice: 1,
     gasLimit: 25000,
   })
-  console.log("cipher balance in l2 token", Base64.decode(tx?.toString()));
+  console.log("cipher balance in l2 token after transfering", tx?.toString("hex"));
   //decript
-  balance = ecies.aes_dec(symmetricCypherName, secret, Base64.decode(tx?.toString()))
+  balance = ecies.aes_dec(symmetricCypherName, secret, tx?.toString())
   expect(balance).to.eq(amount)
 }
 

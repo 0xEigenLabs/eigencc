@@ -64,7 +64,8 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         bytes memory balance = _cipher_balances[account];
         require(balance.length > 0, "Balance is empty");
         // re-encrypt by user's secret
-        return _call_eigen_call("re_encrypt2", balance, secret, "");
+        //return _call_eigen_call("re_encrypt2", secret, balance, "");
+        return decrypt(balance);
     }
 
     function bridgeMint(address account, uint256 amount) external override onlyBridge {
