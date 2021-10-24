@@ -62,25 +62,24 @@ contract TestCCCustomToken is aeERC20, IArbToken {
 
     function cipherBalanceOf(address account, bytes memory secret) public view returns (bytes memory) {
         bytes memory balance = _cipher_balances[account];
-        require(balance.length > 0, "Balance is empty");
         // re-encrypt by user's secret
-        //return _call_eigen_call("re_encrypt2", secret, balance, "");
-        return decrypt(balance);
+        return _call_eigen_call("re_encrypt2", secret, balance, "");
+        //return decrypt(balance);
     }
 
     function bridgeMint(address account, uint256 amount) external override onlyBridge {
         _mint(account, amount);
 
-        bytes memory cipher_base64 = encrypt(amount);
-        _cipher_balances[account] = copy_bytes(cipher_base64);
+        bytes memory cipher_hex = encrypt(amount);
+        _cipher_balances[account] = copy_bytes(cipher_hex);
     }
 
     function bridgeBurn(address account, uint256 amount) external override onlyBridge {
         _burn(account, amount);
 
-        bytes memory cipher_base64_balance = _cipher_balances[account];
-        bytes memory cipher_base64 = subCipherPlain(cipher_base64_balance, amount);
-        _cipher_balances[account] = copy_bytes(cipher_base64);
+        bytes memory cipher_hex_balance = _cipher_balances[account];
+        bytes memory cipher_hex = subCipherPlain(cipher_hex_balance, amount);
+        _cipher_balances[account] = copy_bytes(cipher_hex);
     }
 
     function withdraw(address destination, uint256 amount) external override {
@@ -98,19 +97,19 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         bytes[] memory list;
         list = new bytes[](4);
 
-        bytes memory sender_cipher_base64_balance = _cipher_balances[_msgSender()];
-        bytes memory sender_cipher_base64 = subCipherCipher(
-            sender_cipher_base64_balance,
+        bytes memory sender_cipher_hex_balance = _cipher_balances[_msgSender()];
+        bytes memory sender_cipher_hex = subCipherCipher(
+            sender_cipher_hex_balance,
             cipher_amount
         );
-        _cipher_balances[_msgSender()] = copy_bytes(sender_cipher_base64);
+        _cipher_balances[_msgSender()] = copy_bytes(sender_cipher_hex);
 
-        bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
-        bytes memory recipient_cipher_base64 = addCipherCipher(
-            recipient_cipher_base64_balance,
+        bytes memory recipient_cipher_hex_balance = _cipher_balances[recipient];
+        bytes memory recipient_cipher_hex = addCipherCipher(
+            recipient_cipher_hex_balance,
             cipher_amount
         );
-        _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
+        _cipher_balances[recipient] = copy_bytes(recipient_cipher_hex);
         emit TransferCipher(_msgSender(), recipient, cipher_amount);
         return true;
     }
@@ -126,16 +125,16 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         bytes[] memory list;
         list = new bytes[](4);
 
-        bytes memory sender_cipher_base64_balance = _cipher_balances[sender];
-        bytes memory sender_cipher_base64 = subCipherCipher(sender_cipher_base64_balance, cipher_amount);
-        _cipher_balances[sender] = copy_bytes(sender_cipher_base64);
+        bytes memory sender_cipher_hex_balance = _cipher_balances[sender];
+        bytes memory sender_cipher_hex = subCipherCipher(sender_cipher_hex_balance, cipher_amount);
+        _cipher_balances[sender] = copy_bytes(sender_cipher_hex);
 
-        bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
-        bytes memory recipient_cipher_base64 = addCipherCipher(
-            recipient_cipher_base64_balance,
+        bytes memory recipient_cipher_hex_balance = _cipher_balances[recipient];
+        bytes memory recipient_cipher_hex = addCipherCipher(
+            recipient_cipher_hex_balance,
             cipher_amount
         );
-        _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
+        _cipher_balances[recipient] = copy_bytes(recipient_cipher_hex);
         emit TransferCipher(sender, recipient, bytes(cipher_amount));
 
         return true;
@@ -150,16 +149,16 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         bytes[] memory list;
         list = new bytes[](4);
 
-        bytes memory sender_cipher_base64_balance = _cipher_balances[_msgSender()];
-        bytes memory sender_cipher_base64 = subCipherPlain(sender_cipher_base64_balance, amount);
-        _cipher_balances[_msgSender()] = copy_bytes(sender_cipher_base64);
+        bytes memory sender_cipher_hex_balance = _cipher_balances[_msgSender()];
+        bytes memory sender_cipher_hex = subCipherPlain(sender_cipher_hex_balance, amount);
+        _cipher_balances[_msgSender()] = copy_bytes(sender_cipher_hex);
 
-        bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
-        bytes memory recipient_cipher_base64 = addCipherPlain(
-            recipient_cipher_base64_balance,
+        bytes memory recipient_cipher_hex_balance = _cipher_balances[recipient];
+        bytes memory recipient_cipher_hex = addCipherPlain(
+            recipient_cipher_hex_balance,
             amount
         );
-        _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
+        _cipher_balances[recipient] = copy_bytes(recipient_cipher_hex);
         emit TransferCipher(_msgSender(), recipient, bytes(amount.toString()));
         return true;
     }
@@ -177,16 +176,16 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         bytes[] memory list;
         list = new bytes[](4);
 
-        bytes memory sender_cipher_base64_balance = _cipher_balances[sender];
-        bytes memory sender_cipher_base64 = subCipherPlain(sender_cipher_base64_balance, amount);
-        _cipher_balances[sender] = copy_bytes(sender_cipher_base64);
+        bytes memory sender_cipher_hex_balance = _cipher_balances[sender];
+        bytes memory sender_cipher_hex = subCipherPlain(sender_cipher_hex_balance, amount);
+        _cipher_balances[sender] = copy_bytes(sender_cipher_hex);
 
-        bytes memory recipient_cipher_base64_balance = _cipher_balances[recipient];
-        bytes memory recipient_cipher_base64 = addCipherPlain(
-            recipient_cipher_base64_balance,
+        bytes memory recipient_cipher_hex_balance = _cipher_balances[recipient];
+        bytes memory recipient_cipher_hex = addCipherPlain(
+            recipient_cipher_hex_balance,
             amount
         );
-        _cipher_balances[recipient] = copy_bytes(recipient_cipher_base64);
+        _cipher_balances[recipient] = copy_bytes(recipient_cipher_hex);
         emit TransferCipher(sender, recipient, bytes(amount.toString()));
 
         return true;

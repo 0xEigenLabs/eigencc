@@ -44,7 +44,7 @@ impl OperatorWorker {
 
     fn safe_encrypt(&mut self, result: Vec<u8>) -> Result<Vec<u8>> {
         // 4. Do ECIES encrypt
-        error!("safe encrypt");
+        info!("safe encrypt");
         let s1 = vec![];
         let s2 = vec![];
         let key_pair = register_func::get_key_pair();
@@ -60,11 +60,11 @@ impl OperatorWorker {
     }
 
     fn safe_decrypt(&mut self, operand: &str) -> Result<Vec<u8>> {
-        error!("safe decrypt");
+        info!("safe decrypt");
         let cipher_operand = hex::decode(&operand)
             .map_err(|_| Error::from(ErrorKind::DecodeError))?;
         if cipher_operand.len() <= 0 {
-            error!("safe decrypt: zero found");
+            info!("safe decrypt: zero found");
             return Ok(vec![]);
         }
         let key_pair = register_func::get_key_pair();
@@ -72,7 +72,7 @@ impl OperatorWorker {
         let s2 = vec![];
         eigen_crypto::ec::suite_b::ecies::decrypt(
             key_pair,
-            &cipher_operand_1,
+            &cipher_operand,
             &s1,
             &s2,
         ).map_err(|_| Error::from(ErrorKind::CryptoError))
@@ -115,7 +115,7 @@ impl Worker for OperatorWorker {
 
     fn prepare_input(&mut self, dynamic_input: Option<String>) -> Result<()> {
         let msg = dynamic_input.ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
-        error!("prepare_input {}", msg);
+        info!("prepare_input {}", msg);
 
         // `args` should be "op|arity,,op1,op2,op3,..."
         // now `op` may be 'add' or 'sub'
@@ -125,7 +125,7 @@ impl Worker for OperatorWorker {
         if splited.len() < 2 {
             return Err(Error::from(ErrorKind::InvalidInputError));
         }
-        error!("splited len {}", splited.len());
+        info!("splited len {}", splited.len());
 
         let arity = splited[0].chars().last().unwrap() as u32 - '0' as u32;
         let op = &splited[0][0..splited[0].len() - 1];
@@ -168,7 +168,7 @@ impl Worker for OperatorWorker {
             .input
             .take()
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
-        error!("execute input ok");
+        info!("execute input ok");
 
         match input.op {
             OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher => {
@@ -204,7 +204,7 @@ impl Worker for OperatorWorker {
                     _ => return Err(Error::from(ErrorKind::Unknown)),
                 };
 
-                let cipher = self.safe_encrypt(result)?;
+                let cipher = self.safe_encrypt(result.to_bytes_be())?;
                 let result = hex::encode(&cipher);
                 Ok(result)
             }
@@ -225,21 +225,27 @@ impl Worker for OperatorWorker {
                 Ok(b.to_str_radix(10))
             }
             OperatorKind::ReEncrypt => {
-                let key = self.safe_decrypt(&input.operand_1);
-                let msg = self.safe_decrypt(&input.operand_2);
+                let key = self.safe_decrypt(&input.operand_1)?;
+                let msg = self.safe_decrypt(&input.operand_2)?;
 
-                let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&key, &msg).unwrap();
+                // bytes -> bigint
+                // bigint -> string
+                let intMsg = BigUint::from_bytes_be(&msg[..]);
+                let strMsg = intMsg.to_str_radix(10);
+                info!("key = {:?}, {}, msg = {:?}", key, key.len(), strMsg);
+                //FIXME: catch the error
+                let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&key, &strMsg.as_bytes()).unwrap();
                 //        .map_err(|_| Error::from(ErrorKind::CryptoError))?;
                 let result = hex::encode(&result);
                 Ok(result)
             }
             OperatorKind::CompareCipherCipher | OperatorKind::CompareCipherPlain => {
-                let op1 = self.safe_decrypt(&input.operand_1);
+                let op1 = self.safe_decrypt(&input.operand_1)?;
                 let op1 = BigUint::from_bytes_be(&op1[..]);
 
                 let op2 = match input.op {
                     OperatorKind::CompareCipherCipher => {
-                        let op2 = self.safe_decrypt(&input.operand_2);
+                        let op2 = self.safe_decrypt(&input.operand_2)?;
                         BigUint::from_bytes_be(&op2[..])
                     }
                     OperatorKind::CompareCipherPlain => {
