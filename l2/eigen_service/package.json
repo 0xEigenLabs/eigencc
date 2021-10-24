@@ -35,6 +35,7 @@
     "sqlite3": "^5.0.2",
     "standard-ecies": "^2.0.0",
     "typings": "^2.1.1",
-    "vue-axios": "^3.3.7"
+    "vue-axios": "^3.3.7",
+    "cors":"^2.8.5"
   }
 }
