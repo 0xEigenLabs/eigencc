@@ -249,9 +249,29 @@ app.get("/user", async function (req, res) {
         res.json(util.Err(-1, "invalid argument"));
         return;
       }
-      var result = await friend_list.getFriendListByUserId(user_id);
-      console.log(`Friend list of ${user_id}: `, result);
-      return res.json(util.Succ(result));
+      var status = await friend_list.getStatusByUserId(user_id);
+      var ids = new Set();
+      var relationships = new Map();
+      for (let i = 0; i < status.length; i++) {
+        ids.add(status[i].user_id);
+        relationships[status[i].user_id] = status[i].status;
+      }
+      console.log(status, ids);
+      var information_without_status: any = await userdb.findUsersInformation(
+        Array.from(ids)
+      );
+      console.log("Infomation without status: ", information_without_status);
+      var information_with_status = new Array();
+      for (let i = 0; i < information_without_status.length; i++) {
+        information_with_status.push({
+          user_id: information_without_status[i].user_id,
+          email: information_without_status[i].email,
+          name: information_without_status[i].name,
+          status: relationships[information_without_status[i].user_id],
+        });
+      }
+      console.log(`Friend list of ${user_id}: `, information_with_status);
+      return res.json(util.Succ(information_with_status));
     case "strangers":
       var user_id = req.query.user_id;
       if (user_id === undefined) {

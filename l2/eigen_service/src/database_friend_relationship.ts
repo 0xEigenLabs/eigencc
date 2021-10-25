@@ -20,6 +20,10 @@ const BLOCK_FIRST_SECOND = 0x4;
 const BLOCK_SECOND_FIRST = 0x5;
 const BLOCK_BOTH = 0x6;
 
+const FRIEND_LIST_STATUS_MUTUAL = 0x1;
+const FRIEND_LIST_STATUS_WAITING = 0x2;
+const FRIEND_LIST_STATUS_CONFIRMING = 0x3;
+
 const friend_relationship_table = sequelize.define("friend_relationship_st", {
   user_first_id: {
     type: DataTypes.INTEGER,
@@ -353,4 +357,88 @@ const getKnownByUserId = function (user_id) {
   })(user_id);
 };
 
-export { request, confirm, remove, getFriendListByUserId, getKnownByUserId };
+const getStatusByUserId = function (user_id) {
+  return (async (user_id) => {
+    const first: any = await friend_relationship_table.findAll({
+      attributes: [
+        ["user_second_id", "user_id"],
+        ["type", "type"],
+      ],
+      where: {
+        user_first_id: user_id,
+        type: {
+          [Op.or]: [FRIENDS, PENDING_FIRST_SECOND, PENDING_SECOND_FIRST],
+        },
+      },
+      raw: true,
+    });
+    console.log("Known persons on first position: ", first);
+    const relationships = new Array();
+    for (let i = 0; i < first.length; i++) {
+      var status;
+      switch (first[i].type) {
+        case FRIENDS:
+          status = FRIEND_LIST_STATUS_MUTUAL;
+          break;
+        case PENDING_FIRST_SECOND:
+          status = FRIEND_LIST_STATUS_WAITING;
+          break;
+        case PENDING_SECOND_FIRST:
+          status = FRIEND_LIST_STATUS_CONFIRMING;
+          break;
+        default:
+          break;
+      }
+      relationships.push({
+        user_id: first[i].user_id,
+        status: status,
+      });
+    }
+
+    const second: any = await friend_relationship_table.findAll({
+      attributes: [
+        ["user_first_id", "user_id"],
+        ["type", "type"],
+      ],
+      where: {
+        user_second_id: user_id,
+        type: {
+          [Op.or]: [FRIENDS, PENDING_FIRST_SECOND, PENDING_SECOND_FIRST],
+        },
+      },
+      raw: true,
+    });
+    console.log("Known persons on first position: ", second);
+    for (let i = 0; i < second.length; i++) {
+      var status;
+      switch (second[i].type) {
+        case FRIENDS:
+          status = FRIEND_LIST_STATUS_MUTUAL;
+          break;
+        case PENDING_FIRST_SECOND:
+          status = FRIEND_LIST_STATUS_CONFIRMING;
+          break;
+        case PENDING_SECOND_FIRST:
+          status = FRIEND_LIST_STATUS_WAITING;
+          break;
+        default:
+          break;
+      }
+      relationships.push({
+        user_id: second[i].user_id,
+        status: status,
+      });
+    }
+
+    return relationships;
+  })(user_id);
+};
+
+export {
+  request,
+  confirm,
+  remove,
+  getFriendListByUserId,
+  getKnownByUserId,
+  getStatusByUserId,
+};
