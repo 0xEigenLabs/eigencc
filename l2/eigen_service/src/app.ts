@@ -154,8 +154,14 @@ app.post("/user", async function (req, res) {
       }
 
       result = await friend_list.request(requester_id, responder_id);
-      console.log("Send friend request success!");
-      return res.json(util.Succ(result));
+      if (result) {
+        console.log("Send friend request success!");
+        return res.json(util.Succ(result));
+      } else {
+        console.log("Send a friend request fail!");
+        return res.json(util.Err(-1, "fail to send a friend request"));
+      }
+
     case "friend_confirm":
       if (requester_id === undefined || responder_id === undefined) {
         console.log(
@@ -181,7 +187,7 @@ app.post("/user", async function (req, res) {
       }
 
       result = await friend_list.confirm(requester_id, responder_id);
-      if (!result) {
+      if (result) {
         console.log("Confirm a friend request success!");
         return res.json(util.Succ(result));
       } else {
@@ -196,7 +202,7 @@ app.post("/user", async function (req, res) {
           responder_id
         );
         result = await friend_list.remove(requester_id, responder_id);
-        if (!result) {
+        if (result) {
           console.log("Remove a friend success!");
           return res.json(util.Succ(result));
         } else {
@@ -219,7 +225,7 @@ app.post("/user", async function (req, res) {
       }
 
       result = await friend_list.confirm(requester_id, responder_id);
-      if (!result) {
+      if (result) {
         console.log("Confirm a friend request success!");
         return res.json(util.Succ(result));
       } else {
@@ -244,12 +250,8 @@ app.get("/user", async function (req, res) {
         return;
       }
       const result = await friend_list.getFriendListByUserId(user_id);
-      if (!result) {
-        console.log(result);
-        return res.json(util.Succ(result));
-      } else {
-        return res.json(util.Err(-1, "fail to get friend list"));
-      }
+      console.log(`Friend list of ${user_id}: `, result);
+      return res.json(util.Succ(result));
     default:
       res.json(util.Err(-1, "invalid action"));
       return;
