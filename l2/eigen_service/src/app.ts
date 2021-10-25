@@ -249,6 +249,11 @@ app.get("/user", async function (req, res) {
         res.json(util.Err(-1, "invalid argument"));
         return;
       }
+      if (!(await userdb.findByID(user_id))) {
+        console.log("The user does not exist ", user_id);
+        res.json(util.Err(-1, "user does not exist"));
+        return;
+      }
       var status = await friend_list.getStatusByUserId(user_id);
       var ids = new Set();
       var relationships = new Map();
