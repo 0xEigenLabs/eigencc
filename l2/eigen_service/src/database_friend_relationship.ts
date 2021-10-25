@@ -60,24 +60,47 @@ sequelize
     console.log("Unable to connect to the database:", err);
   });
 
-// TODO: Duplicate request should return error message
-const request = function (requester_id, responder_id) {
-  if (requester_id < responder_id) {
-    return friend_relationship_table.create({
-      user_first_id: requester_id,
-      user_second_id: responder_id,
-      type: PENDING_FIRST_SECOND,
-    });
-  } else if (requester_id > responder_id) {
-    return friend_relationship_table.create({
-      user_first_id: responder_id,
-      user_second_id: requester_id,
-      type: PENDING_SECOND_FIRST,
-    });
-  } else {
-    // Do nothing
-    return false;
+const getRelationship = function (user1_id, user2_id) {
+  if (user1_id > user2_id) {
+    [user1_id, user2_id] = [user2_id, user1_id];
   }
+
+  return friend_relationship_table.findOne({
+    where: { user_first_id: user1_id, user_second_id: user2_id },
+  });
+};
+
+const request = function (requester_id, responder_id) {
+  getRelationship(requester_id, responder_id).then(function (row: any) {
+    if (row === null) {
+      if (requester_id < responder_id) {
+        friend_relationship_table.create({
+          user_first_id: requester_id,
+          user_second_id: responder_id,
+          type: PENDING_FIRST_SECOND,
+        });
+        return true;
+      } else if (requester_id > responder_id) {
+        friend_relationship_table.create({
+          user_first_id: responder_id,
+          user_second_id: requester_id,
+          type: PENDING_SECOND_FIRST,
+        });
+        return true;
+      } else {
+        console.log("We can't make friends with ourselves.");
+        return false;
+      }
+    } else {
+      console.log(
+        "Pending friend request or already friend: ",
+        requester_id,
+        " and ",
+        responder_id
+      );
+      return false;
+    }
+  });
 };
 
 const confirm = function (requester_id, responder_id) {

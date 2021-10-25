@@ -89,10 +89,10 @@ curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=new&kind=0&unique_id=1&email=1@a.com&name=eig&given_name=1&family_name=2&locale=en-US&verified_email=0&picture=1&secret=1"
 
 # Send a friend request
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_request&requester_id=1&responder_id=2"
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_request&requester_id=2&responder_id=3"
 
 # Confirm a friend request
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=confriend_requestfirm&requester_id=1&responder_id=2"
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_confirm&requester_id=2&responder_id=3"
 
 # Get friends list
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=friends&user_id=1"
