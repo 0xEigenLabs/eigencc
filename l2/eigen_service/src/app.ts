@@ -268,8 +268,10 @@ app.get("/user", async function (req, res) {
       var strangers = new Set([...ids].filter((x) => !known.has(x)));
       strangers.delete(Number(user_id));
       var result = Array.from(strangers);
-      console.log(`Stranger list of ${user_id}: `, result);
-      return res.json(util.Succ(result));
+      var information = await userdb.findUsersInformation(result);
+
+      console.log(`Stranger list of ${user_id}: `, information);
+      return res.json(util.Succ(information));
     default:
       res.json(util.Err(-1, "invalid action"));
       return;

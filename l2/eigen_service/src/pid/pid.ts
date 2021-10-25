@@ -1,4 +1,4 @@
-import { Sequelize, DataTypes } from "sequelize";
+import { Sequelize, DataTypes, Op } from "sequelize";
 const sequelize = new Sequelize({
   dialect: "sqlite",
   pool: {
@@ -109,6 +109,22 @@ const updateOrAdd = function (user_id, new_info) {
   });
 };
 
+const findUsersInformation = function (ids) {
+  return userdb.findAll({
+    attributes: [
+      ["user_id", "user_id"],
+      ["email", "email"],
+      ["name", "name"],
+    ],
+    where: {
+      user_id: {
+        [Op.in]: ids,
+      },
+    },
+    raw: true,
+  });
+};
+
 const findAllUserIDs = function () {
   return userdb
     .findAll({
@@ -132,4 +148,12 @@ const findAllUserIDs = function () {
     });
 };
 
-export { updateOrAdd, findAll, add, findByOpenID, findByID, findAllUserIDs };
+export {
+  updateOrAdd,
+  findAll,
+  add,
+  findByOpenID,
+  findByID,
+  findAllUserIDs,
+  findUsersInformation,
+};
