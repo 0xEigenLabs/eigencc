@@ -96,6 +96,9 @@ curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?actio
 
 # Get friends list
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=friends&user_id=1"
+
+# Get strangers list
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=strangers&user_id=1"
 ```
 
 ### Login by Oauth

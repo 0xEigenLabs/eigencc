@@ -109,4 +109,27 @@ const updateOrAdd = function (user_id, new_info) {
   });
 };
 
-export { updateOrAdd, findAll, add, findByOpenID, findByID };
+const findAllUserIDs = function () {
+  return userdb
+    .findAll({
+      attributes: [["user_id", "user_id"]],
+      raw: true,
+    })
+    .then(function (row: any) {
+      console.log(row);
+      if (row === null) {
+        return new Set();
+      }
+      var users = new Set();
+      for (let i = 0; i < row.length; i++) {
+        users.add(row[i].user_id);
+      }
+      return users;
+    })
+    .catch(function (err) {
+      console.log("Find error: " + err);
+      return new Set();
+    });
+};
+
+export { updateOrAdd, findAll, add, findByOpenID, findByID, findAllUserIDs };

@@ -244,13 +244,26 @@ app.get("/user", async function (req, res) {
 
   switch (action) {
     case "friends":
-      const user_id = req.query.user_id;
+      var user_id = req.query.user_id;
       if (user_id === undefined) {
         res.json(util.Err(-1, "invalid argument"));
         return;
       }
-      const result = await friend_list.getFriendListByUserId(user_id);
+      var result = await friend_list.getFriendListByUserId(user_id);
       console.log(`Friend list of ${user_id}: `, result);
+      return res.json(util.Succ(result));
+    case "strangers":
+      var user_id = req.query.user_id;
+      if (user_id === undefined) {
+        res.json(util.Err(-1, "invalid argument"));
+        return;
+      }
+      var ids = await userdb.findAllUserIDs();
+      var known = await friend_list.getKnownByUserId(user_id);
+      var strangers = new Set([...ids].filter((x) => !known.has(x)));
+      strangers.delete(Number(user_id));
+      var result = Array.from(strangers);
+      console.log(`Stranger list of ${user_id}: `, result);
       return res.json(util.Succ(result));
     default:
       res.json(util.Err(-1, "invalid action"));

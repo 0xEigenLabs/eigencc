@@ -293,7 +293,7 @@ const getFriendListByUserId = function (user_id) {
       },
       raw: true,
     });
-    console.log(first);
+    console.log("Friends on first position: ", first);
     const friends = new Set();
     for (let i = 0; i < first.length; i++) {
       friends.add(first[i].user_id);
@@ -307,7 +307,7 @@ const getFriendListByUserId = function (user_id) {
       },
       raw: true,
     });
-    console.log(second);
+    console.log("Friends on second position: ", second);
     for (let i = 0; i < second.length; i++) {
       friends.add(second[i].user_id);
     }
@@ -316,4 +316,41 @@ const getFriendListByUserId = function (user_id) {
   })(user_id);
 };
 
-export { request, confirm, remove, getFriendListByUserId };
+const getKnownByUserId = function (user_id) {
+  return (async (user_id) => {
+    const first: any = await friend_relationship_table.findAll({
+      attributes: [["user_second_id", "user_id"]],
+      where: {
+        user_first_id: user_id,
+        type: {
+          [Op.or]: [FRIENDS, PENDING_FIRST_SECOND, PENDING_SECOND_FIRST],
+        },
+      },
+      raw: true,
+    });
+    console.log("Known persons on first position: ", first);
+    const persons = new Set();
+    for (let i = 0; i < first.length; i++) {
+      persons.add(first[i].user_id);
+    }
+
+    const second: any = await friend_relationship_table.findAll({
+      attributes: [["user_first_id", "user_id"]],
+      where: {
+        user_second_id: user_id,
+        type: {
+          [Op.or]: [FRIENDS, PENDING_FIRST_SECOND, PENDING_SECOND_FIRST],
+        },
+      },
+      raw: true,
+    });
+    console.log("Known persons on first position: ", second);
+    for (let i = 0; i < second.length; i++) {
+      persons.add(second[i].user_id);
+    }
+
+    return persons;
+  })(user_id);
+};
+
+export { request, confirm, remove, getFriendListByUserId, getKnownByUserId };
