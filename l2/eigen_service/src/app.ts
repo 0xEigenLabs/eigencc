@@ -145,11 +145,11 @@ app.post("/user", async function (req, res) {
         !(await userdb.findByID(responder_id))
       ) {
         console.log(
-          "One of the user does not exist",
+          "One of the users does not exist",
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "one of the user does not exist"));
+        res.json(util.Err(-1, "one of the users does not exist"));
         return;
       }
 
@@ -178,11 +178,11 @@ app.post("/user", async function (req, res) {
         !(await userdb.findByID(responder_id))
       ) {
         console.log(
-          "One of the user does not exist",
+          "One of the users does not exist",
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "one of the user does not exist"));
+        res.json(util.Err(-1, "one of the users does not exist"));
         return;
       }
 
@@ -216,11 +216,11 @@ app.post("/user", async function (req, res) {
         !(await userdb.findByID(responder_id))
       ) {
         console.log(
-          "One of the user does not exist",
+          "One of the users does not exist",
           requester_id,
           responder_id
         );
-        res.json(util.Err(-1, "one of the user does not exist"));
+        res.json(util.Err(-1, "one of the users does not exist"));
         return;
       }
 
@@ -256,6 +256,11 @@ app.get("/user", async function (req, res) {
       var user_id = req.query.user_id;
       if (user_id === undefined) {
         res.json(util.Err(-1, "invalid argument"));
+        return;
+      }
+      if (!(await userdb.findByID(user_id))) {
+        console.log("The user does not exist ", user_id);
+        res.json(util.Err(-1, "user does not exist"));
         return;
       }
       var ids = await userdb.findAllUserIDs();
