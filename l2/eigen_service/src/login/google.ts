@@ -121,7 +121,7 @@ module.exports = function (app) {
       userdb.UserKind.GOOGLE
     );
     console.log("exist_user", exist_user);
-    if (Object.keys(exist_user).length == 0) {
+    if (exist_user === null) {
       //add to db
       const user_info = {
         kind: userdb.UserKind.GOOGLE,
@@ -165,6 +165,8 @@ module.exports = function (app) {
       user.id,
       userdb.UserKind.GOOGLE
     );
+
+    console.log("user record: ", user_record);
 
     res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}`);
   });
