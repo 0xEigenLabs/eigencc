@@ -118,6 +118,12 @@ curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action
 
 # Get strangers list
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=strangers&user_id=1"
+
+# Save recovery data
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/recovery" --data '{"user_id": 2, "total_shared_num": 1, "threshold": 1, "friends": [{"user_id": 2, "email": "a@b.com"}, {"user_id": 3, "email": "c@d.com"}]}'
+
+# Get recovery data
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/recovery?user_id=2"
 ```
 
 ### Login by Oauth

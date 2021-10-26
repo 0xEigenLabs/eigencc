@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import * as log4js from "./log";
 import * as db_pk from "./database_pk";
 import * as db_txh from "./database_transaction_history";
+import * as db_recovery from "./database_recovery";
 import * as util from "./util";
 import { Op } from "sequelize";
 
@@ -293,6 +294,41 @@ app.post("/user", async function (req, res) {
       res.json(util.Err(-1, "invalid action"));
       return;
   }
+});
+
+// get recovery data
+app.get("/recovery", async function (req, res) {
+  console.log(JSON.stringify(req.query));
+  const user_id = req.query.user_id;
+
+  if (user_id === undefined) {
+    res.json(util.Err(-1, "missing user_id"));
+    return;
+  }
+  const result = await db_recovery.findByID(user_id);
+  console.log(result);
+  res.json(util.Succ(result));
+});
+
+app.post("/recovery", async function (req, res) {
+  console.log(JSON.stringify(req.body));
+  const user_id = req.body.user_id;
+  const total_shared_num = req.body.total_shared_num;
+  const threshold = req.body.threshold;
+  const friends = req.body.friends;
+
+  if (user_id === undefined) {
+    res.json(util.Err(-1, "missing user_id"));
+    return;
+  }
+  const result = await db_recovery.updateOrAdd(
+    user_id,
+    total_shared_num,
+    threshold,
+    JSON.stringify(friends)
+  );
+  console.log(result);
+  res.json(util.Succ(result));
 });
 
 // get friend list
