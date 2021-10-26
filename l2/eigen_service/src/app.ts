@@ -115,6 +115,7 @@ app.get("/user/:user_id", async function (req, res) {
   res.json(util.Succ(result));
 });
 
+// TODO: Refactor this function to make it clear
 // create new user, send or confirm a friend request
 app.post("/user", async function (req, res) {
   const action = req.query.action;
@@ -197,7 +198,7 @@ app.post("/user", async function (req, res) {
     case "friend_remove":
       if (requester_id === undefined || responder_id === undefined) {
         console.log(
-          "Missing IDs when request or confirm friend.",
+          "Missing IDs when remove a friend.",
           requester_id,
           responder_id
         );
@@ -224,14 +225,48 @@ app.post("/user", async function (req, res) {
         return;
       }
 
-      result = await friend_list.confirm(requester_id, responder_id);
+      result = await friend_list.remove(requester_id, responder_id);
       if (result) {
-        console.log("Confirm a friend request success!");
+        console.log("Remove a friend request success!");
         return res.json(util.Succ(result));
       } else {
         console.log("Remove a friend fail!");
+        return res.json(util.Err(-1, "fail to remove a friend"));
+      }
+
+    case "friend_reject":
+      if (requester_id === undefined || responder_id === undefined) {
+        console.log(
+          "Missing IDs when reject friend.",
+          requester_id,
+          responder_id
+        );
+        res.json(util.Err(-1, "missing IDs when reject friend"));
+        return;
+      }
+
+      if (
+        !(await userdb.findByID(requester_id)) ||
+        !(await userdb.findByID(responder_id))
+      ) {
+        console.log(
+          "One of the users does not exist",
+          requester_id,
+          responder_id
+        );
+        res.json(util.Err(-1, "one of the users does not exist"));
+        return;
+      }
+
+      result = await friend_list.reject(requester_id, responder_id);
+      if (result) {
+        console.log("Reject a friend request success!");
+        return res.json(util.Succ(result));
+      } else {
+        console.log("Reject a friend fail!");
         return res.json(util.Err(-1, "fail to confirm a friend request"));
       }
+
     default:
       res.json(util.Err(-1, "invalid action"));
       return;

@@ -107,7 +107,7 @@ const request = function (requester_id, responder_id) {
   });
 };
 
-const confirm = function (requester_id, responder_id) {
+const change_pending_status = function (requester_id, responder_id, status) {
   if (requester_id < responder_id) {
     friend_relationship_table
       .findOne({
@@ -127,7 +127,7 @@ const confirm = function (requester_id, responder_id) {
         if (row.type === PENDING_FIRST_SECOND) {
           return row
             .update({
-              type: FRIENDS,
+              type: status,
             })
             .then(function (result) {
               console.log("Update success: " + result);
@@ -168,7 +168,7 @@ const confirm = function (requester_id, responder_id) {
         if (row.type === PENDING_SECOND_FIRST) {
           return row
             .update({
-              type: FRIENDS,
+              type: status,
             })
             .then(function (result) {
               console.log("Update success: " + result);
@@ -194,6 +194,14 @@ const confirm = function (requester_id, responder_id) {
     // Do nothing
     return false;
   }
+};
+
+const confirm = function (requester_id, responder_id) {
+  return change_pending_status(requester_id, responder_id, FRIENDS);
+};
+
+const reject = function (requester_id, responder_id) {
+  return change_pending_status(requester_id, responder_id, NOT_FRIENDS);
 };
 
 const remove = function (requester_id, responder_id) {
@@ -438,6 +446,7 @@ export {
   request,
   confirm,
   remove,
+  reject,
   getFriendListByUserId,
   getKnownByUserId,
   getStatusByUserId,

@@ -94,6 +94,12 @@ curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?actio
 # Confirm a friend request
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_confirm&requester_id=2&responder_id=3"
 
+# Reject a friend request
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_reject&requester_id=2&responder_id=3"
+
+# Remove a friend
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_remove&requester_id=2&responder_id=3"
+
 # Get friends list
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=friends&user_id=1"
 # Status:
