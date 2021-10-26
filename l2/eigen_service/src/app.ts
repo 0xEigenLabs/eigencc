@@ -119,10 +119,10 @@ app.get("/user/:user_id", async function (req, res) {
 // TODO: Refactor this function to make it clear
 // create new user, send or confirm a friend request
 app.post("/user", async function (req, res) {
-  const action = req.query.action;
-  const requester_id = req.query.requester_id;
-  var responder_id = req.query.responder_id;
-  const responder_email = req.query.responder_email;
+  const action = req.body.action;
+  const requester_id = req.body.requester_id;
+  var responder_id = req.body.responder_id;
+  const responder_email = req.body.responder_email;
 
   if (responder_id !== undefined && responder_email) {
     res.json(
