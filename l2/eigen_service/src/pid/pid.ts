@@ -86,6 +86,13 @@ const findByOpenID = function (id: string, kind: number) {
     });
 };
 
+const findByEmail = function (email: string) {
+  return userdb.findOne({ where: { email: email } }).then(function (row: any) {
+    console.log(row);
+    return row;
+  });
+};
+
 const updateOrAdd = function (user_id, new_info) {
   userdb.findOne({ where: { user_id: user_id } }).then(function (row: any) {
     console.log(row);
@@ -156,4 +163,5 @@ export {
   findByID,
   findAllUserIDs,
   findUsersInformation,
+  findByEmail,
 };

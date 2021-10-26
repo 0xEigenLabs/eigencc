@@ -120,7 +120,29 @@ app.get("/user/:user_id", async function (req, res) {
 app.post("/user", async function (req, res) {
   const action = req.query.action;
   const requester_id = req.query.requester_id;
-  const responder_id = req.query.responder_id;
+  var responder_id = req.query.responder_id;
+  const responder_email = req.query.responder_email;
+
+  if (responder_id !== undefined && responder_email) {
+    res.json(
+      util.Err(
+        -1,
+        "responder_id and responder_email can not exist at the same time"
+      )
+    );
+    return;
+  }
+
+  if (responder_email !== undefined) {
+    var responder = await userdb.findByEmail(responder_email);
+    if (responder) {
+      responder_id = responder.user_id;
+    } else {
+      res.json(util.Err(-1, "responder_email do not exist in the database"));
+      return;
+    }
+  }
+
   var result;
 
   switch (action) {
@@ -280,6 +302,10 @@ app.get("/user", async function (req, res) {
   switch (action) {
     case "friends":
       var user_id = req.query.user_id;
+      var filter_status = req.query.status;
+      if (filter_status !== undefined) {
+        console.log("Filter the status of friends: ", filter_status);
+      }
       if (user_id === undefined) {
         res.json(util.Err(-1, "invalid argument"));
         return;
@@ -293,8 +319,11 @@ app.get("/user", async function (req, res) {
       var ids = new Set();
       var relationships = new Map();
       for (let i = 0; i < status.length; i++) {
-        ids.add(status[i].user_id);
-        relationships[status[i].user_id] = status[i].status;
+        // There isn't status filter or filter the status
+        if (filter_status === undefined || filter_status == status[i].status) {
+          ids.add(status[i].user_id);
+          relationships[status[i].user_id] = status[i].status;
+        }
       }
       console.log(status, ids);
       var information_without_status: any = await userdb.findUsersInformation(

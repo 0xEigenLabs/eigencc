@@ -91,8 +91,14 @@ curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?actio
 # Send a friend request
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_request&requester_id=2&responder_id=3"
 
+# Send a friend request (or user email instead)
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_request&requester_id=2&responder_email=a@b.com"
+
 # Confirm a friend request
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_confirm&requester_id=2&responder_id=3"
+
+# Confirm a friend request (or user email instead)
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_confirm&requester_id=2&responder_email=a@b.com"
 
 # Reject a friend request
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user?action=friend_reject&requester_id=2&responder_id=3"
@@ -106,6 +112,9 @@ curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action
 #         1 mutual
 #         2 waiting
 #         3 confirming
+
+# Get friends list (We can filter the status, e.g., get only mutual status friends)
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=friends&user_id=1&status=1"
 
 # Get strangers list
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=strangers&user_id=1"
