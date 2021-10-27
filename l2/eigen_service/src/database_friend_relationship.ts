@@ -81,7 +81,7 @@ const findAll = function () {
 const request = function (requester_id, responder_id) {
   return getRelationship(requester_id, responder_id)
     .then(function (row: any) {
-      if (row === null || row.type == NOT_FRIENDS) {
+      if (row === null) {
         if (requester_id < responder_id) {
           friend_relationship_table.create({
             user_first_id: requester_id,
@@ -101,14 +101,54 @@ const request = function (requester_id, responder_id) {
           return false;
         }
       } else {
-        console.log(
-          "Pending friend request or already friend: ",
-          requester_id,
-          " and ",
-          responder_id
-        );
-        // Just return true, now we allow duplicate request
-        return true;
+        if (row.type === NOT_FRIENDS) {
+          console.log(
+            "They were friends: ",
+            requester_id,
+            " and ",
+            responder_id
+          );
+
+          if (requester_id < responder_id) {
+            return row
+              .update({
+                type: PENDING_FIRST_SECOND,
+              })
+              .then(function (result) {
+                console.log("Update success: " + result);
+                return true;
+              })
+              .catch(function (err) {
+                console.log("Update error: " + err);
+                return false;
+              });
+          } else if (requester_id > responder_id) {
+            return row
+              .update({
+                type: PENDING_SECOND_FIRST,
+              })
+              .then(function (result) {
+                console.log("Update success: " + result);
+                return true;
+              })
+              .catch(function (err) {
+                console.log("Update error: " + err);
+                return false;
+              });
+          } else {
+            console.log("We can't make friends with ourselves.");
+            return false;
+          }
+        } else {
+          console.log(
+            "Pending friend request or already friend: ",
+            requester_id,
+            " and ",
+            responder_id
+          );
+          // Just return true, now we allow duplicate request
+          return true;
+        }
       }
     })
     .catch(function (err) {
