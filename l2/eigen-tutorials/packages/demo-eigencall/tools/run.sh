@@ -23,4 +23,4 @@ pub_key=`./teesdk_util 2> /dev/null`
 
 echo $pub_key
 
-curl -XPOST -H "Content-Type:application/json"  --url "127.0.0.1:3000/store" -d "{\"digest\":\"1\", \"public_key\": \"$pub_key\"}"
+curl -XPOST -H "Content-Type:application/json"  --url "https://rpc.ieigen.com/store" -d "{\"digest\":\"1\", \"public_key\": \"$pub_key\"}"

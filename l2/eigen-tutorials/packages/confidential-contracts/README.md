@@ -1,13 +1,14 @@
 # Confidential Smart Contract
 
-Set the values shown in `.env-sample` as environmental variables. To copy it into a `.env` file:
+### Rationale
 
-```bash
+[EGIP 00002](https://github.com/ieigen/ieigen/blob/main/docs/egip/00002.md)
+
+### Test
+
+```
 cp .env-sample .env
-```
-## Run
-```
-yarn compile
+yarn build
 yarn deploy
 ```
 
