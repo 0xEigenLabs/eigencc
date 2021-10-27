@@ -153,7 +153,7 @@ app.post("/user", async function (req, res) {
   switch (action) {
     case "new":
       // TODO: Remove this, just for test
-      result = await userdb.add(req.query);
+      result = await userdb.add(req.body);
       console.log("Create a new user, id = ", result.user_id);
       console.log(result);
       return res.json(util.Succ(result));
@@ -291,7 +291,7 @@ app.post("/user", async function (req, res) {
         return res.json(util.Succ(result));
       } else {
         console.log("Reject a friend fail!");
-        return res.json(util.Err(-1, "fail to confirm a friend request"));
+        return res.json(util.Err(-1, "fail to reject a friend request"));
       }
 
     default:

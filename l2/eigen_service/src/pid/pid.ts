@@ -118,11 +118,7 @@ const updateOrAdd = function (user_id, new_info) {
 
 const findUsersInformation = function (ids) {
   return userdb.findAll({
-    attributes: [
-      ["user_id", "user_id"],
-      ["email", "email"],
-      ["name", "name"],
-    ],
+    attributes: ["user_id", "email", "name"],
     where: {
       user_id: {
         [Op.in]: ids,

@@ -75,41 +75,45 @@ const getRelationship = function (user1_id, user2_id) {
 };
 
 const request = function (requester_id, responder_id) {
-  getRelationship(requester_id, responder_id).then(function (row: any) {
-    if (row === null) {
-      if (requester_id < responder_id) {
-        friend_relationship_table.create({
-          user_first_id: requester_id,
-          user_second_id: responder_id,
-          type: PENDING_FIRST_SECOND,
-        });
-        return true;
-      } else if (requester_id > responder_id) {
-        friend_relationship_table.create({
-          user_first_id: responder_id,
-          user_second_id: requester_id,
-          type: PENDING_SECOND_FIRST,
-        });
-        return true;
+  return getRelationship(requester_id, responder_id)
+    .then(function (row: any) {
+      if (row === null) {
+        if (requester_id < responder_id) {
+          friend_relationship_table.create({
+            user_first_id: requester_id,
+            user_second_id: responder_id,
+            type: PENDING_FIRST_SECOND,
+          });
+          return true;
+        } else if (requester_id > responder_id) {
+          friend_relationship_table.create({
+            user_first_id: responder_id,
+            user_second_id: requester_id,
+            type: PENDING_SECOND_FIRST,
+          });
+          return true;
+        } else {
+          console.log("We can't make friends with ourselves.");
+          return false;
+        }
       } else {
-        console.log("We can't make friends with ourselves.");
+        console.log(
+          "Pending friend request or already friend: ",
+          requester_id,
+          " and ",
+          responder_id
+        );
         return false;
       }
-    } else {
-      console.log(
-        "Pending friend request or already friend: ",
-        requester_id,
-        " and ",
-        responder_id
-      );
-      return false;
-    }
-  });
+    })
+    .catch(function (err) {
+      console.log("Unable to connect to the database:", err);
+    });
 };
 
 const change_pending_status = function (requester_id, responder_id, status) {
   if (requester_id < responder_id) {
-    friend_relationship_table
+    return friend_relationship_table
       .findOne({
         where: { user_first_id: requester_id, user_second_id: responder_id },
       })
@@ -150,7 +154,7 @@ const change_pending_status = function (requester_id, responder_id, status) {
         }
       });
   } else if (requester_id > responder_id) {
-    friend_relationship_table
+    return friend_relationship_table
       .findOne({
         where: { user_first_id: responder_id, user_second_id: requester_id },
       })
@@ -206,7 +210,7 @@ const reject = function (requester_id, responder_id) {
 
 const remove = function (requester_id, responder_id) {
   if (requester_id < responder_id) {
-    friend_relationship_table
+    return friend_relationship_table
       .findOne({
         where: { user_first_id: requester_id, user_second_id: responder_id },
       })
@@ -247,7 +251,7 @@ const remove = function (requester_id, responder_id) {
         }
       });
   } else if (requester_id > responder_id) {
-    friend_relationship_table
+    return friend_relationship_table
       .findOne({
         where: { user_first_id: responder_id, user_second_id: requester_id },
       })
