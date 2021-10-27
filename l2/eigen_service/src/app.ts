@@ -7,8 +7,10 @@ import * as db_txh from "./database_transaction_history";
 import * as db_recovery from "./database_recovery";
 import * as util from "./util";
 import { Op } from "sequelize";
+import url from "url";
+const TOTP = require("totp.js");
 
-import { JWT_SECRET } from "./login/config";
+import { JWT_SECRET, TOTP_SECRET } from "./login/config";
 
 import cors from "cors";
 
@@ -22,31 +24,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 const logger = log4js.logger("Eigen");
 app.use(log4js.useLog());
-/*
-app.use({
-    cors({
-    // Sets Access-Control-Allow-Origin to the UI URI
-    origin: UI_ROOT_URI,
-    // Sets Access-Control-Allow-Credentials to true
-    credentials: true
-  })
-})
+const issueOptions = {
+  origin: true,
+  credentials: true,
+};
 
-*/
-// app.use((req, res, next) => {
-//   if (req.path !== "/" && !req.path.includes(".")) {
-//     res.set({
-//       "Access-Control-Allow-Credentials": true, //允许后端发送cookie
-//       "Access-Control-Allow-Origin": req.headers.origin || "*", //任意域名都可以访问,或者基于我请求头里面的域
-//       "Access-Control-Allow-Headers": "X-Requested-With,Content-Type", //设置请求头格式和类型
-//       "Access-Control-Allow-Methods": "PUT,POST,GET,DELETE,OPTIONS", //允许支持的请求方式
-//       "Content-Type": "application/json; charset=utf-8", //默认与允许的文本格式json和编码格式
-//     });
-//   }
-//   req.method === "OPTIONS" ? res.status(204).end() : next();
-// });
-
-app.use(cors());
+app.use(cors(issueOptions));
 
 // query key
 app.get("/stores", async function (req, res) {
@@ -528,6 +511,73 @@ app.put("/txh/:txid", async function (req, res) {
     sub_txid: req.body.sub_txid || "",
   });
   res.json(util.Succ(result));
+});
+
+const otpauthURL = function (options) {
+  // unpack options
+  var secret = options.secret;
+  var label = options.label;
+  var issuer = options.issuer;
+
+  // validate required options
+  if (!secret) throw new Error("Speakeasy - otpauthURL - Missing secret");
+  if (!label) throw new Error("Speakeasy - otpauthURL - Missing label");
+
+  // build query while validating
+  var query: any = { secret: secret };
+  if (issuer) query.issuer = issuer;
+
+  // return url
+  console.log(encodeURIComponent(label));
+  return url.format({
+    protocol: "otpauth",
+    slashes: true,
+    hostname: "otpt",
+    pathname: encodeURIComponent(label),
+    query: query,
+  });
+};
+
+// get otpauth
+app.get("/otpauth", async function (req, res) {
+  const user_id = req.query.user_id;
+
+  if (user_id === undefined) {
+    console.log("Missing user id when request optauth");
+
+    res.json(util.Err(-1, "missing user id when request optauth"));
+    return;
+  }
+  const user = await userdb.findByID(user_id);
+  if (user) {
+    const key = TOTP_SECRET;
+    const totp = new TOTP(key);
+    const otpurl = `otpauth://totp/${user.email}?issuer=EigenNetwork&secret=${key}`;
+    const test =
+      "https://chart.googleapis.com/chart?chs=256x256&chld=L|0&cht=qr&chl=" +
+      encodeURIComponent(otpauthURL({ secret: key, label: "EigenNetwork" }));
+    console.log(test);
+    res.json(util.Succ(otpurl));
+    return;
+  } else {
+    console.log("User does not exist when request optauth");
+
+    res.json(util.Err(-1, "user does not exist when request optauth"));
+    return;
+  }
+});
+
+// verify code
+app.post("/otpauth", async function (req, res) {
+  const user_id = req.body.user_id;
+  const code = req.body.code;
+  if (!util.has_value(user_id) || !util.has_value(code)) {
+    return res.json(util.Err(1, "missing fields"));
+  }
+  console.log(req.body);
+  const totp = new TOTP(TOTP_SECRET);
+  var result = totp.verify(code);
+  return res.json(util.Succ(result));
 });
 
 require("./login/google")(app);

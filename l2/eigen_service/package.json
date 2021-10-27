@@ -36,6 +36,7 @@
     "standard-ecies": "^2.0.0",
     "typings": "^2.1.1",
     "vue-axios": "^3.3.7",
-    "cors":"^2.8.5"
+    "cors": "^2.8.5",
+    "totp.js": "^0.0.1"
   }
 }
