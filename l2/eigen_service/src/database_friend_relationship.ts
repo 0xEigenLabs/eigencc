@@ -74,10 +74,14 @@ const getRelationship = function (user1_id, user2_id) {
   });
 };
 
+const findAll = function () {
+  return friend_relationship_table.findAll();
+};
+
 const request = function (requester_id, responder_id) {
   return getRelationship(requester_id, responder_id)
     .then(function (row: any) {
-      if (row === null) {
+      if (row === null || row.type == NOT_FRIENDS) {
         if (requester_id < responder_id) {
           friend_relationship_table.create({
             user_first_id: requester_id,
@@ -103,7 +107,8 @@ const request = function (requester_id, responder_id) {
           " and ",
           responder_id
         );
-        return false;
+        // Just return true, now we allow duplicate request
+        return true;
       }
     })
     .catch(function (err) {
@@ -360,7 +365,7 @@ const getKnownByUserId = function (user_id) {
       },
       raw: true,
     });
-    console.log("Known persons on first position: ", second);
+    console.log("Known persons on second position: ", second);
     for (let i = 0; i < second.length; i++) {
       persons.add(second[i].user_id);
     }
@@ -454,4 +459,5 @@ export {
   getFriendListByUserId,
   getKnownByUserId,
   getStatusByUserId,
+  findAll,
 };

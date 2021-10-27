@@ -347,8 +347,9 @@ app.get("/user", async function (req, res) {
         console.log("Filter the status of friends: ", filter_status);
       }
       if (user_id === undefined) {
-        res.json(util.Err(-1, "invalid argument"));
-        return;
+        //res.json(util.Err(-1, "invalid argument"));
+        var all_relationships = await friend_list.findAll();
+        return res.json(util.Succ(all_relationships));
       }
       if (!(await userdb.findByID(user_id))) {
         console.log("The user does not exist ", user_id);
