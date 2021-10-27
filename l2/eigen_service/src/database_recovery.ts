@@ -38,7 +38,7 @@ sequelize
         plain: true,
       })
     );
-    recoverydb.destroy({ where: { digest: row.digest } });
+    recoverydb.destroy({ where: { user_id: row.user_id } });
   })
   .catch(function (err) {
     console.log("Unable to connect to the database:", err);

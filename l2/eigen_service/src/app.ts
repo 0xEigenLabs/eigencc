@@ -124,6 +124,10 @@ app.post("/user", async function (req, res) {
   var responder_id = req.body.responder_id;
   const responder_email = req.body.responder_email;
 
+  console.log(
+    `${action} is going to do: ${requester_id}, ${responder_id} or ${responder_email}`
+  );
+
   if (responder_id !== undefined && responder_email) {
     res.json(
       util.Err(
