@@ -6,7 +6,6 @@ import * as db_pk from "./database_pk";
 import * as db_txh from "./database_transaction_history";
 import * as db_recovery from "./database_recovery";
 import * as util from "./util";
-import { Op } from "sequelize";
 import url from "url";
 const TOTP = require("totp.js");
 
@@ -15,7 +14,6 @@ import { JWT_SECRET, TOTP_SECRET } from "./login/config";
 import cors from "cors";
 
 import * as userdb from "./pid/pid";
-import * as friend_list from "./database_friend_relationship";
 
 import bodyParser from "body-parser";
 const app = express();
@@ -87,202 +85,6 @@ app.get("/txhs", async function(req, res) {
 })
 */
 
-// get user by id
-app.get("/user/:user_id", async function (req, res) {
-  const user_id = req.params.user_id;
-  if (user_id === undefined) {
-    res.json(util.Err(-1, "invalid argument"));
-    return;
-  }
-  const result = await userdb.findByID(user_id);
-  console.log(result);
-  res.json(util.Succ(result));
-});
-
-// TODO: Refactor this function to make it clear
-// create new user, send or confirm a friend request
-app.post("/user", async function (req, res) {
-  const action = req.body.action;
-  const requester_id = req.body.requester_id;
-  var responder_id = req.body.responder_id;
-  const responder_email = req.body.responder_email;
-
-  console.log(
-    `${action} is going to do: ${requester_id}, ${responder_id} or ${responder_email}`
-  );
-
-  if (responder_id !== undefined && responder_email) {
-    res.json(
-      util.Err(
-        -1,
-        "responder_id and responder_email can not exist at the same time"
-      )
-    );
-    return;
-  }
-
-  if (responder_email !== undefined) {
-    var responder = await userdb.findByEmail(responder_email);
-    if (responder) {
-      responder_id = responder.user_id;
-    } else {
-      res.json(util.Err(-1, "responder_email do not exist in the database"));
-      return;
-    }
-  }
-
-  var result;
-
-  switch (action) {
-    case "new":
-      // TODO: Remove this, just for test
-      result = await userdb.add(req.body);
-      console.log("Create a new user, id = ", result.user_id);
-      console.log(result);
-      return res.json(util.Succ(result));
-    case "friend_request":
-      if (requester_id === undefined || responder_id === undefined) {
-        console.log(
-          "Missing IDs when request or confirm friend.",
-          requester_id,
-          responder_id
-        );
-        res.json(util.Err(-1, "missing IDs when request or confirm friend"));
-        return;
-      }
-
-      if (
-        !(await userdb.findByID(requester_id)) ||
-        !(await userdb.findByID(responder_id))
-      ) {
-        console.log(
-          "One of the users does not exist",
-          requester_id,
-          responder_id
-        );
-        res.json(util.Err(-1, "one of the users does not exist"));
-        return;
-      }
-
-      result = await friend_list.request(requester_id, responder_id);
-      if (result) {
-        console.log("Send friend request success!");
-        return res.json(util.Succ(result));
-      } else {
-        console.log("Send a friend request fail!");
-        return res.json(util.Err(-1, "fail to send a friend request"));
-      }
-
-    case "friend_confirm":
-      if (requester_id === undefined || responder_id === undefined) {
-        console.log(
-          "Missing IDs when request or confirm friend.",
-          requester_id,
-          responder_id
-        );
-        res.json(util.Err(-1, "missing IDs when request or confirm friend"));
-        return;
-      }
-
-      if (
-        !(await userdb.findByID(requester_id)) ||
-        !(await userdb.findByID(responder_id))
-      ) {
-        console.log(
-          "One of the users does not exist",
-          requester_id,
-          responder_id
-        );
-        res.json(util.Err(-1, "one of the users does not exist"));
-        return;
-      }
-
-      result = await friend_list.confirm(requester_id, responder_id);
-      if (result) {
-        console.log("Confirm a friend request success!");
-        return res.json(util.Succ(result));
-      } else {
-        console.log("Confirm a friend request fail!");
-        return res.json(util.Err(-1, "fail to confirm a friend request"));
-      }
-    case "friend_remove":
-      if (requester_id === undefined || responder_id === undefined) {
-        console.log(
-          "Missing IDs when remove a friend.",
-          requester_id,
-          responder_id
-        );
-        result = await friend_list.remove(requester_id, responder_id);
-        if (result) {
-          console.log("Remove a friend success!");
-          return res.json(util.Succ(result));
-        } else {
-          console.log("Remove a friend fail!");
-          return res.json(util.Err(-1, "fail to remove friend"));
-        }
-      }
-
-      if (
-        !(await userdb.findByID(requester_id)) ||
-        !(await userdb.findByID(responder_id))
-      ) {
-        console.log(
-          "One of the users does not exist",
-          requester_id,
-          responder_id
-        );
-        res.json(util.Err(-1, "one of the users does not exist"));
-        return;
-      }
-
-      result = await friend_list.remove(requester_id, responder_id);
-      if (result) {
-        console.log("Remove a friend request success!");
-        return res.json(util.Succ(result));
-      } else {
-        console.log("Remove a friend fail!");
-        return res.json(util.Err(-1, "fail to remove a friend"));
-      }
-
-    case "friend_reject":
-      if (requester_id === undefined || responder_id === undefined) {
-        console.log(
-          "Missing IDs when reject friend.",
-          requester_id,
-          responder_id
-        );
-        res.json(util.Err(-1, "missing IDs when reject friend"));
-        return;
-      }
-
-      if (
-        !(await userdb.findByID(requester_id)) ||
-        !(await userdb.findByID(responder_id))
-      ) {
-        console.log(
-          "One of the users does not exist",
-          requester_id,
-          responder_id
-        );
-        res.json(util.Err(-1, "one of the users does not exist"));
-        return;
-      }
-
-      result = await friend_list.reject(requester_id, responder_id);
-      if (result) {
-        console.log("Reject a friend request success!");
-        return res.json(util.Succ(result));
-      } else {
-        console.log("Reject a friend fail!");
-        return res.json(util.Err(-1, "fail to reject a friend request"));
-      }
-
-    default:
-      res.json(util.Err(-1, "invalid action"));
-      return;
-  }
-});
-
 // get recovery data
 app.get("/recovery", async function (req, res) {
   console.log(JSON.stringify(req.query));
@@ -316,79 +118,6 @@ app.post("/recovery", async function (req, res) {
   );
   console.log(result);
   res.json(util.Succ(result));
-});
-
-// get friend list
-app.get("/user", async function (req, res) {
-  const action = req.query.action;
-
-  switch (action) {
-    case "friends":
-      var user_id = req.query.user_id;
-      var filter_status = req.query.status;
-      if (filter_status !== undefined) {
-        console.log("Filter the status of friends: ", filter_status);
-      }
-      if (user_id === undefined) {
-        //res.json(util.Err(-1, "invalid argument"));
-        var all_relationships = await friend_list.findAll();
-        return res.json(util.Succ(all_relationships));
-      }
-      if (!(await userdb.findByID(user_id))) {
-        console.log("The user does not exist ", user_id);
-        res.json(util.Err(-1, "user does not exist"));
-        return;
-      }
-      var status = await friend_list.getStatusByUserId(user_id);
-      var ids = new Set();
-      var relationships = new Map();
-      for (let i = 0; i < status.length; i++) {
-        // There isn't status filter or filter the status
-        if (filter_status === undefined || filter_status == status[i].status) {
-          ids.add(status[i].user_id);
-          relationships[status[i].user_id] = status[i].status;
-        }
-      }
-      console.log(status, ids);
-      var information_without_status: any = await userdb.findUsersInformation(
-        Array.from(ids)
-      );
-      console.log("Infomation without status: ", information_without_status);
-      var information_with_status = new Array();
-      for (let i = 0; i < information_without_status.length; i++) {
-        information_with_status.push({
-          user_id: information_without_status[i].user_id,
-          email: information_without_status[i].email,
-          name: information_without_status[i].name,
-          status: relationships[information_without_status[i].user_id],
-        });
-      }
-      console.log(`Friend list of ${user_id}: `, information_with_status);
-      return res.json(util.Succ(information_with_status));
-    case "strangers":
-      var user_id = req.query.user_id;
-      if (user_id === undefined) {
-        res.json(util.Err(-1, "invalid argument"));
-        return;
-      }
-      if (!(await userdb.findByID(user_id))) {
-        console.log("The user does not exist ", user_id);
-        res.json(util.Err(-1, "user does not exist"));
-        return;
-      }
-      var ids = await userdb.findAllUserIDs();
-      var known = await friend_list.getKnownByUserId(user_id);
-      var strangers = new Set([...ids].filter((x) => !known.has(x)));
-      strangers.delete(Number(user_id));
-      var result = Array.from(strangers);
-      var information = await userdb.findUsersInformation(result);
-
-      console.log(`Stranger list of ${user_id}: `, information);
-      return res.json(util.Succ(information));
-    default:
-      res.json(util.Err(-1, "invalid action"));
-      return;
-  }
 });
 
 app.get("/txhs", async function (req, res) {
@@ -520,8 +249,8 @@ const otpauthURL = function (options) {
   var issuer = options.issuer;
 
   // validate required options
-  if (!secret) throw new Error("Speakeasy - otpauthURL - Missing secret");
-  if (!label) throw new Error("Speakeasy - otpauthURL - Missing label");
+  if (!secret) throw new Error("otpauthURL - Missing secret");
+  if (!label) throw new Error("otpauthURL - Missing label");
 
   // build query while validating
   var query: any = { secret: secret };
@@ -568,7 +297,7 @@ app.get("/otpauth", async function (req, res) {
 });
 
 // verify code
-app.post("/otpauth", async function (req, res) {
+app.get("/otpauth", async function (req, res) {
   const user_id = req.body.user_id;
   const code = req.body.code;
   if (!util.has_value(user_id) || !util.has_value(code)) {
@@ -581,6 +310,7 @@ app.post("/otpauth", async function (req, res) {
 });
 
 require("./login/google")(app);
+require("./login/pid")(app);
 
 app.listen(3000, function () {
   console.log("Eigen Service listening on port 3000!");
