@@ -4,8 +4,8 @@ export const GOOGLE_CLIENT_ID =
 export const GOOGLE_CLIENT_SECRET =
   process.env.GOOGLE_CLIENT_SECRET || "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";
 
-export const SERVER_ROOT_URI = "http://localhost:3000";
-export const UI_ROOT_URI = "http://localhost:8000";
+export const UI_ROOT_URI = "https://secret.ieigen.com";
+export const SERVER_ROOT_URI = "https://rpc.ieigen.com/api";
 export const JWT_SECRET = "import-secret-from-env"; //default hmac sha256
 
 export const COOKIE_NAME = "auth_token";
