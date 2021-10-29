@@ -61,11 +61,14 @@ export function generate_mnemonic(typ: SecLevel): string {
 //  console.log( comb === pw  ); // => false
 export function split(secret: string, level: SecLevel) : string[] {
     const lvl = kShareSchema.get(level)
-    console.log(secret)
-    let shares = ss.share(secret, lvl[0], lvl[1])
-    return shares
+    //secret 
+    let split = secret.length
+    let firstPart = secret.substr(0, split);
+    let secondPart = secret.substr(split, secret.length - split);
+    let shares = ss.share(secondPart, lvl[0], lvl[1])
+    return [firstPart].concat(shares)
 }
 
 export function combine(shares: string[]): string {
-    return ss.combine(shares)
+    return shares[0].concat(ss.combine(shares.slice(1, shares.length - 1)))
 }

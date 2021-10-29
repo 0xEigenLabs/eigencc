@@ -25,11 +25,6 @@ function test_aes() {
     let cipherHex = "e2dcefd63b20ea2edeb0850749c24f8ed68cac831f5ac3d4a0e57dded9f30019e3173b21408239673d9ddb3f23ee2a223f847c307fcb7c8ef2d65058";
     decrypted2 = ecies.aes_dec('aes-256-gcm', KEY, Buffer.from(cipherHex, "hex"))
     expect(decrypted2 == msg, "decrypt failed")
-
-    cipherHex = ""
-    let msg2 = Buffer.from(100, "hex");
-    decrypted2 = ecies.aes_dec('aes-256-gcm', KEY, Buffer.from(cipherHex, "hex"))
-    expect(decrypted2 == msg2, "decrypt failed")
 }
 // console.log("aes worker well", decrypted2, iv2);
 
