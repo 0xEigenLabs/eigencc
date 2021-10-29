@@ -86,35 +86,35 @@ curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action
 
 ```
 # Send a friend request
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user" -d '{"action": "friend_request", "requester_id": 2, "responder_id": 3}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_request", "guardian_id": 3}'
 
 # Send a friend request (or user email instead)
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user" -d '{"action": "friend_request", "requester_id": 2, "responder_email": "a@b.com"}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_request", "guardian_email": "a@b.com"}'
 
 # Confirm a friend request
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user" -d '{"action": "friend_confirm", "requester_id": 2, "responder_id": 3}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_confirm", "guardian_id": 3}'
 
 # Confirm a friend request (or user email instead)
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user" -d '{"action": "friend_confirm", "requester_id": 2, "responder_email": "a@b.com"}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_confirm", "guardian_email": "a@b.com"}'
 
 # Reject a friend request
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user" -d '{"action": "friend_reject", "requester_id": 2, "responder_id": 3}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_reject", "guardian_id": 3}'
 
 # Remove a friend
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user" -d '{"action": "friend_remove", "requester_id": 2, "responder_id": 3}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_remove", "guardian_id": 3}'
 
 # Get friends list
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=friends&user_id=1"
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friends"}'
 # Status:
 #         1 mutual
 #         2 waiting
 #         3 confirming
 
 # Get friends list (We can filter the status, e.g., get only mutual status friends)
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=friends&user_id=1&status=1"
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friends", "status": 1}'
 
 # Get strangers list
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user?action=strangers&user_id=1"
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "strangers"}'
 
 # Save recovery data
 curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/recovery" -d '{"user_id": 2, "total_shared_num": 1, "threshold": 1, "friends": [{"user_id": 2, "email": "a@b.com"}, {"user_id": 3, "email": "c@d.com"}]}'
