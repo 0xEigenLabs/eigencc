@@ -267,50 +267,51 @@ const otpauthURL = function (options) {
   });
 };
 
-// get otpauth
-app.get("/otpauth", async function (req, res) {
-  const user_id = req.query.user_id;
+// FIXME: These code may be removed
+// // get otpauth
+// app.get("/otpauth", async function (req, res) {
+//   const user_id = req.query.user_id;
 
-  if (user_id === undefined) {
-    console.log("Missing user id when request optauth");
+//   if (user_id === undefined) {
+//     console.log("Missing user id when request optauth");
 
-    res.json(util.Err(-1, "missing user id when request optauth"));
-    return;
-  }
-  const user = await userdb.findByID(user_id);
-  if (user) {
-    const key = TOTP_SECRET;
-    const totp = new TOTP(key);
-    const otpurl = `otpauth://totp/${user.email}?issuer=EigenNetwork&secret=${key}`;
-    const test =
-      "https://chart.googleapis.com/chart?chs=256x256&chld=L|0&cht=qr&chl=" +
-      encodeURIComponent(otpauthURL({ secret: key, label: "EigenNetwork" }));
-    console.log(test);
-    res.json(util.Succ(otpurl));
-    return;
-  } else {
-    console.log("User does not exist when request optauth");
+//     res.json(util.Err(-1, "missing user id when request optauth"));
+//     return;
+//   }
+//   const user = await userdb.findByID(user_id);
+//   if (user) {
+//     const key = TOTP_SECRET;
+//     // const totp = new TOTP(key);
+//     const otpurl = `otpauth://totp/${user.email}?issuer=EigenNetwork&secret=${key}`;
+//     const test =
+//       "https://chart.googleapis.com/chart?chs=256x256&chld=L|0&cht=qr&chl=" +
+//       encodeURIComponent(otpauthURL({ secret: key, label: "EigenNetwork" }));
+//     console.log(test);
+//     res.json(util.Succ(otpurl));
+//     return;
+//   } else {
+//     console.log("User does not exist when request optauth");
 
-    res.json(util.Err(-1, "user does not exist when request optauth"));
-    return;
-  }
-});
+//     res.json(util.Err(-1, "user does not exist when request optauth"));
+//     return;
+//   }
+// });
 
-// verify code
-app.get("/otpauth", async function (req, res) {
-  const user_id = req.body.user_id;
-  const code = req.body.code;
-  if (!util.has_value(user_id) || !util.has_value(code)) {
-    return res.json(util.Err(1, "missing fields"));
-  }
-  console.log(req.body);
-  const totp = new TOTP(TOTP_SECRET);
-  var result = totp.verify(code);
-  return res.json(util.Succ(result));
-});
+// // verify code
+// app.get("/otpauth", async function (req, res) {
+//   const user_id = req.body.user_id;
+//   const code = req.body.code;
+//   if (!util.has_value(user_id) || !util.has_value(code)) {
+//     return res.json(util.Err(1, "missing fields"));
+//   }
+//   console.log(req.body);
+//   const totp = new TOTP(TOTP_SECRET);
+//   var result = totp.verify(code);
+//   return res.json(util.Succ(result));
+// });
 
 require("./login/google")(app);
-require("./login/pid")(app);
+require("./pid/pid")(app);
 
 app.listen(3000, function () {
   console.log("Eigen Service listening on port 3000!");
