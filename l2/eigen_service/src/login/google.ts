@@ -152,19 +152,21 @@ module.exports = function (app) {
       console.log("update", result);
     }
 
-    const token = jwt.sign(user, JWT_SECRET);
-    console.log("user cookie", token);
-
-    res.cookie(COOKIE_NAME, token, {
-      maxAge: 900000,
-      httpOnly: true,
-      secure: false,
-    });
-
     const user_record: any = await userdb.findByOpenID(
       user.id,
       userdb.UserKind.GOOGLE
     );
+
+    user.user_id = user_record.user_id;
+
+    const token = jwt.sign(user, JWT_SECRET);
+    console.log("user cookie", token);
+
+    res.cookie(COOKIE_NAME, token, {
+      maxAge: 9000,
+      httpOnly: true,
+      secure: false,
+    });
 
     console.log("user record: ", user_record);
 
