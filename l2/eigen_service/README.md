@@ -85,33 +85,39 @@ curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/txhs?action
 #### API
 
 ```
-# Send a friend request
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_request", "guardian_id": 3}'
+# Send a guardian request
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"guardian_id": 3}'
 
-# Send a friend request (or user email instead)
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_request", "guardian_email": "a@b.com"}'
+# Send a guardian request (or user email instead)
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"guardian_email": "a@b.com"}'
 
-# Confirm a friend request
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_confirm", "guardian_id": 3}'
+# Confirm a guardian request
+curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"action": "confirm", "guardian_id": 3}'
 
-# Confirm a friend request (or user email instead)
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_confirm", "guardian_email": "a@b.com"}'
+# Confirm a guardian request (or user email instead)
+curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"action": "confirm", "guardian_email": "a@b.com"}'
 
-# Reject a friend request
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_reject", "guardian_id": 3}'
+# Reject a guardian request
+curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"action": "reject", "guardian_id": 3}'
 
-# Remove a friend
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friend_remove", "guardian_id": 3}'
+# Reject a guardian request (or user email instead)
+curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"action": "reject", "guardian_email": "a@b.com"}'
 
-# Get friends list
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friends"}'
+# Remove a guardian
+curl -XDELETE -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"guardian_id": 3}'
+
+# Remove a guardian
+curl -XDELETE -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"guardian_email": "a@b.com"}'
+
+# Get guardians list
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "guardians"}'
 # Status:
 #         1 mutual
 #         2 waiting
 #         3 confirming
 
-# Get friends list (We can filter the status, e.g., get only mutual status friends)
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "friends", "status": 1}'
+# Get guardians list (We can filter the status, e.g., get only mutual status guardians)
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "guardians", "status": 1}'
 
 # Get strangers list
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "strangers"}'

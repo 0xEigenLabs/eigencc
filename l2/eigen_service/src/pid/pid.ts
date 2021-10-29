@@ -180,24 +180,26 @@ module.exports = function (app) {
         res.json(util.Err(-1, "invalid argument"));
         return;
       }
-      const action = req.query.action;
+      const action = req.body.action;
 
       if (action === undefined) {
         const result = await findByID(user_id);
         console.log(result);
         res.json(util.Succ(result));
+        return;
       }
 
       switch (action) {
-        case "friends":
+        case "guardians":
           var filter_status = req.query.status;
           if (filter_status !== undefined) {
-            console.log("Filter the status of friends: ", filter_status);
+            console.log("Filter the status of guardians: ", filter_status);
           }
           if (user_id === undefined) {
             //res.json(util.Err(-1, "invalid argument"));
             var all_relationships = await friend_list.findAll();
-            return res.json(util.Succ(all_relationships));
+            res.json(util.Succ(all_relationships));
+            return;
           }
           if (!(await findByID(user_id))) {
             console.log("The user does not exist ", user_id);
@@ -234,8 +236,9 @@ module.exports = function (app) {
               status: relationships[information_without_status[i].user_id],
             });
           }
-          console.log(`Friend list of ${user_id}: `, information_with_status);
-          return res.json(util.Succ(information_with_status));
+          console.log(`Guardian list of ${user_id}: `, information_with_status);
+          res.json(util.Succ(information_with_status));
+          return;
         case "strangers":
           if (user_id === undefined) {
             res.json(util.Err(-1, "invalid argument"));
@@ -254,7 +257,8 @@ module.exports = function (app) {
           var information = await findUsersInformation(result);
 
           console.log(`Stranger list of ${user_id}: `, information);
-          return res.json(util.Succ(information));
+          res.json(util.Succ(information));
+          return;
         default:
           res.json(util.Err(-1, "invalid action"));
           return;
@@ -274,9 +278,69 @@ module.exports = function (app) {
     }
   );
 
-  // Friend request, confirm, remove or reject
+  // Guardian add
   app.post(
-    "/user/:user_id",
+    "/user/:user_id/guardian",
+    // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+    async function (req, res) {
+      const user_id = req.params.user_id;
+      var guardian_id = req.body.guardian_id;
+      if (!util.has_value(user_id)) {
+        res.json(util.Err(-1, "missing user_id"));
+        return;
+      }
+
+      console.log(`User ${user_id} wants add guardian`);
+      const guardian_email = req.body.guardian_email;
+
+      if (guardian_id !== undefined && guardian_email) {
+        res.json(
+          util.Err(
+            -1,
+            "guardian_id and guardian_email can not exist at the same time"
+          )
+        );
+        return;
+      }
+
+      if (util.has_value(guardian_email)) {
+        var guardian = await findByEmail(guardian_email);
+        if (guardian) {
+          guardian_id = guardian.user_id;
+        } else {
+          res.json(util.Err(-1, "guardian_email do not exist in the database"));
+          return;
+        }
+      }
+
+      if (!util.has_value(guardian_id)) {
+        res.json(
+          util.Err(-1, "miss guardian_id or guardian_email is not found")
+        );
+        return;
+      }
+
+      if (!(await findByID(user_id)) || !(await findByID(guardian_id))) {
+        console.log("One of the users does not exist", user_id, guardian_id);
+        res.json(util.Err(-1, "one of the users does not exist"));
+        return;
+      }
+
+      // NOTE: When send a friend requet, self is requester, guardian is responder
+      const result = await friend_list.request(user_id, guardian_id);
+      if (result) {
+        console.log("Send guardian request success!");
+        return res.json(util.Succ(result));
+      } else {
+        console.log("Send a guardian request fail!");
+        return res.json(util.Err(-1, "fail to send a guardian request"));
+      }
+    }
+  );
+
+  // Guardian confirm or reject
+  app.put(
+    "/user/:user_id/guardian",
     // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
     async function (req, res) {
       const user_id = req.params.user_id;
@@ -329,51 +393,88 @@ module.exports = function (app) {
 
       var result;
       switch (action) {
-        case "friend_request":
-          // NOTE: When send a friend requet, self is requester, guardian is responder
-          result = await friend_list.request(user_id, guardian_id);
-          if (result) {
-            console.log("Send friend request success!");
-            return res.json(util.Succ(result));
-          } else {
-            console.log("Send a friend request fail!");
-            return res.json(util.Err(-1, "fail to send a friend request"));
-          }
-
-        case "friend_confirm":
-          // NOTE: When send a friend confirm, self is responder, guardian is requester
+        case "confirm":
+          // NOTE: When send a guardian confirm, self is responder, guardian is requester
           result = await friend_list.confirm(guardian_id, user_id);
           if (result) {
-            console.log("Confirm a friend request success!");
+            console.log("Confirm a guardian request success!");
             return res.json(util.Succ(result));
           } else {
-            console.log("Confirm a friend request fail!");
-            return res.json(util.Err(-1, "fail to confirm a friend request"));
+            console.log("Confirm a guardian request fail!");
+            return res.json(util.Err(-1, "fail to confirm a guardian request"));
           }
-        case "friend_remove":
-          result = await friend_list.remove(user_id, guardian_id);
-          if (result) {
-            console.log("Remove a friend request success!");
-            return res.json(util.Succ(result));
-          } else {
-            console.log("Remove a friend fail!");
-            return res.json(util.Err(-1, "fail to remove a friend"));
-          }
-
-        case "friend_reject":
-          // NOTE: When send a friend reject, self is responder, guardian is requester
+        case "reject":
+          // NOTE: When send a guardian reject, self is responder, guardian is requester
           result = await friend_list.reject(guardian_id, user_id);
           if (result) {
-            console.log("Reject a friend request success!");
+            console.log("Reject a guardian request success!");
             return res.json(util.Succ(result));
           } else {
-            console.log("Reject a friend fail!");
-            return res.json(util.Err(-1, "fail to reject a friend request"));
+            console.log("Reject a guardian fail!");
+            return res.json(util.Err(-1, "fail to reject a guardian request"));
           }
-
         default:
           res.json(util.Err(-1, "invalid action"));
           return;
+      }
+    }
+  );
+
+  // Guardian add
+  app.delete(
+    "/user/:user_id/guardian",
+    // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+    async function (req, res) {
+      const user_id = req.params.user_id;
+      var guardian_id = req.body.guardian_id;
+      if (!util.has_value(user_id)) {
+        res.json(util.Err(-1, "missing user_id"));
+        return;
+      }
+
+      console.log(`User ${user_id} wants delete guardian`);
+      const guardian_email = req.body.guardian_email;
+
+      if (guardian_id !== undefined && guardian_email) {
+        res.json(
+          util.Err(
+            -1,
+            "guardian_id and guardian_email can not exist at the same time"
+          )
+        );
+        return;
+      }
+
+      if (util.has_value(guardian_email)) {
+        var guardian = await findByEmail(guardian_email);
+        if (guardian) {
+          guardian_id = guardian.user_id;
+        } else {
+          res.json(util.Err(-1, "guardian_email do not exist in the database"));
+          return;
+        }
+      }
+
+      if (!util.has_value(guardian_id)) {
+        res.json(
+          util.Err(-1, "miss guardian_id or guardian_email is not found")
+        );
+        return;
+      }
+
+      if (!(await findByID(user_id)) || !(await findByID(guardian_id))) {
+        console.log("One of the users does not exist", user_id, guardian_id);
+        res.json(util.Err(-1, "one of the users does not exist"));
+        return;
+      }
+
+      const result = await friend_list.remove(user_id, guardian_id);
+      if (result) {
+        console.log("Remove a guardian request success!");
+        return res.json(util.Succ(result));
+      } else {
+        console.log("Remove a guardian fail!");
+        return res.json(util.Err(-1, "fail to remove a guardian"));
       }
     }
   );
