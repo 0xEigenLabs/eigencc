@@ -1,5 +1,6 @@
 import { Sequelize, DataTypes, Op } from "sequelize";
 import jwt from "express-jwt";
+const TOTP = require("totp.js");
 
 import * as util from "../util";
 import * as friend_list from "../database_friend_relationship";
@@ -111,6 +112,27 @@ const updateOrAdd = function (user_id, new_info) {
     return row
       .update({
         concatenated,
+      })
+      .then(function (result) {
+        console.log("Update success: " + result);
+        return true;
+      })
+      .catch(function (err) {
+        console.log("Update error: " + err);
+        return false;
+      });
+  });
+};
+
+const updateSecret = function (user_id, secret) {
+  return userdb.findOne({ where: { user_id } }).then(function (row: any) {
+    if (row === null) {
+      console.log("Update error: User does not exist");
+      return false;
+    }
+    return row
+      .update({
+        secret: secret,
       })
       .then(function (result) {
         console.log("Update success: " + result);
@@ -478,4 +500,56 @@ module.exports = function (app) {
       }
     }
   );
+
+  app.put(
+    "/user/:user_id/otpauth",
+    // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] },
+    async function (req, res) {
+      const user_id = req.params.user_id;
+      const secret = req.body.secret;
+      if (!util.has_value(user_id) || !util.has_value(secret)) {
+        res.json(util.Err(-1, "missing user_id or secret"));
+        return;
+      }
+
+      const result = await updateSecret(user_id, secret);
+
+      if (result) {
+        console.log("Save a otpauth secret success!");
+        res.json(util.Succ(result));
+        return;
+      } else {
+        console.log("Save a otpauth secret fail!");
+        res.json(util.Err(-1, "fail to save a otpauth secret"));
+        return;
+      }
+    }
+  );
+
+  // verify code
+  app.get("/user/:user_id/otpauth", async function (req, res) {
+    const user_id = req.params.user_id;
+    const code = req.body.code;
+    if (!util.has_value(user_id) || !util.has_value(code)) {
+      return res.json(util.Err(1, "missing fields"));
+    }
+    console.log(req.body);
+    const user = await findByID(user_id);
+    if (user) {
+      if (user.secret) {
+        const totp = new TOTP(user.secret);
+        var result = totp.verify(code);
+        res.json(util.Succ(result));
+        return;
+      } else {
+        console.log("The secret does not exist ", user_id);
+        res.json(util.Err(-1, "secret does not exist"));
+        return;
+      }
+    } else {
+      console.log("The user does not exist ", user_id);
+      res.json(util.Err(-1, "user does not exist"));
+      return;
+    }
+  });
 };

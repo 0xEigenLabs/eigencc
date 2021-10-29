@@ -149,18 +149,16 @@ curl http://localhost:3000/auth/google/url
 
 ```
  -H "Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExNDU1MDE2Njg5ODA0MTc1MTU3OSIsImVtYWlsIjoiaGliZHVhbkBnbWFpbC5jb20iLCJ2ZXJpZmllZF9lbWFpbCI6dHJ1ZSwibmFtZSI6IlN0ZXBoZW4iLCJnaXZlbl9uYW1lIjoiU3RlcGhlbiIsInBpY3R1cmUiOiJodHRwczovL2xoMy5nb29nbGV1c2VyY29udGVudC5jb20vYS0vQU9oMTRHajJxZ2poczV6Qk15VzJ6Y0dUeEpyMG9FSmhiTkVaRmdnWm1xUXhEUT1zOTYtYyIsImxvY2FsZSI6InpoLUNOIiwiaWF0IjoxNjM0NDg3MjQyfQ.dkuRxjKyQNtUb2sZFvJ4RXW59p0D-0dhhYzkOjY4pYE"
+```
 
 #### Google Authenticator TOTP
 
 ```
-
 # Get otpauth
-
-curl -XGET -H "Content-Type:application/json" --url "localhost:3000/otpauth?user_id=2"
+curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/otpauth" -d '{"secret": "GAXGGYT2OU2DEOJR"}'
 
 # Verify code
-
-curl -XPOST -H "Content-Type:application/json" --url "localhost:3000/otpauth" -d '{"user_id": 2, "code": "123456"}'
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/otpauth" -d '{"code": "123456"}'
 
 ```
 
@@ -179,6 +177,8 @@ docker build -t ieigen/service:v1 .
 ```
 
 docker run --name=eigen-service -p 3000:3000 -d ieigen/service:v1
+
+```
 
 ```
 

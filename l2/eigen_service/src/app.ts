@@ -7,7 +7,6 @@ import * as db_txh from "./database_transaction_history";
 import * as db_recovery from "./database_recovery";
 import * as util from "./util";
 import url from "url";
-const TOTP = require("totp.js");
 
 import { JWT_SECRET, TOTP_SECRET } from "./login/config";
 
@@ -241,74 +240,6 @@ app.put("/txh/:txid", async function (req, res) {
   });
   res.json(util.Succ(result));
 });
-
-const otpauthURL = function (options) {
-  // unpack options
-  var secret = options.secret;
-  var label = options.label;
-  var issuer = options.issuer;
-
-  // validate required options
-  if (!secret) throw new Error("otpauthURL - Missing secret");
-  if (!label) throw new Error("otpauthURL - Missing label");
-
-  // build query while validating
-  var query: any = { secret: secret };
-  if (issuer) query.issuer = issuer;
-
-  // return url
-  console.log(encodeURIComponent(label));
-  return url.format({
-    protocol: "otpauth",
-    slashes: true,
-    hostname: "otpt",
-    pathname: encodeURIComponent(label),
-    query: query,
-  });
-};
-
-// FIXME: These code may be removed
-// // get otpauth
-// app.get("/otpauth", async function (req, res) {
-//   const user_id = req.query.user_id;
-
-//   if (user_id === undefined) {
-//     console.log("Missing user id when request optauth");
-
-//     res.json(util.Err(-1, "missing user id when request optauth"));
-//     return;
-//   }
-//   const user = await userdb.findByID(user_id);
-//   if (user) {
-//     const key = TOTP_SECRET;
-//     // const totp = new TOTP(key);
-//     const otpurl = `otpauth://totp/${user.email}?issuer=EigenNetwork&secret=${key}`;
-//     const test =
-//       "https://chart.googleapis.com/chart?chs=256x256&chld=L|0&cht=qr&chl=" +
-//       encodeURIComponent(otpauthURL({ secret: key, label: "EigenNetwork" }));
-//     console.log(test);
-//     res.json(util.Succ(otpurl));
-//     return;
-//   } else {
-//     console.log("User does not exist when request optauth");
-
-//     res.json(util.Err(-1, "user does not exist when request optauth"));
-//     return;
-//   }
-// });
-
-// // verify code
-// app.get("/otpauth", async function (req, res) {
-//   const user_id = req.body.user_id;
-//   const code = req.body.code;
-//   if (!util.has_value(user_id) || !util.has_value(code)) {
-//     return res.json(util.Err(1, "missing fields"));
-//   }
-//   console.log(req.body);
-//   const totp = new TOTP(TOTP_SECRET);
-//   var result = totp.verify(code);
-//   return res.json(util.Succ(result));
-// });
 
 require("./login/google")(app);
 require("./pid/pid")(app);
