@@ -3,6 +3,7 @@ import ss from "secrets.js-grempe"
 //why need: https://docs.ethers.io/v5/cookbook/react-native/#cookbook-reactnative-security
 import "@ethersproject/shims"
 import * as ethers from 'ethers'
+import * as crypto from 'crypto';
 
 import { defaultPath, HDNode, entropyToMnemonic, Mnemonic } from "@ethersproject/hdnode";
 import { keccak256 } from "@ethersproject/keccak256";
@@ -23,6 +24,8 @@ let kShareSchema = new Map<SecLevel, [number, number]>();
 kShareSchema.set(SecLevel.STRONG, [10, 7]) // 10-7
 kShareSchema.set(SecLevel.MEDIUM, [5, 3]) // 5-3
 kShareSchema.set(SecLevel.WEAK, [3, 2]) // 3-2
+
+const kCheckCodeLengh = 8
 
 // returns hex string
 export function generate_key(options?: any) : string {
@@ -61,11 +64,26 @@ export function generate_mnemonic(typ: SecLevel): string {
 //  console.log( comb === pw  ); // => false
 export function split(secret: string, level: SecLevel) : string[] {
     const lvl = kShareSchema.get(level)
-    console.log(secret)
-    let shares = ss.share(secret, lvl[0], lvl[1])
-    return shares
+    //secret 
+    let split = secret.length
+    let firstPart = secret.substr(0, split);
+    let secondPart = secret.substr(split, secret.length - split);
+    let shares = ss.share(secondPart, lvl[0], lvl[1])
+
+    let hmac = crypto.createHmac("sha256", firstPart);
+    let hashResult = hmac.update(secondPart, 'utf8').digest("hex")
+    firstPart = firstPart.concat(hashResult.substr(0, kCheckCodeLengh))
+    return [firstPart].concat(shares)
 }
 
 export function combine(shares: string[]): string {
-    return ss.combine(shares)
+    let guardian_share = ss.combine(shares.slice(1, shares.length - 1))
+    let checkcode = shares[0].substr(shares[0].length - kCheckCodeLengh, kCheckCodeLengh);
+    let firstPart = shares[0].substr(0, shares[0].length - kCheckCodeLengh)
+    let hmac = crypto.createHmac("sha256", firstPart);
+    let hashResult = hmac.update(guardian_share, 'utf8').digest('hex').substr(0, kCheckCodeLengh);
+    if (hashResult != checkcode) {
+        return ""
+    }
+    return firstPart.concat(ss.combine(shares.slice(1, shares.length - 1)))
 }
