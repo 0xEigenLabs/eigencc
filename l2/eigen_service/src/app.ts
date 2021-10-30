@@ -52,7 +52,7 @@ app.get("/store", async function (req, res) {
 // add new key
 app.post(
   "/store",
-  //jwt({ secret: JWT_SECRET, algorithms: ['HS256'] }),
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const digest = req.body.digest;
     const pk = req.body.public_key;

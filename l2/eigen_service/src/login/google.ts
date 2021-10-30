@@ -1,5 +1,5 @@
 import express from "express";
-import jwt from "jsonwebtoken";
+import jsonwebtoken from "jsonwebtoken";
 import axios from "axios";
 import bodyParser from "body-parser";
 import querystring from "querystring";
@@ -159,7 +159,7 @@ module.exports = function (app) {
 
     // user.user_id = user_record.user_id;
 
-    const token = jwt.sign(user_record, JWT_SECRET);
+    const token = jsonwebtoken.sign(user_record, JWT_SECRET);
     console.log("user cookie", token);
 
     res.cookie(COOKIE_NAME, token, {

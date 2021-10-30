@@ -32,7 +32,7 @@ curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/store?diges
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/stores"
 
 # add
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/store" -d '{"digest":"1", "public_key":"pk"}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/store" -d '{"digest":"1", "public_key":"pk"}' -H "Authorization:Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjowLCJlbWFpbCI6IkVpZ2VuTmV0d29ya0BnbWFpbC5jb20iLCJuYW1lIjoiRWlnZW4gTmV0V29yayIsImdpdmVuX25hbWUiOiJFaWdlbiBOZXRXb3JrIiwiZmFtaWx5X25hbWUiOiJFaWdlbiBOZXRXb3JrIiwicGljdHVyZSI6IiIsImxvY2FsZSI6IlNHIiwidmVyaWZpZWRfZW1haWwiOiJFaWdlbk5ldHdvcmtAZ21haWwuY29tIiwiaWF0IjoxNjM1NTgyMzI4fQ.F6zDTYVWm0I40hjchvPf4nZn56wIazunTXtUd-oFDaI"
 ```
 
 ### Transaction History
