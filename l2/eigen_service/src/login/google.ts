@@ -38,11 +38,6 @@ module.exports = function (app) {
   app.get("/auth/google/url", (req, res) => {
     return res.send(getGoogleAuthURL());
   });
-  // Getting code
-  app.post("/auth/code", (req, res) => {
-    console.log(req.body);
-    return res.json("{}");
-  });
 
   function getTokens({
     code,
@@ -164,13 +159,17 @@ module.exports = function (app) {
     console.log("user cookie", token);
 
     res.cookie(COOKIE_NAME, token, {
-      maxAge: 9000,
+      maxAge: 900,
       httpOnly: true,
       secure: false,
+      domain: "ieigen.com",
+      //path: '/',
+      sameSite: 'Lax',
     });
 
     console.log("user record: ", user_record);
 
-    res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}`);
+    res.set(COOKIE_NAME, 'Authorization:Bearer ' + token);
+    res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}&${COOKIE_NAME}=${token}`);
   });
 };

@@ -4,7 +4,6 @@ import jsonwebtoken from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
 const TOTP = require("totp.js");
-import url from "url";
 
 import * as log4js from "./log";
 import * as db_pk from "./database_pk";
@@ -13,7 +12,7 @@ import * as db_recovery from "./database_recovery";
 import * as friend_list from "./database_friend_relationship";
 import * as util from "./util";
 
-import { JWT_SECRET, TOTP_SECRET } from "./login/config";
+import { JWT_SECRET } from "./login/config";
 
 import * as userdb from "./pid/pid";
 
@@ -30,6 +29,40 @@ const issueOptions = {
 };
 
 app.use(cors(issueOptions));
+
+let filterFunc = function(req) {
+    console.log(req.url)
+    let bypass = [
+        "/auth/google/url",
+        "/stores",
+        "/store",
+	"/txhs"
+    ]
+    console.log(bypass.indexOf(req.url), req.method)
+    if (bypass.indexOf(req.url) >= 0 && req.method == "GET") {
+	return true;
+    }
+    return false;
+}
+app.use(
+  jwt({
+    secret: JWT_SECRET,
+    algorithms: ["HS256"],
+    credentialsRequired: false,
+    getToken: function fromHeaderOrQuerystring(req) {
+      console.log(req.headers)
+      if (
+        req.headers.authorization &&
+        req.headers.authorization.split(" ")[0] === "Bearer"
+      ) {
+        return req.headers.authorization.split(" ")[1];
+      } else if (req.query && req.query.token) {
+        return req.query.token;
+      }
+      return null;
+    },
+  }).unless(filterFunc)
+);
 
 // query key
 app.get("/stores", async function (req, res) {
@@ -52,7 +85,6 @@ app.get("/store", async function (req, res) {
 // add new key
 app.post(
   "/store",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const digest = req.body.digest;
     const pk = req.body.public_key;
@@ -90,7 +122,6 @@ app.get("/txhs", async function(req, res) {
 // get recovery data
 app.get(
   "/recovery",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     console.log(JSON.stringify(req.query));
     const user_id = req.query.user_id;
@@ -98,7 +129,7 @@ app.get(
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -114,7 +145,6 @@ app.get(
 // get recovery data
 app.delete(
   "/recovery",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     console.log(JSON.stringify(req.query));
     const id = req.body.id;
@@ -123,7 +153,7 @@ app.delete(
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -137,7 +167,6 @@ app.delete(
 
 app.post(
   "/recovery",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     console.log(JSON.stringify(req.body));
     const user_id = req.body.user_id;
@@ -145,7 +174,7 @@ app.post(
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -158,7 +187,7 @@ app.post(
     const friends = req.body.friends;
 
     if (user_id === undefined) {
-      res.json(util.Err(-1, "missing user_id"));
+      res.json(util.Err(util.ErrCode.Unknown, "missing user_id"));
       return;
     }
     const result = await db_recovery.add(
@@ -211,7 +240,7 @@ app.get("/txhs", async function (req, res) {
       break;
 
     default:
-      return res.json(util.Err(1, "invalid action"));
+      return res.json(util.Err(util.ErrCode.Unknown, "invalid action"));
       break;
   }
 });
@@ -223,7 +252,7 @@ app.get("/txh", async function (req, res) {
     const txid = req.query.txid;
     if (!util.has_value(txid)) {
       logger.error("txid is empty");
-      return res.json(util.Err(1, "txid missing"));
+      return res.json(util.Err(util.ErrCode.Unknown, "txid missing"));
     }
     const result = await db_txh.getByTxid(txid);
     if (!result) {
@@ -239,7 +268,7 @@ app.get("/txh", async function (req, res) {
         return res.json(util.Succ(await db_txh.account_count_l2()));
         break;
       default:
-        return res.json(util.Err(1, "invalid action"));
+        return res.json(util.Err(util.ErrCode.Unknown, "invalid action"));
         break;
     }
   }
@@ -248,7 +277,6 @@ app.get("/txh", async function (req, res) {
 // add transaction
 app.post(
   "/txh",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const txid = req.body.txid;
     const from = req.body.from;
@@ -264,7 +292,7 @@ app.post(
       !util.has_value(to) ||
       !util.has_value(type)
     ) {
-      return res.json(util.Err(1, "missing fields"));
+      return res.json(util.Err(util.ErrCode.Unknown, "missing fields"));
     }
     console.log(req.body);
 
@@ -287,7 +315,7 @@ app.post(
 app.put("/txh/:txid", async function (req, res) {
   const txid = req.params.txid;
   if (!util.has_value(txid)) {
-    return res.json(util.Err(1, "missing fields"));
+    return res.json(util.Err(util.ErrCode.Unknown, "missing fields"));
   }
   const result = db_txh.updateOrAdd(txid, {
     status: req.body.status || 0,
@@ -299,14 +327,13 @@ app.put("/txh/:txid", async function (req, res) {
 // get user, his/her friends, his/her strangers by id
 app.get(
   "/user/:user_id",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
     if (!util.check_user_id(req, user_id)) {
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -335,7 +362,7 @@ app.get(
         }
         if (!(await userdb.findByID(user_id))) {
           console.log("The user does not exist ", user_id);
-          res.json(util.Err(-1, "user does not exist"));
+          res.json(util.Err(util.ErrCode.Unknown, "user does not exist"));
           return;
         }
         var status = await friend_list.getStatusByUserId(user_id);
@@ -370,12 +397,12 @@ app.get(
         return;
       case "strangers":
         if (user_id === undefined) {
-          res.json(util.Err(-1, "invalid argument"));
+          res.json(util.Err(util.ErrCode.Unknown, "invalid argument"));
           return;
         }
         if (!(await userdb.findByID(user_id))) {
           console.log("The user does not exist ", user_id);
-          res.json(util.Err(-1, "user does not exist"));
+          res.json(util.Err(util.ErrCode.Unknown, "user does not exist"));
           return;
         }
         var ids = await userdb.findAllUserIDs();
@@ -389,7 +416,7 @@ app.get(
         res.json(util.Succ(information));
         return;
       default:
-        res.json(util.Err(-1, "invalid action"));
+        res.json(util.Err(util.ErrCode.Unknown, "invalid action"));
         return;
     }
   }
@@ -424,14 +451,13 @@ app.post("/user", async function (req, res) {
 // Guardian add
 app.post(
   "/user/:user_id/guardian",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
     if (!util.check_user_id(req, user_id)) {
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -444,7 +470,7 @@ app.post(
     if (guardian_id !== undefined && guardian_email) {
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.Unknown,
           "guardian_id and guardian_email can not exist at the same time"
         )
       );
@@ -456,13 +482,13 @@ app.post(
       if (guardian) {
         guardian_id = guardian.user_id;
       } else {
-        res.json(util.Err(-1, "guardian_email do not exist in the database"));
+        res.json(util.Err(util.ErrCode.Unknown, "guardian_email do not exist in the database"));
         return;
       }
     }
 
     if (!util.has_value(guardian_id)) {
-      res.json(util.Err(-1, "miss guardian_id or guardian_email is not found"));
+      res.json(util.Err(util.ErrCode.Unknown, "miss guardian_id or guardian_email is not found"));
       return;
     }
 
@@ -471,7 +497,7 @@ app.post(
       !(await userdb.findByID(guardian_id))
     ) {
       console.log("One of the users does not exist", user_id, guardian_id);
-      res.json(util.Err(-1, "one of the users does not exist"));
+      res.json(util.Err(util.ErrCode.Unknown, "one of the users does not exist"));
       return;
     }
 
@@ -482,7 +508,7 @@ app.post(
       return res.json(util.Succ(result));
     } else {
       console.log("Send a guardian request fail!");
-      return res.json(util.Err(-1, "fail to send a guardian request"));
+      return res.json(util.Err(util.ErrCode.Unknown, "fail to send a guardian request"));
     }
   }
 );
@@ -490,14 +516,13 @@ app.post(
 // Guardian confirm or reject
 app.put(
   "/user/:user_id/guardian",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
     if (!util.check_user_id(req, user_id)) {
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -506,7 +531,7 @@ app.put(
     const action = req.body.action;
     var guardian_id = req.body.guardian_id;
     if (!util.has_value(user_id) || !util.has_value(action)) {
-      res.json(util.Err(-1, "missing user_id or action"));
+      res.json(util.Err(util.ErrCode.Unknown, "missing user_id or action"));
       return;
     }
 
@@ -520,7 +545,7 @@ app.put(
     if (guardian_id !== undefined && guardian_email) {
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.Unknown,
           "guardian_id and guardian_email can not exist at the same time"
         )
       );
@@ -532,13 +557,13 @@ app.put(
       if (guardian) {
         guardian_id = guardian.user_id;
       } else {
-        res.json(util.Err(-1, "guardian_email do not exist in the database"));
+        res.json(util.Err(util.ErrCode.Unknown, "guardian_email do not exist in the database"));
         return;
       }
     }
 
     if (!util.has_value(guardian_id)) {
-      res.json(util.Err(-1, "miss guardian_id or guardian_email is not found"));
+      res.json(util.Err(util.ErrCode.Unknown, "miss guardian_id or guardian_email is not found"));
       return;
     }
 
@@ -547,7 +572,7 @@ app.put(
       !(await userdb.findByID(guardian_id))
     ) {
       console.log("One of the users does not exist", user_id, guardian_id);
-      res.json(util.Err(-1, "one of the users does not exist"));
+      res.json(util.Err(util.ErrCode.Unknown, "one of the users does not exist"));
       return;
     }
 
@@ -561,7 +586,7 @@ app.put(
           return res.json(util.Succ(result));
         } else {
           console.log("Confirm a guardian request fail!");
-          return res.json(util.Err(-1, "fail to confirm a guardian request"));
+          return res.json(util.Err(util.ErrCode.Unknown, "fail to confirm a guardian request"));
         }
       case "reject":
         // NOTE: When send a guardian reject, self is responder, guardian is requester
@@ -571,10 +596,10 @@ app.put(
           return res.json(util.Succ(result));
         } else {
           console.log("Reject a guardian fail!");
-          return res.json(util.Err(-1, "fail to reject a guardian request"));
+          return res.json(util.Err(util.ErrCode.Unknown, "fail to reject a guardian request"));
         }
       default:
-        res.json(util.Err(-1, "invalid action"));
+        res.json(util.Err(util.ErrCode.Unknown, "invalid action"));
         return;
     }
   }
@@ -583,14 +608,13 @@ app.put(
 // Guardian add
 app.delete(
   "/user/:user_id/guardian",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
     if (!util.check_user_id(req, user_id)) {
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -598,7 +622,7 @@ app.delete(
     }
     var guardian_id = req.body.guardian_id;
     if (!util.has_value(user_id)) {
-      res.json(util.Err(-1, "missing user_id"));
+      res.json(util.Err(util.ErrCode.Unknown, "missing user_id"));
       return;
     }
 
@@ -608,7 +632,7 @@ app.delete(
     if (guardian_id !== undefined && guardian_email) {
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.Unknown,
           "guardian_id and guardian_email can not exist at the same time"
         )
       );
@@ -620,13 +644,13 @@ app.delete(
       if (guardian) {
         guardian_id = guardian.user_id;
       } else {
-        res.json(util.Err(-1, "guardian_email do not exist in the database"));
+        res.json(util.Err(util.ErrCode.Unknown, "guardian_email do not exist in the database"));
         return;
       }
     }
 
     if (!util.has_value(guardian_id)) {
-      res.json(util.Err(-1, "miss guardian_id or guardian_email is not found"));
+      res.json(util.Err(util.ErrCode.Unknown, "miss guardian_id or guardian_email is not found"));
       return;
     }
 
@@ -635,7 +659,7 @@ app.delete(
       !(await userdb.findByID(guardian_id))
     ) {
       console.log("One of the users does not exist", user_id, guardian_id);
-      res.json(util.Err(-1, "one of the users does not exist"));
+      res.json(util.Err(util.ErrCode.Unknown, "one of the users does not exist"));
       return;
     }
 
@@ -645,21 +669,21 @@ app.delete(
       return res.json(util.Succ(result));
     } else {
       console.log("Remove a guardian fail!");
-      return res.json(util.Err(-1, "fail to remove a guardian"));
+      return res.json(util.Err(
+	  util.ErrCode.Unknown, "fail to remove a guardian"));
     }
   }
 );
 
 app.put(
   "/user/:user_id/otpauth",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
     if (!util.check_user_id(req, user_id)) {
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+	  util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -667,7 +691,7 @@ app.put(
     }
     const secret = req.body.secret;
     if (!util.has_value(user_id) || !util.has_value(secret)) {
-      res.json(util.Err(-1, "missing user_id or secret"));
+      res.json(util.Err(util.ErrCode.Unknown, "missing user_id or secret"));
       return;
     }
 
@@ -679,7 +703,7 @@ app.put(
       return;
     } else {
       console.log("Save a otpauth secret fail!");
-      res.json(util.Err(-1, "fail to save a otpauth secret"));
+      res.json(util.Err(util.ErrCode.Unknown, "fail to save a otpauth secret"));
       return;
     }
   }
@@ -688,14 +712,13 @@ app.put(
 // verify code
 app.post(
   "/user/:user_id/otpauth",
-  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
     if (!util.check_user_id(req, user_id)) {
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
-          -1,
+          util.ErrCode.InvalidAuth,
           "user_id does not match, you can't see any other people's information"
         )
       );
@@ -715,12 +738,12 @@ app.post(
         return;
       } else {
         console.log("The secret does not exist ", user_id);
-        res.json(util.Err(-1, "secret does not exist"));
+        res.json(util.Err(util.ErrCode.Unknown, "secret does not exist"));
         return;
       }
     } else {
       console.log("The user does not exist ", user_id);
-      res.json(util.Err(-1, "user does not exist"));
+      res.json(util.Err(util.ErrCode.Unknown, "user does not exist"));
       return;
     }
   }

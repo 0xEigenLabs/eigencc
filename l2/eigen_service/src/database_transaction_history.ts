@@ -9,7 +9,7 @@ const sequelize = new Sequelize({
     acquire: 30000,
     idle: 10000,
   },
-  storage: "./db_transaction_history.sqlite",
+  storage: "./data/db_transaction_history.sqlite",
 });
 
 const pkdb = sequelize.define("transaction_history_st", {

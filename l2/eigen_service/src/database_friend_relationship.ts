@@ -9,7 +9,7 @@ const sequelize = new Sequelize({
     acquire: 30000,
     idle: 10000,
   },
-  storage: "./db_friend_relationship.sqlite",
+  storage: "./data/db_friend_relationship.sqlite",
 });
 
 const NOT_FRIENDS = 0x0;

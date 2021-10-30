@@ -9,7 +9,7 @@ const sequelize = new Sequelize({
     acquire: 30000,
     idle: 10000,
   },
-  storage: "./db_recovery.sqlite",
+  storage: "./data/db_recovery.sqlite",
 });
 
 const recoverydb = sequelize.define("recovery_st", {

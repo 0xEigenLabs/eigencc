@@ -8,6 +8,12 @@ const Err = function (errno, message) {
   return BaseResp(errno, message, "");
 };
 
+export enum ErrCode {
+  Unknown = -1,
+  Success = 0,
+  InvalidAuth = 1,
+}
+
 const has_value = function (variable) {
   if (variable === undefined) {
     return false;
