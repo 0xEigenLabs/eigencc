@@ -94,7 +94,7 @@ app.get(
   async function (req, res) {
     console.log(JSON.stringify(req.query));
     const user_id = req.query.user_id;
-    if (!util.check_user_id(req, id)) {
+    if (!util.check_user_id(req, user_id)) {
       console.log("user_id does not match with decoded JWT");
       res.json(
         util.Err(
