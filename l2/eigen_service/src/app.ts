@@ -88,57 +88,91 @@ app.get("/txhs", async function(req, res) {
 */
 
 // get recovery data
-app.get("/recovery", async function (req, res) {
-  console.log(JSON.stringify(req.query));
-  const user_id = req.query.user_id;
+app.get(
+  "/recovery",
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+  async function (req, res) {
+    console.log(JSON.stringify(req.query));
+    const user_id = req.query.user_id;
+    if (!util.check_user_id(req, id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
+      return;
+    }
 
-  if (user_id === undefined) {
-    res.json(util.Err(-1, "missing user_id"));
-    return;
+    const result = await db_recovery.findByUserID(user_id);
+    console.log(result);
+    res.json(util.Succ(result));
   }
-  const result = await db_recovery.findByUserID(user_id);
-  console.log(result);
-  res.json(util.Succ(result));
-});
+);
 
 // get recovery data
-app.delete("/recovery", async function (req, res) {
-  console.log(JSON.stringify(req.query));
-  const id = req.body.id;
+app.delete(
+  "/recovery",
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+  async function (req, res) {
+    console.log(JSON.stringify(req.query));
+    const id = req.body.id;
 
-  if (id === undefined) {
-    res.json(util.Err(-1, "missing user_id"));
-    return;
+    if (!util.check_user_id(req, id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
+      return;
+    }
+    const result = await db_recovery.remove(id);
+    console.log(result);
+    res.json(util.Succ(result));
   }
-  const result = await db_recovery.remove(id);
-  console.log(result);
-  res.json(util.Succ(result));
-});
+);
 
-app.post("/recovery", async function (req, res) {
-  console.log(JSON.stringify(req.body));
-  const user_id = req.body.user_id;
-  const name = req.body.name;
-  const desc = req.body.desc;
-  const total_shared_num = req.body.total_shared_num;
-  const threshold = req.body.threshold;
-  const friends = req.body.friends;
+app.post(
+  "/recovery",
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+  async function (req, res) {
+    console.log(JSON.stringify(req.body));
+    const user_id = req.body.user_id;
+    if (!util.check_user_id(req, user_id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
+      return;
+    }
+    const name = req.body.name;
+    const desc = req.body.desc;
+    const total_shared_num = req.body.total_shared_num;
+    const threshold = req.body.threshold;
+    const friends = req.body.friends;
 
-  if (user_id === undefined) {
-    res.json(util.Err(-1, "missing user_id"));
-    return;
+    if (user_id === undefined) {
+      res.json(util.Err(-1, "missing user_id"));
+      return;
+    }
+    const result = await db_recovery.add(
+      user_id,
+      name,
+      desc,
+      total_shared_num,
+      threshold,
+      JSON.stringify(friends)
+    );
+    console.log(result);
+    res.json(util.Succ(result));
   }
-  const result = await db_recovery.add(
-    user_id,
-    name,
-    desc,
-    total_shared_num,
-    threshold,
-    JSON.stringify(friends)
-  );
-  console.log(result);
-  res.json(util.Succ(result));
-});
+);
 
 app.get("/txhs", async function (req, res) {
   const action = req.query.action;
