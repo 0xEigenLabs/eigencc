@@ -13,10 +13,9 @@ const sequelize = new Sequelize({
 });
 
 const recoverydb = sequelize.define("recovery_st", {
-  user_id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-  },
+  user_id: DataTypes.INTEGER,
+  name: DataTypes.STRING,
+  desc: DataTypes.STRING,
   total_shared_num: DataTypes.INTEGER,
   threshold: DataTypes.INTEGER,
   friends: DataTypes.STRING, // json string for array: [{user_id, email}]
@@ -27,6 +26,8 @@ sequelize
   .then(function () {
     return recoverydb.create({
       user_id: 1,
+      name: "name",
+      desc: "desc",
       total_shared_num: 1,
       threshold: 1,
       friends: JSON.stringify([{ user_id: 1, email: "a@b.com" }]),
@@ -38,34 +39,36 @@ sequelize
         plain: true,
       })
     );
-    recoverydb.destroy({ where: { user_id: row.user_id } });
+    recoverydb.destroy({ where: { id: row.id } });
   })
   .catch(function (err) {
     console.log("Unable to connect to the database:", err);
   });
 
-const add = function (user_id, total_shared_num, threshold, friends) {
+const add = function (user_id, name, desc, total_shared_num, threshold, friends) {
   return recoverydb.create({
     user_id,
+    name,
+    desc,
     total_shared_num,
     threshold,
     friends,
   });
 };
 
-const findByID = function (user_id) {
-  return recoverydb.findOne({ where: { user_id: user_id } });
+const findByUserID = function (user_id) {
+  return recoverydb.findAll({ where: { user_id: user_id } });
 };
 
-const findAll = function () {
-  return recoverydb.findAll();
+const remove = function (id) {
+    return recoverydb.destroy({ where: { id: id } });
 };
 
-const updateOrAdd = function (user_id, total_shared_num, threshold, friends) {
+const updateOrAdd = function (user_id, name, desc, total_shared_num, threshold, friends) {
   recoverydb.findOne({ where: { user_id: user_id } }).then(function (row: any) {
     console.log(row);
     if (row === null) {
-      add(user_id, total_shared_num, threshold, friends);
+      add(user_id, name, desc, total_shared_num, threshold, friends);
       return true;
     }
     return row
@@ -85,4 +88,4 @@ const updateOrAdd = function (user_id, total_shared_num, threshold, friends) {
   });
 };
 
-export { updateOrAdd, findAll, findByID, add };
+export { updateOrAdd, remove, findByUserID, add };

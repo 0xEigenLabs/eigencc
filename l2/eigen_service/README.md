@@ -123,10 +123,13 @@ curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "strangers"}'
 
 # Save recovery data
-curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/recovery" -d '{"user_id": 2, "total_shared_num": 1, "threshold": 1, "friends": [{"user_id": 2, "email": "a@b.com"}, {"user_id": 3, "email": "c@d.com"}]}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/recovery" -d '{"user_id": 2, "name": "recover_1", "desc": "NFT", "total_shared_num": 1, "threshold": 1, "friends": [{"user_id": 2, "email": "a@b.com"}, {"user_id": 3, "email": "c@d.com"}]}'
 
 # Get recovery data
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/recovery?user_id=2"
+
+# detele recovery
+curl -XDELETE -H "Content-Type:application/json"  --url "localhost:3000/recovery"  -d '{"id": 6}'
 ```
 
 ### Login by Oauth
