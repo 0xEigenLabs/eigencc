@@ -4,11 +4,13 @@
   "main": "build/src/app.js",
   "license": "Apache-2.0",
   "scripts": {
-    "start": "node ./build/src/app.js",
+    "start": "yarn build && node ./build/src/app.js",
     "prebuild_close": "./node_modules/.bin/tslint -c tslint.json -p tsconfig.json --fix",
     "build": "./node_modules/.bin/tsc",
     "test": "mocha ./build/**/*.test.js",
-    "clean": "rm -f ./db_pk.sqlite & rm -f ./db_transaction_history.sqlite"
+    "clean": "rm -f ./db_*.sqlite",
+    "build_image": "docker build -t ieigen/service:v1 .",
+    "deploy": "yarn build_image && docker run --name=eigen-service -p 3000:3000 -d ieigen/service:v1"
   },
   "devDependencies": {
     "@types/mocha": "^9.0.0",
@@ -33,6 +35,8 @@
     "sqlite3": "^5.0.2",
     "standard-ecies": "^2.0.0",
     "typings": "^2.1.1",
-    "vue-axios": "^3.3.7"
+    "vue-axios": "^3.3.7",
+    "cors": "^2.8.5",
+    "totp.js": "^0.0.1"
   }
 }
