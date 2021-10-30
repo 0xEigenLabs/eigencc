@@ -1,5 +1,6 @@
 import express from "express";
 import jwt from "express-jwt";
+import jsonwebtoken from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
 const TOTP = require("totp.js");
@@ -264,11 +265,17 @@ app.put("/txh/:txid", async function (req, res) {
 // get user, his/her friends, his/her strangers by id
 app.get(
   "/user/:user_id",
-  // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
-    if (user_id === undefined) {
-      res.json(util.Err(-1, "invalid argument"));
+    if (!util.check_user_id(req, user_id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
       return;
     }
     const action = req.query.action;
@@ -355,29 +362,48 @@ app.get(
 );
 
 // TODO: Just for test
-app.post(
-  "/user",
-  // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
-  async function (req, res) {
-    var result: any = await userdb.add(req.body);
-    console.log("Create a new user, id = ", result.user_id);
-    console.log(result);
-    return res.json(util.Succ(result));
-  }
-);
+app.post("/user", async function (req, res) {
+  var result: any = await userdb.add(req.body);
+  console.log("Create a new user, id = ", result.user_id);
+  console.log(result);
+  const user_info = {
+    user_id: result.user_id,
+    email: result.email,
+    name: result.name,
+    given_name: result.given_name,
+    family_name: result.family_name,
+    picture: result.picture,
+    locale: result.locale,
+    verified_email: result.verified_email,
+  };
+
+  const token = jsonwebtoken.sign(user_info, JWT_SECRET);
+  console.log("user cookie", token);
+  return res.json(
+    util.Succ({
+      result: result,
+      token: token,
+    })
+  );
+});
 
 // Guardian add
 app.post(
   "/user/:user_id/guardian",
-  // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
-    var guardian_id = req.body.guardian_id;
-    if (!util.has_value(user_id)) {
-      res.json(util.Err(-1, "missing user_id"));
+    if (!util.check_user_id(req, user_id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
       return;
     }
-
+    var guardian_id = req.body.guardian_id;
     console.log(`User ${user_id} wants add guardian`);
     const guardian_email = req.body.guardian_email;
 
@@ -430,9 +456,19 @@ app.post(
 // Guardian confirm or reject
 app.put(
   "/user/:user_id/guardian",
-  // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
+    if (!util.check_user_id(req, user_id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
+      return;
+    }
     const action = req.body.action;
     var guardian_id = req.body.guardian_id;
     if (!util.has_value(user_id) || !util.has_value(action)) {
@@ -513,9 +549,19 @@ app.put(
 // Guardian add
 app.delete(
   "/user/:user_id/guardian",
-  // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
+    if (!util.check_user_id(req, user_id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
+      return;
+    }
     var guardian_id = req.body.guardian_id;
     if (!util.has_value(user_id)) {
       res.json(util.Err(-1, "missing user_id"));
@@ -572,9 +618,19 @@ app.delete(
 
 app.put(
   "/user/:user_id/otpauth",
-  // jwt({ secret: JWT_SECRET, algorithms: ["HS256"] },
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
   async function (req, res) {
     const user_id = req.params.user_id;
+    if (!util.check_user_id(req, user_id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
+      return;
+    }
     const secret = req.body.secret;
     if (!util.has_value(user_id) || !util.has_value(secret)) {
       res.json(util.Err(-1, "missing user_id or secret"));
@@ -596,31 +652,45 @@ app.put(
 );
 
 // verify code
-app.post("/user/:user_id/otpauth", async function (req, res) {
-  const user_id = req.params.user_id;
-  const code = req.body.code;
-  if (!util.has_value(user_id) || !util.has_value(code)) {
-    return res.json(util.Err(1, "missing fields"));
-  }
-  console.log(req.body);
-  const user = await userdb.findByID(user_id);
-  if (user) {
-    if (user.secret) {
-      const totp = new TOTP(user.secret);
-      var result = totp.verify(code);
-      res.json(util.Succ(result));
-      return;
-    } else {
-      console.log("The secret does not exist ", user_id);
-      res.json(util.Err(-1, "secret does not exist"));
+app.post(
+  "/user/:user_id/otpauth",
+  jwt({ secret: JWT_SECRET, algorithms: ["HS256"] }),
+  async function (req, res) {
+    const user_id = req.params.user_id;
+    if (!util.check_user_id(req, user_id)) {
+      console.log("user_id does not match with decoded JWT");
+      res.json(
+        util.Err(
+          -1,
+          "user_id does not match, you can't see any other people's information"
+        )
+      );
       return;
     }
-  } else {
-    console.log("The user does not exist ", user_id);
-    res.json(util.Err(-1, "user does not exist"));
-    return;
+    const code = req.body.code;
+    if (!util.has_value(user_id) || !util.has_value(code)) {
+      return res.json(util.Err(1, "missing fields"));
+    }
+    console.log(req.body);
+    const user = await userdb.findByID(user_id);
+    if (user) {
+      if (user.secret) {
+        const totp = new TOTP(user.secret);
+        var result = totp.verify(code);
+        res.json(util.Succ(result));
+        return;
+      } else {
+        console.log("The secret does not exist ", user_id);
+        res.json(util.Err(-1, "secret does not exist"));
+        return;
+      }
+    } else {
+      console.log("The user does not exist ", user_id);
+      res.json(util.Err(-1, "user does not exist"));
+      return;
+    }
   }
-});
+);
 
 require("./login/google")(app);
 
