@@ -121,9 +121,10 @@ module.exports = function (app) {
       userdb.UserKind.GOOGLE
     );
     console.log("exist_user", exist_user);
+    let user_info;
     if (exist_user === null) {
       //add to db
-      const user_info = {
+      user_info = {
         kind: userdb.UserKind.GOOGLE,
         email: user.email,
         name: user.name,
@@ -139,7 +140,7 @@ module.exports = function (app) {
       const result = await userdb.add(user_info);
       console.log("add", result);
     } else {
-      const user_info = {
+      user_info = {
         email: user.email || exist_user.email,
         name: user.name || exist_user.name,
         given_name: user.given_name || exist_user.given_name,
@@ -157,9 +158,9 @@ module.exports = function (app) {
       userdb.UserKind.GOOGLE
     );
 
-    // user.user_id = user_record.user_id;
+    user_info.user_id = user_record.user_id;
 
-    const token = jsonwebtoken.sign(user_record, JWT_SECRET);
+    const token = jsonwebtoken.sign(user_info, JWT_SECRET);
     console.log("user cookie", token);
 
     res.cookie(COOKIE_NAME, token, {
