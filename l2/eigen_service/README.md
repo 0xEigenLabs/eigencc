@@ -110,14 +110,14 @@ curl -XDELETE -H "Content-Type:application/json"  --url "localhost:3000/user/{us
 curl -XDELETE -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/guardian" -d '{"guardian_email": "a@b.com"}'
 
 # Get guardians list
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "guardians"}'
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}?action=guardians"
 # Status:
 #         1 mutual
 #         2 waiting
 #         3 confirming
 
 # Get guardians list (We can filter the status, e.g., get only mutual status guardians)
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "guardians", "status": 1}'
+curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}?action=guardians&status=1"
 
 # Get strangers list
 curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}" -d '{"action": "strangers"}'
@@ -157,11 +157,11 @@ curl http://localhost:3000/auth/google/url
 #### Google Authenticator TOTP
 
 ```
-# Get otpauth
+# Save or update otpauth secret
 curl -XPUT -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/otpauth" -d '{"secret": "GAXGGYT2OU2DEOJR"}'
 
 # Verify code
-curl -XGET -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/otpauth" -d '{"code": "123456"}'
+curl -XPOST -H "Content-Type:application/json"  --url "localhost:3000/user/{user_id}/otpauth" -d '{"code": "123456"}'
 
 ```
 

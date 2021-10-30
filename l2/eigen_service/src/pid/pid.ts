@@ -202,7 +202,7 @@ module.exports = function (app) {
         res.json(util.Err(-1, "invalid argument"));
         return;
       }
-      const action = req.body.action;
+      const action = req.query.action;
 
       if (action === undefined) {
         const result = await findByID(user_id);
@@ -527,7 +527,7 @@ module.exports = function (app) {
   );
 
   // verify code
-  app.get("/user/:user_id/otpauth", async function (req, res) {
+  app.post("/user/:user_id/otpauth", async function (req, res) {
     const user_id = req.params.user_id;
     const code = req.body.code;
     if (!util.has_value(user_id) || !util.has_value(code)) {
