@@ -14,3 +14,4 @@ yarn install
 
 - [demo-eigencall](./packages/demo-eigencall/)
 - [outbox-exec](./packages/outbox-execute)
+- [confidential-contract](./packages/confidential-contracts)

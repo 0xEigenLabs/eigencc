@@ -10,24 +10,32 @@ Set the values shown in `.env-sample` as environmental variables. To copy it int
 cp .env-sample .env
 ```
 
-(you'll still need to edit some variables, i.e., `DEVNET_PRIVKEY`, `TEESDK_AUDITOR_BASE_DIR`, `TEESDK_AUDITOR_NAME`, `TEESDK_ENCLAVE_INFO_PATH`)
-
-### Build `teesdk_util`
-
-`teesdk_util` uses dynamic link library `libsdk_c.so`, so firstly we should build `libsdk_c.so`, please see [README.md](https://github.com/ieigen/ieigen/blob/main/cc/README.md).
-
-Then enter directory _tools_, run `build.sh` will build an executable file _teesdk_util_.
+(you'll still need to edit some variables, i.e., `DEVNET_PRIVKEY`, `L1RPC`, `L2RPC`, `PKCS`)
 
 ### Start up `eigen_service`
 
 Please see [README.md](https://github.com/ieigen/ieigen/blob/main/l2/eigen_service/README.md) to know how to start up `eigen_service`.
 
-### Register Tee Key
 
-Just enter directory _tools_, and run `run.sh` will register tee key. Now we can retrieve the public key.
+### Build
+
+```
+yarn && yarn build
+```
+
+### Register [PKCS](https://github.com/ieigen/ieigen/blob/main/l2/eigen_service/README.md#pkcs)
+
+The PKCS is public key cache service. All the private inflow to EigenCC have to be encrypted by the public key in PKCS, which 
+is registered by running ```yarn run pkcs```.
 
 ### Run Demo
 
+Here 2 demos are provided, one is custom token,
+
+```bash
+yarn run deploy
+```
+and the other is confidential ERC20.
 ```bash
 yarn run exec
 ```

@@ -13,7 +13,8 @@
   "workspaces": {
     "packages": [
       "packages/arb-shared-dependencies",
-      "packages/demo-eigencall"
+      "packages/demo-eigencall",
+      "packages/confidential-contracts"
     ]
   }
 }

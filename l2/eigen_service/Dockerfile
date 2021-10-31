@@ -6,9 +6,8 @@ EXPOSE 3000
 
 WORKDIR /app
 COPY . /app
+RUN yarn build
 
 RUN npm install forever -g && npm install
 
-CMD ["forever", "src/app.js"]
-
-
+CMD ["forever", "build/src/app.js"]

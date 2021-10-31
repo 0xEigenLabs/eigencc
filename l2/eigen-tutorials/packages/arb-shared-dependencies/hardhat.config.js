@@ -1,6 +1,6 @@
 require('dotenv').config()
 module.exports = {
-  solidity: '0.7.0',
+  solidity: '0.6.11',
   networks: {
     l1: {
       url: process.env['L1RPC'] || '',

@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "hardhat compile",
+    "pkcs": "cp -r ../../../../cc/sgx/sdk/c_sdk/include/eigen tools && cd tools && docker run --rm --net=host -v $(pwd):/work -w /work -it --entrypoint '' ieigen/fns:v1 bash run.sh",
     "exec": "hardhat run scripts/exec.js --network l2"
   },
   "devDependencies": {
@@ -13,7 +14,6 @@
     "hardhat": "^2.2.0",
     "rlp": "^2.2.6",
     "chai": "^4.3.4",
-    "js-base64": "^3.6.1",
     "node-fetch": "^2.6.1",
     "elliptic": "^6.5.4",
     "int64-buffer": "^1.0.1"

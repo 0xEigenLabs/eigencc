@@ -22,7 +22,7 @@ use std::prelude::v1::*;
 use std::str;
 use std::vec;
 use crate::worker::{Worker, WorkerContext};
-use eigen_core::{Error, ErrorKind, Result};
+use eigen_core::Result;
 
 use eigen_crypto::sign::ecdsa::{KeyPair, EcdsaKeyPair};
 use rand::Rng;
@@ -44,7 +44,7 @@ lazy_static! {
 
     static ref CACHED_AES_KEY: Vec<u8> = {
         let mut r = vec![0u8; 32];
-        // rand::thread_rng().fill(&mut r[..]);
+        rand::thread_rng().fill(&mut r[..]);
         r
     };
 }

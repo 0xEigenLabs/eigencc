@@ -16,7 +16,6 @@
 // under the License.
 
 // Insert std prelude in the top for the sgx feature
-use std::convert::TryInto;
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
 use std::vec;
@@ -26,7 +25,7 @@ use crate::trusted_worker::register_func;
 use crate::worker::{Worker, WorkerContext};
 use eigen_core::{Error, ErrorKind, Result};
 
-use num_bigint::{BigInt, BigUint};
+use num_bigint::{BigUint};
 
 pub struct OperatorWorker {
     worker_id: u32,
@@ -42,6 +41,42 @@ impl OperatorWorker {
             input: None,
         }
     }
+
+    fn safe_encrypt(&mut self, result: Vec<u8>) -> Result<Vec<u8>> {
+        // 4. Do ECIES encrypt
+        info!("safe encrypt");
+        let s1 = vec![];
+        let s2 = vec![];
+        let key_pair = register_func::get_key_pair();
+        let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
+        let public_key =
+            eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
+        eigen_crypto::ec::suite_b::ecies::encrypt(
+            &public_key,
+            &s1,
+            &s2,
+            &result,
+        ).map_err(|_| Error::from(ErrorKind::CryptoError))
+    }
+
+    fn safe_decrypt(&mut self, operand: &str) -> Result<Vec<u8>> {
+        info!("safe decrypt");
+        let cipher_operand = hex::decode(&operand)
+            .map_err(|_| Error::from(ErrorKind::DecodeError))?;
+        if cipher_operand.len() <= 0 {
+            info!("safe decrypt: zero found");
+            return Ok(vec![]);
+        }
+        let key_pair = register_func::get_key_pair();
+        let s1 = vec![];
+        let s2 = vec![];
+        eigen_crypto::ec::suite_b::ecies::decrypt(
+            key_pair,
+            &cipher_operand,
+            &s1,
+            &s2,
+        ).map_err(|_| Error::from(ErrorKind::CryptoError))
+    }
 }
 
 enum OperatorKind {
@@ -49,8 +84,11 @@ enum OperatorKind {
     AddCipherPlain,
     SubCipherCipher,
     SubCipherPlain,
+    ReEncrypt,
     Encrypt,
     Decrypt,
+    CompareCipherCipher,
+    CompareCipherPlain,
 }
 
 struct OperatorWorkerInput {
@@ -59,6 +97,7 @@ struct OperatorWorkerInput {
     op: OperatorKind,
     operand_1: String,
     operand_2: String,
+    operand_3: String,
 }
 
 impl Worker for OperatorWorker {
@@ -76,226 +115,154 @@ impl Worker for OperatorWorker {
 
     fn prepare_input(&mut self, dynamic_input: Option<String>) -> Result<()> {
         let msg = dynamic_input.ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+        info!("prepare_input {}", msg);
 
-        // `args` should be "op,arity,op1,op2,op3,..."
+        // `args` should be "op|arity,,op1,op2,op3,..."
         // now `op` may be 'add' or 'sub'
 
         let splited = msg.split(",").collect::<Vec<_>>();
 
-        if splited.len() <= 2 {
+        if splited.len() < 2 {
             return Err(Error::from(ErrorKind::InvalidInputError));
         }
+        info!("splited len {}", splited.len());
 
-        let op = splited[0];
+        let arity = splited[0].chars().last().unwrap() as u32 - '0' as u32;
+        let op = &splited[0][0..splited[0].len() - 1];
 
-        match op {
-            "add_cipher_cipher" | "add_cipher_plain" | "sub_cipher_cipher" | "sub_cipher_plain" => {
-                let arity = splited[1]
-                    .parse::<u8>()
-                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+        let op_kind = match op {
+            "add_cipher_cipher" => OperatorKind::AddCipherCipher,
+            "add_cipher_plain" => OperatorKind::AddCipherPlain,
+            "sub_cipher_cipher" => OperatorKind::SubCipherCipher,
+            "sub_cipher_plain" => OperatorKind::SubCipherPlain,
+            "compare_cipher_cipher" => OperatorKind::CompareCipherCipher,
+            "compare_cipher_plain" => OperatorKind::CompareCipherPlain,
+            "re_encrypt" => OperatorKind::ReEncrypt,
+            "encrypt" => OperatorKind::Encrypt,
+            "decrypt" => OperatorKind::Decrypt,
+            _ => unreachable!()
+        };
 
-                if arity != 2 && splited.len() != 4 {
-                    return Err(Error::from(ErrorKind::InvalidInputError));
-                }
-
-                let operand_1 = splited[2];
-                let operand_2 = splited[3];
-
-                let op_kind = match op {
-                    "add_cipher_cipher" => OperatorKind::AddCipherCipher,
-                    "add_cipher_plain" => OperatorKind::AddCipherPlain,
-                    "sub_cipher_cipher" => OperatorKind::SubCipherCipher,
-                    "sub_cipher_plain" => OperatorKind::SubCipherPlain,
-                    _ => unreachable!(),
-                };
-
-                self.input = Some(OperatorWorkerInput {
-                    op: op_kind,
-                    operand_1: operand_1.to_string(),
-                    operand_2: operand_2.to_string(),
-                });
-            }
-            "encrypt" | "decrypt" => {
-                let arity = splited[1]
-                    .parse::<u8>()
-                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-
-                if arity != 1 && splited.len() != 3 {
-                    return Err(Error::from(ErrorKind::InvalidInputError));
-                }
-
-                let operand = splited[2];
-
-                let op_kind = match op {
-                    "encrypt" => OperatorKind::Encrypt,
-                    "decrypt" => OperatorKind::Decrypt,
-                    _ => unreachable!(),
-                };
-
-                self.input = Some(OperatorWorkerInput {
-                    op: op_kind,
-                    operand_1: operand.to_string(),
-                    operand_2: "".to_string(),
-                });
-            }
-            _ => {
-                return Err(Error::from(ErrorKind::InvalidInputError));
-            }
+        let operand_1 = splited[1].to_string();
+        let mut operand_2 = "".to_string();
+        let mut operand_3 = "".to_string();
+        if (arity == 2) {
+            operand_2 = splited[2].to_string();
+        } else if (arity == 3) {
+            operand_2 = splited[2].to_string();
+            operand_3 = splited[3].to_string();
         }
 
+        self.input = Some(OperatorWorkerInput {
+            op: op_kind,
+            operand_1: operand_1,
+            operand_2: operand_2,
+            operand_3: operand_3,
+        });
         Ok(())
     }
+
 
     fn execute(&mut self, _context: WorkerContext) -> Result<String> {
         let input = self
             .input
             .take()
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+        info!("execute input ok");
 
         match input.op {
             OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher => {
-                // 1. Cipher is encoded as base64, should be decoded
-                let cipher_operand_1 = base64::decode(&input.operand_1)
-                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-                let cipher_operand_2 = base64::decode(&input.operand_2)
-                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-
-                // 2. Do ECIES decrypt
-                let key_pair = register_func::get_key_pair();
-                let s1 = vec![];
-                let s2 = vec![];
-                let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(
-                    key_pair,
-                    &cipher_operand_1,
-                    &s1,
-                    &s2,
-                )
-                .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-                let op2 = eigen_crypto::ec::suite_b::ecies::decrypt(
-                    key_pair,
-                    &cipher_operand_2,
-                    &s1,
-                    &s2,
-                )
-                .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                // 1. Cipher is encoded as hex, should be decoded
+                let op1 = self.safe_decrypt(&input.operand_1)?;
+                let op2 = self.safe_decrypt(&input.operand_2)?;
                 let op1 = BigUint::from_bytes_be(&op1[..]);
                 let op2 = BigUint::from_bytes_be(&op2[..]);
 
                 // 3. Do calculate
                 let result = match input.op {
-                    OperatorKind::AddCipherCipher => op1 + op2,
-                    OperatorKind::SubCipherCipher => op1 - op2,
-                    _ => return Err(Error::from(ErrorKind::InvalidInputError)),
+                    OperatorKind::AddCipherCipher => (op1 + op2).to_bytes_be(),
+                    OperatorKind::SubCipherCipher if op1 >= op2 => (op1 - op2).to_bytes_be(),
+                    _ => return Err(Error::from(ErrorKind::Unknown)),
                 };
 
                 // 4. Do ECIES encrypt
-                let s1 = vec![];
-                let s2 = vec![];
-                let key_pair = register_func::get_key_pair();
-                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
-                let public_key =
-                    eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
-                let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(
-                    &public_key,
-                    &s1,
-                    &s2,
-                    &result.to_bytes_be(),
-                )
-                .map_err(|_| Error::from(ErrorKind::CryptoError))?;
-
-                // 5. Result is cipher, encode it as base64
-                let result = base64::encode(&cipher);
+                let cipher = self.safe_encrypt(result)?;
+                // 5. Result is cipher, encode it as hex
+                let result = hex::encode(&cipher);
                 Ok(result)
             }
             OperatorKind::AddCipherPlain | OperatorKind::SubCipherPlain => {
-                // 1. Cipher is encoded as base64, should be decoded
-                let cipher_operand_1 = base64::decode(&input.operand_1)
-                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-
-                // 2. Do ECIES decrypt
-                let key_pair = register_func::get_key_pair();
-                let s1 = vec![];
-                let s2 = vec![];
-                let op1 = eigen_crypto::ec::suite_b::ecies::decrypt(
-                    key_pair,
-                    &cipher_operand_1,
-                    &s1,
-                    &s2,
-                )
-                .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
+                let op1 = self.safe_decrypt(&input.operand_1)?;
                 let op1 = BigUint::from_bytes_be(&op1[..]);
 
-                // 3. Do calculate
                 let op2 = BigUint::parse_bytes(input.operand_2.as_bytes(), 10)
-                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+                    .ok_or_else(|| Error::from(ErrorKind::DecodeError))?;
 
                 let result = match input.op {
                     OperatorKind::AddCipherPlain => op1 + op2,
-                    OperatorKind::SubCipherPlain => op1 - op2,
-                    _ => return Err(Error::from(ErrorKind::InvalidInputError)),
+                    OperatorKind::SubCipherPlain if op1 >= op2 => op1 - op2,
+                    _ => return Err(Error::from(ErrorKind::Unknown)),
                 };
 
-                // 4. Do ECIES encrypt
-                let s1 = vec![];
-                let s2 = vec![];
-                let key_pair = register_func::get_key_pair();
-                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
-                let public_key =
-                    eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
-                let cipher = eigen_crypto::ec::suite_b::ecies::encrypt(
-                    &public_key,
-                    &s1,
-                    &s2,
-                    &result.to_bytes_be(),
-                )
-                .map_err(|_| Error::from(ErrorKind::CryptoError))?;
-
-                // 5. Result is cipher, encode it as base64
-                let result = base64::encode(&cipher);
+                let cipher = self.safe_encrypt(result.to_bytes_be())?;
+                let result = hex::encode(&cipher);
                 Ok(result)
             }
             OperatorKind::Encrypt => {
                 // NOTE: `input.operand_1` is acually plain text
                 let op1 = BigUint::parse_bytes(input.operand_1.as_bytes(), 10)
-                    .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
+                    .ok_or_else(|| Error::from(ErrorKind::DecodeError))?;
                 let op_bytes = op1.to_bytes_be();
 
-                // 1. Do ECIES encrypt
-                let s1 = vec![];
-                let s2 = vec![];
-                let key_pair = register_func::get_key_pair();
-                let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
-                let public_key =
-                    eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
-                let cipher =
-                    eigen_crypto::ec::suite_b::ecies::encrypt(&public_key, &s1, &s2, &op_bytes)
-                        .map_err(|_| Error::from(ErrorKind::CryptoError))?;
-
-                // 2. Result is cipher, encode it as base64
-                let result = base64::encode(&cipher);
+                let cipher = self.safe_encrypt(op_bytes)?;
+                let result = hex::encode(&cipher);
                 Ok(result)
             }
             OperatorKind::Decrypt => {
-                // 1. Cipher is encoded as base64, should be decoded
-                let cipher_operand = base64::decode(&input.operand_1)
-                    .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-
-                // 2. Do ECIES decrypt
-                let key_pair = register_func::get_key_pair();
-                let s1 = vec![];
-                let s2 = vec![];
-                let plain =
-                    eigen_crypto::ec::suite_b::ecies::decrypt(key_pair, &cipher_operand, &s1, &s2)
-                        .map_err(|_| Error::from(ErrorKind::InvalidInputError))?;
-
-                // 3. Parsed as BigInt from big endian
+                let plain = self.safe_decrypt(&input.operand_1)?;
                 let b = BigUint::from_bytes_be(&plain[..]);
 
                 Ok(b.to_str_radix(10))
             }
-            _ => {
-                return Err(Error::from(ErrorKind::InvalidInputError));
+            OperatorKind::ReEncrypt => {
+                let key = self.safe_decrypt(&input.operand_1)?;
+                let msg = self.safe_decrypt(&input.operand_2)?;
+
+                // bytes -> bigint
+                // bigint -> string
+                let intMsg = BigUint::from_bytes_be(&msg[..]);
+                let strMsg = intMsg.to_str_radix(10);
+                info!("key = {:?}, {}, msg = {:?}", key, key.len(), strMsg);
+                //FIXME: catch the error
+                let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&key, &strMsg.as_bytes()).unwrap();
+                //        .map_err(|_| Error::from(ErrorKind::CryptoError))?;
+                let result = hex::encode(&result);
+                Ok(result)
             }
+            OperatorKind::CompareCipherCipher | OperatorKind::CompareCipherPlain => {
+                let op1 = self.safe_decrypt(&input.operand_1)?;
+                let op1 = BigUint::from_bytes_be(&op1[..]);
+
+                let op2 = match input.op {
+                    OperatorKind::CompareCipherCipher => {
+                        let op2 = self.safe_decrypt(&input.operand_2)?;
+                        BigUint::from_bytes_be(&op2[..])
+                    }
+                    OperatorKind::CompareCipherPlain => {
+                        BigUint::parse_bytes(input.operand_2.as_bytes(), 10)
+                            .ok_or_else(|| Error::from(ErrorKind::DecodeError))?
+                    }
+                    _ => unreachable!(),
+                };
+
+                // Do compare
+                match op1.cmp(&op2) {
+                    std::cmp::Ordering::Equal => Ok("0".to_string()),
+                    std::cmp::Ordering::Less => Ok("-1".to_string()),
+                    std::cmp::Ordering::Greater => Ok("1".to_string()),
+                }
+            }
+            _ => unreachable!()
         }
     }
 }
