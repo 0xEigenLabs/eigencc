@@ -57,13 +57,9 @@ app.use(
         req.headers.authorization &&
         req.headers.authorization.split(" ")[0] === "Bearer"
       ) {
-	let sess = Session.user_token.get(req.headers.authorization.split(" ")[1]);
-	if (sess !== undefined && sess.isValid()) {
-	    return sess.token;
-	}
+          return Session.check_token(req.headers.authorization.split(" ")[1]);
       } else if (req.query && req.query.token) {
-        let sess = Session.user_token.get(req.query.token);
-	if (sess !== undefined && sess.isValid()) {  return sess.token; }
+          return Session.check_token(req.query.token);
       }
       return null;
     },
