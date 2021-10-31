@@ -1,5 +1,5 @@
 import express from "express";
-import jwt from "jsonwebtoken";
+import jsonwebtoken from "jsonwebtoken";
 import axios from "axios";
 import bodyParser from "body-parser";
 import querystring from "querystring";
@@ -37,11 +37,6 @@ module.exports = function (app) {
   // Getting login URL
   app.get("/auth/google/url", (req, res) => {
     return res.send(getGoogleAuthURL());
-  });
-  // Getting code
-  app.post("/auth/code", (req, res) => {
-    console.log(req.body);
-    return res.json("{}");
   });
 
   function getTokens({
@@ -121,9 +116,10 @@ module.exports = function (app) {
       userdb.UserKind.GOOGLE
     );
     console.log("exist_user", exist_user);
+    let user_info;
     if (exist_user === null) {
       //add to db
-      const user_info = {
+      user_info = {
         kind: userdb.UserKind.GOOGLE,
         email: user.email,
         name: user.name,
@@ -139,7 +135,7 @@ module.exports = function (app) {
       const result = await userdb.add(user_info);
       console.log("add", result);
     } else {
-      const user_info = {
+      user_info = {
         email: user.email || exist_user.email,
         name: user.name || exist_user.name,
         given_name: user.given_name || exist_user.given_name,
@@ -157,19 +153,23 @@ module.exports = function (app) {
       userdb.UserKind.GOOGLE
     );
 
-    user.user_id = user_record.user_id;
+    user_info.user_id = user_record.user_id;
 
-    const token = jwt.sign(user, JWT_SECRET);
+    const token = jsonwebtoken.sign(user_info, JWT_SECRET);
     console.log("user cookie", token);
 
     res.cookie(COOKIE_NAME, token, {
-      maxAge: 9000,
+      maxAge: 900,
       httpOnly: true,
       secure: false,
+      domain: "ieigen.com",
+      //path: '/',
+      sameSite: 'Lax',
     });
 
     console.log("user record: ", user_record);
 
-    res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}`);
+    res.set(COOKIE_NAME, 'Authorization:Bearer ' + token);
+    res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}&${COOKIE_NAME}=${token}`);
   });
 };

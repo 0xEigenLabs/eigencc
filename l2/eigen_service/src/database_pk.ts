@@ -8,7 +8,7 @@ const sequelize = new Sequelize({
     acquire: 30000,
     idle: 10000
   },
-  storage: './db_pk.sqlite'
+  storage: './data/db_pk.sqlite'
 });
 
 const pkdb = sequelize.define('pk_st', {
