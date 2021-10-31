@@ -29,7 +29,7 @@ const kCheckCodeLengh = 8
 
 // returns hex string
 export function generate_key(options?: any) : string {
-    let entropy: Uint8Array = ethers.utils.randomBytes(16);
+    let entropy: Uint8Array = ethers.utils.randomBytes(32);
     if (!options) { options = { }; }
     if (options.extraEntropy) {
         entropy = arrayify(hexDataSlice(keccak256(concat([ entropy, options.extraEntropy ])), 0, 16));
