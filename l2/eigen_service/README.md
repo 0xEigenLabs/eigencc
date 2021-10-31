@@ -182,7 +182,3 @@ docker build -t ieigen/service:v1 .
 docker run --name=eigen-service -p 3000:3000 -d ieigen/service:v1
 
 ```
-
-```
-
-```
