@@ -9,3 +9,4 @@ export const SERVER_ROOT_URI = "https://rpc.ieigen.com/api";
 export const JWT_SECRET = "import-secret-from-env"; //default hmac sha256
 
 export const COOKIE_NAME = "auth_token";
+export const DEBUG_MODE = true; // process.env.DEBUG_MODE || false;

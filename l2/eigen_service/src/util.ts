@@ -1,3 +1,5 @@
+import { DEBUG_MODE } from "./login/config";
+
 const BaseResp = function (errno, message, data) {
   return { errno: errno, message: message, data: data };
 };
@@ -25,13 +27,18 @@ const has_value = function (variable) {
 };
 
 const check_user_id = function (req, user_id) {
-  if (!has_value(req.user)) {
-    console.log("req.user does not exist, jwt is not used here?");
+  if (!has_value(user_id)) {
+    console.log("user_id is not given!");
     return false;
   }
 
-  if (!has_value(user_id)) {
-    console.log("user_id is not given!");
+  if (DEBUG_MODE) {
+    // Do not check the user_id and ensure return true if user_id exists
+    return true;
+  }
+
+  if (!has_value(req.user)) {
+    console.log("req.user does not exist, jwt is not used here?");
     return false;
   }
 

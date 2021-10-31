@@ -12,7 +12,7 @@ import * as db_recovery from "./database_recovery";
 import * as friend_list from "./database_friend_relationship";
 import * as util from "./util";
 
-import { JWT_SECRET } from "./login/config";
+import { JWT_SECRET, DEBUG_MODE } from "./login/config";
 
 import * as userdb from "./pid/pid";
 import { Session } from "./session";
@@ -32,19 +32,16 @@ const issueOptions = {
 app.use(cors(issueOptions));
 
 let filterFunc = function (req) {
-  //   console.log(req.url)
-  //   let bypass = [
-  //       "/auth/google/url",
-  //       "/stores",
-  //       "/store",
-  // "/txhs"
-  //   ]
-  //   console.log(bypass.indexOf(req.url), req.method)
-  //   if (bypass.indexOf(req.url) >= 0 && req.method == "GET") {
-  // return true;
-  //   }
-  //   return false;
-  return true;
+  if (DEBUG_MODE) {
+    return true;
+  }
+  console.log(req.url);
+  let bypass = ["/auth/google/url", "/stores", "/store", "/txhs"];
+  console.log(bypass.indexOf(req.url), req.method);
+  if (bypass.indexOf(req.url) >= 0 && req.method == "GET") {
+    return true;
+  }
+  return false;
 };
 
 app.use(
