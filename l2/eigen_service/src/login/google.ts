@@ -3,6 +3,8 @@ import jsonwebtoken from "jsonwebtoken";
 import axios from "axios";
 import bodyParser from "body-parser";
 import querystring from "querystring";
+import * as crypto from 'crypto';
+import { Session } from "../session"
 
 import * as userdb from "../pid/pid";
 import {
@@ -158,6 +160,7 @@ module.exports = function (app) {
     const token = jsonwebtoken.sign(user_info, JWT_SECRET);
     console.log("user cookie", token);
 
+    /*
     res.cookie(COOKIE_NAME, token, {
       maxAge: 900,
       httpOnly: true,
@@ -166,10 +169,14 @@ module.exports = function (app) {
       //path: '/',
       sameSite: 'Lax',
     });
+   */
 
     console.log("user record: ", user_record);
 
-    res.set(COOKIE_NAME, 'Authorization:Bearer ' + token);
-    res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}&${COOKIE_NAME}=${token}`);
+    let hash = crypto.createHash('sha256');
+    let hashcode = hash.update(token).digest("hex");
+    console.log(hashcode)
+    Session.user_token.set(hashcode, new Session.session(token, 600));
+    res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}&${COOKIE_NAME}=${hashcode}`);
   });
 };

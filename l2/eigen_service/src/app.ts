@@ -15,6 +15,7 @@ import * as util from "./util";
 import { JWT_SECRET } from "./login/config";
 
 import * as userdb from "./pid/pid";
+import { Session } from "./session";
 
 import bodyParser from "body-parser";
 const app = express();
@@ -44,6 +45,7 @@ let filterFunc = function(req) {
     }
     return false;
 }
+
 app.use(
   jwt({
     secret: JWT_SECRET,
@@ -55,9 +57,13 @@ app.use(
         req.headers.authorization &&
         req.headers.authorization.split(" ")[0] === "Bearer"
       ) {
-        return req.headers.authorization.split(" ")[1];
+	let sess = Session.user_token.get(req.headers.authorization.split(" ")[1]);
+	if (sess !== undefined && sess.isValid()) {
+	    return sess.token;
+	}
       } else if (req.query && req.query.token) {
-        return req.query.token;
+        let sess = Session.user_token.get(req.query.token);
+	if (sess !== undefined && sess.isValid()) {  return sess.token; }
       }
       return null;
     },
