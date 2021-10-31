@@ -176,7 +176,7 @@ module.exports = function (app) {
     let hash = crypto.createHash('sha256');
     let hashcode = hash.update(token).digest("hex");
     console.log(hashcode)
-    Session.user_token.set(hashcode, new Session.session(token, 600));
+    Session.add_token(hashcode, new Session.session(token, 600));
     res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}&${COOKIE_NAME}=${hashcode}`);
   });
 };
