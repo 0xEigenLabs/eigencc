@@ -1,12 +1,27 @@
-export const GOOGLE_CLIENT_ID =
-  process.env.GOOGLE_CLIENT_ID ||
-  "413535929013-us3b0rnd2l3uj85c17osktvv7e6o4o3t.apps.googleusercontent.com";
-export const GOOGLE_CLIENT_SECRET =
-  process.env.GOOGLE_CLIENT_SECRET || "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";
+require("dotenv").config();
 
-export const UI_ROOT_URI = "https://secret.ieigen.com/home";
-export const SERVER_ROOT_URI = "https://rpc.ieigen.com/api";
-export const JWT_SECRET = "import-secret-from-env"; //default hmac sha256
+const requireEnvVariables = (envVars) => {
+  for (const envVar of envVars) {
+    if (!process.env[envVar]) {
+      throw new Error(`Error: set your '${envVar}' environmental variable `);
+    }
+  }
+  console.log("Environmental variables properly set 👍");
+};
 
-export const COOKIE_NAME = "auth_token";
-export const DEBUG_MODE = true; // process.env.DEBUG_MODE || false;
+requireEnvVariables([
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "UI_ROOT_URI",
+  "SERVER_ROOT_URI",
+  "JWT_SECRET",
+  "COOKIE_NAME",
+]);
+
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+export const UI_ROOT_URI = process.env.GOOGLE_CLIENT_ID;
+export const SERVER_ROOT_URI = process.env.GOOGLE_CLIENT_ID;
+export const JWT_SECRET = process.env.GOOGLE_CLIENT_ID;
+export const COOKIE_NAME = process.env.GOOGLE_CLIENT_ID;
+export const DEBUG_MODE = process.env.DEBUG_MODE || false;
