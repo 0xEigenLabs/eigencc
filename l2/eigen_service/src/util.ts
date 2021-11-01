@@ -1,4 +1,11 @@
-import { DEBUG_MODE } from "./login/config";
+const require_env_variables = (envVars) => {
+  for (const envVar of envVars) {
+    if (!process.env[envVar]) {
+      throw new Error(`Error: set your '${envVar}' environmental variable `);
+    }
+  }
+  console.log("Environmental variables properly set 👍");
+};
 
 const BaseResp = function (errno, message, data) {
   return { errno: errno, message: message, data: data };
@@ -32,7 +39,7 @@ const check_user_id = function (req, user_id) {
     return false;
   }
 
-  if (DEBUG_MODE) {
+  if (process.env.DEBUG_MODE) {
     // Do not check the user_id and ensure return true if user_id exists
     return true;
   }
@@ -50,4 +57,4 @@ const check_user_id = function (req, user_id) {
   return true;
 };
 
-export { BaseResp, Succ, Err, has_value, check_user_id };
+export { BaseResp, Succ, Err, has_value, check_user_id, require_env_variables };

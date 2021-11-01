@@ -4,6 +4,7 @@ import jsonwebtoken from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import cors from "cors";
 const TOTP = require("totp.js");
+require("dotenv").config();
 
 import * as log4js from "./log";
 import * as db_pk from "./database_pk";
@@ -11,8 +12,6 @@ import * as db_txh from "./database_transaction_history";
 import * as db_recovery from "./database_recovery";
 import * as friend_list from "./database_friend_relationship";
 import * as util from "./util";
-
-import { JWT_SECRET, DEBUG_MODE } from "./login/config";
 
 import * as userdb from "./pid/pid";
 import { Session } from "./session";
@@ -31,8 +30,10 @@ const issueOptions = {
 
 app.use(cors(issueOptions));
 
+util.require_env_variables(["JWT_SECRET"]);
+
 let filterFunc = function (req) {
-  if (DEBUG_MODE) {
+  if (process.env.DEBUG_MODE) {
     return true;
   }
   console.log(req.url);
@@ -46,7 +47,7 @@ let filterFunc = function (req) {
 
 app.use(
   jwt({
-    secret: JWT_SECRET,
+    secret: process.env.JWT_SECRET,
     algorithms: ["HS256"],
     credentialsRequired: false,
     getToken: function fromHeaderOrQuerystring(req) {
@@ -417,7 +418,7 @@ app.post("/user", async function (req, res) {
     verified_email: result.verified_email,
   };
 
-  const token = jsonwebtoken.sign(user_info, JWT_SECRET);
+  const token = jsonwebtoken.sign(user_info, process.env.JWT_SECRET);
   console.log("user cookie", token);
   return res.json(
     util.Succ({

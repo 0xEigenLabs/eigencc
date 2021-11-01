@@ -3,18 +3,21 @@ import jsonwebtoken from "jsonwebtoken";
 import axios from "axios";
 import bodyParser from "body-parser";
 import querystring from "querystring";
-import * as crypto from 'crypto';
-import { Session } from "../session"
+import * as crypto from "crypto";
+import { Session } from "../session";
 
+import * as util from "../util";
 import * as userdb from "../pid/pid";
-import {
-  SERVER_ROOT_URI,
-  GOOGLE_CLIENT_ID,
-  JWT_SECRET,
-  GOOGLE_CLIENT_SECRET,
-  COOKIE_NAME,
-  UI_ROOT_URI,
-} from "./config";
+require("dotenv").config();
+
+util.require_env_variables([
+  "SERVER_ROOT_URI",
+  "GOOGLE_CLIENT_ID",
+  "JWT_SECRET",
+  "GOOGLE_CLIENT_SECRET",
+  "COOKIE_NAME",
+  "UI_ROOT_URI",
+]);
 
 module.exports = function (app) {
   const redirectURI = "auth/google";
@@ -22,8 +25,8 @@ module.exports = function (app) {
   function getGoogleAuthURL() {
     const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
     const options = {
-      redirect_uri: `${SERVER_ROOT_URI}/${redirectURI}`,
-      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: `${process.env.SERVER_ROOT_URI}/${redirectURI}`,
+      client_id: process.env.GOOGLE_CLIENT_ID,
       access_type: "offline",
       response_type: "code",
       prompt: "consent",
@@ -90,9 +93,9 @@ module.exports = function (app) {
     console.log("res", req.query);
     const { id_token, access_token } = await getTokens({
       code,
-      clientId: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-      redirectUri: `${SERVER_ROOT_URI}/${redirectURI}`,
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      redirectUri: `${process.env.SERVER_ROOT_URI}/${redirectURI}`,
     });
     console.log("token", id_token, access_token);
 
@@ -157,7 +160,7 @@ module.exports = function (app) {
 
     user_info.user_id = user_record.user_id;
 
-    const token = jsonwebtoken.sign(user_info, JWT_SECRET);
+    const token = jsonwebtoken.sign(user_info, process.env.JWT_SECRET);
     console.log("user cookie", token);
 
     /*
@@ -173,10 +176,12 @@ module.exports = function (app) {
 
     console.log("user record: ", user_record);
 
-    let hash = crypto.createHash('sha256');
+    let hash = crypto.createHash("sha256");
     let hashcode = hash.update(token).digest("hex");
-    console.log(hashcode)
+    console.log(hashcode);
     Session.add_token(hashcode, new Session.session(token, 600));
-    res.redirect(`${UI_ROOT_URI}?id=${user_record.user_id}&${COOKIE_NAME}=${hashcode}`);
+    res.redirect(
+      `${process.env.UI_ROOT_URI}?id=${user_record.user_id}&${process.env.COOKIE_NAME}=${hashcode}`
+    );
   });
 };
