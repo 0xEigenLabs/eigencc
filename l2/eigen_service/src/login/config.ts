@@ -20,8 +20,8 @@ requireEnvVariables([
 
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-export const UI_ROOT_URI = process.env.GOOGLE_CLIENT_ID;
-export const SERVER_ROOT_URI = process.env.GOOGLE_CLIENT_ID;
-export const JWT_SECRET = process.env.GOOGLE_CLIENT_ID;
-export const COOKIE_NAME = process.env.GOOGLE_CLIENT_ID;
+export const UI_ROOT_URI = process.env.UI_ROOT_URI;
+export const SERVER_ROOT_URI = process.env.SERVER_ROOT_URI;
+export const JWT_SECRET = process.env.JWT_SECRET;
+export const COOKIE_NAME = process.env.COOKIE_NAME;
 export const DEBUG_MODE = process.env.DEBUG_MODE || false;
