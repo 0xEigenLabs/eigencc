@@ -3,8 +3,6 @@ import jwt from "express-jwt";
 
 import * as util from "../util";
 
-import { JWT_SECRET } from "../login/config";
-
 const sequelize = new Sequelize({
   dialect: "sqlite",
   pool: {
@@ -13,7 +11,7 @@ const sequelize = new Sequelize({
     acquire: 30000,
     idle: 10000,
   },
-  storage: "./db_user.sqlite",
+  storage: "./data/db_user.sqlite",
 });
 
 export enum UserKind {
