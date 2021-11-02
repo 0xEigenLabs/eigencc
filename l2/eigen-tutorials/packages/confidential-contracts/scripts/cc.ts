@@ -5,7 +5,7 @@ const { Uint64BE } = require("int64-buffer");
 import * as crypto from "crypto";
 import { Buffer } from 'buffer';
 import fetch from "node-fetch"
-const ecies = require('../../../../eigen_service/src/ecies')
+const ecies = require('./ecies')
 const EC = require('elliptic').ec;
 const ec = new EC('p256');
 import { expect } from 'chai';
