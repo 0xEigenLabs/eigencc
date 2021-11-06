@@ -1,149 +1,144 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const { eigenLog, requireEnvVariables } = require('arb-shared-dependencies')
-const RLP = require('rlp')
-const { Uint64BE } = require("int64-buffer");
-const fetch = require('node-fetch');
+const { Uint64BE } = require('int64-buffer')
+const fetch = require('node-fetch')
 const ecies = require('./ecies')
-const EC = require('elliptic').ec;
-const ec = new EC('p256');
+const EC = require('elliptic').ec
+const ec = new EC('p256')
+const hex2ascii = require('hex2ascii')
 
 require('dotenv').config()
 
 requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC', 'PKCS'])
 
-function compose_decrypt(cipher) {
-  return RLP.encode(["decrypt1", cipher.toString("hex"), "", ""])
-}
-
-function compose_encrypt(num) {
-  return RLP.encode(["encrypt1", num.toString(), "", ""])
-}
-
-function compose_add_cipher_cipher(cipher1, cipher2) {
-  return RLP.encode(["add_cipher_cipher2",cipher1.toString("hex"), cipher2.toString("hex"), ""])
-}
-
-function compose_add_cipher_plain(cipher, plain) {
-  return RLP.encode(["add_cipher_plain2",cipher.toString("hex"),  plain.toString(), ""])
-}
-
-function compose_sub_cipher_cipher(cipher1, cipher2) {
-  return RLP.encode(["sub_cipher_cipher2",cipher1.toString("hex"), cipher2.toString("hex"), ""])
-}
-
-function compose_sub_cipher_plain(cipher, plain) {
-  return RLP.encode(["sub_cipher_plain2",cipher.toString("hex"),  plain.toString(), ""])
-}
-
-const encrypt = async (contract, num) => {
-  var encrypt_operator_encoding_string =  compose_encrypt(num)
-  var tx = await contract.call_eigenCall(encrypt_operator_encoding_string, {
+const demo_eigencall_encrypt = async (contract, num) => {
+  console.log(
+    'Going to call `demo_encrypt` which calls the `EigenCallLibcary.encrypt` with number: ',
+    num
+  )
+  var cipher_hex = await contract.demo_encrypt(num, {
     gasPrice: 0,
-    gasLimit: 250000
+    gasLimit: 250000,
   })
 
-  var receipt = await tx.wait()
-  var event = receipt.events.pop()
-  rlp_encoded_return_value = event.args.returnValue;
-
-  expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
-
-  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
-  return cipher_hex.toString("hex")
+  console.log(cipher_hex, hex2ascii(cipher_hex))
+  return hex2ascii(cipher_hex)
 }
 
-const decrypt = async (contract, cipher) => {
-  var decrypt_operator_encoding_string = compose_decrypt(cipher)
-
-  var tx = await contract.call_eigenCall(decrypt_operator_encoding_string, {
+const demo_eigencall_decrypt = async (contract, cipher) => {
+  console.log(
+    'Going to call `demo_decrypt` which calls the `EigenCallLibcary.decrypt` with cipher: ',
+    cipher
+  )
+  var num_string = await contract.demo_decrypt(cipher, {
     gasPrice: 0,
-    gasLimit: 250000
+    gasLimit: 250000,
   })
 
-  var receipt = await tx.wait()
-  var event = receipt.events.pop()
-
-  rlp_encoded_return_value = event.args.returnValue;
-
-  expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
-
-  var plain = RLP.decode(rlp_encoded_return_value).toString()
-  console.log(plain)
-
-  return parseInt(plain)
+  return hex2ascii(num_string)
 }
 
-const add_cipher_cipher = async (contract, cipher1, cipher2) => {
-  var add_cipher_cipher_operator_encoding_string = compose_add_cipher_cipher(cipher1, cipher2)
-  var tx = await contract.call_eigenCall(add_cipher_cipher_operator_encoding_string, {
+const demo_eigencall_add_cipher_cipher = async (contract, cipher1, cipher2) => {
+  console.log(
+    'Going to call `demo_add_cipher_cipher` which calls the `EigenCallLibcary.demo_addCipherCipher` with ciphers: ',
+    cipher1,
+    ', ',
+    cipher2
+  )
+
+  var cipher_hex = await contract.demo_addCipherCipher(cipher1, cipher2, {
     gasPrice: 0,
-    gasLimit: 250000
+    gasLimit: 250000,
   })
 
-  var receipt = await tx.wait()
-  var event = receipt.events.pop()
-
-  rlp_encoded_return_value = event.args.returnValue;
-
-  expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
-
-  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
-  return cipher_hex.toString("hex")
+  return hex2ascii(cipher_hex)
 }
 
-const add_cipher_plain = async (contract, cipher, plain) => {
-  var add_cipher_plain_operator_encoding_string = compose_add_cipher_plain(cipher, plain)
-  var tx = await contract.call_eigenCall(add_cipher_plain_operator_encoding_string, {
+const demo_eigencall_add_cipher_plain = async (contract, cipher, num) => {
+  console.log(
+    'Going to call `demo_eigencall_add_cipher_plain` which calls the `EigenCallLibcary.demo_addCipherPlain` with: ',
+    cipher,
+    ', ',
+    num
+  )
+
+  var cipher_hex = await contract.demo_addCipherPlain(cipher, num, {
     gasPrice: 0,
-    gasLimit: 250000
+    gasLimit: 250000,
   })
 
-  var receipt = await tx.wait()
-  var event = receipt.events.pop()
-
-  rlp_encoded_return_value = event.args.returnValue;
-
-  expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
-
-  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
-  return cipher_hex.toString("hex")
+  return hex2ascii(cipher_hex)
 }
 
-const sub_cipher_cipher = async (contract, cipher1, cipher2) => {
-  var sub_cipher_cipher_operator_encoding_string = compose_sub_cipher_cipher(cipher1, cipher2)
-  var tx = await contract.call_eigenCall(sub_cipher_cipher_operator_encoding_string, {
+const demo_eigencall_sub_cipher_cipher = async (contract, cipher1, cipher2) => {
+  console.log(
+    'Going to call `demo_sub_cipher_cipher` which calls the `EigenCallLibcary.demo_subCipherCipher` with ciphers: ',
+    cipher1,
+    ', ',
+    cipher2
+  )
+
+  var cipher_hex = await contract.demo_subCipherCipher(cipher1, cipher2, {
     gasPrice: 0,
-    gasLimit: 250000
+    gasLimit: 250000,
   })
 
-  var receipt = await tx.wait()
-  var event = receipt.events.pop()
-
-  rlp_encoded_return_value = event.args.returnValue;
-
-  expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
-
-  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
-  return cipher_hex.toString("hex")
+  return hex2ascii(cipher_hex)
 }
 
-const sub_cipher_plain = async (contract, cipher, plain) => {
-  var sub_cipher_plain_operator_encoding_string = compose_sub_cipher_plain(cipher, plain)
-  var tx = await contract.call_eigenCall(sub_cipher_plain_operator_encoding_string, {
+const demo_eigencall_sub_cipher_plain = async (contract, cipher, num) => {
+  console.log(
+    'Going to call `demo_sub_cipher_plain` which calls the `EigenCallLibcary.demo_subCipherPlain` with: ',
+    cipher,
+    ', ',
+    num
+  )
+
+  var cipher_hex = await contract.demo_subCipherPlain(cipher, num, {
     gasPrice: 0,
-    gasLimit: 250000
+    gasLimit: 250000,
   })
 
-  var receipt = await tx.wait()
-  var event = receipt.events.pop()
+  return hex2ascii(cipher_hex)
+}
 
-  rlp_encoded_return_value = event.args.returnValue;
+const demo_eigencall_compare_cipher_cipher = async (
+  contract,
+  cipher1,
+  cipher2
+) => {
+  console.log(
+    'Going to call `demo_compare_cipher_cipher` which calls the `EigenCallLibcary.demo_compareCipherCipher` with ciphers: ',
+    cipher1,
+    ', ',
+    cipher2
+  )
 
-  expect(rlp_encoded_return_value).not.equal(RLP.encode(""))
+  var result = await contract.demo_compareCipherCipher(cipher1, cipher2, {
+    gasPrice: 0,
+    gasLimit: 250000,
+  })
 
-  var cipher_hex= RLP.decode(rlp_encoded_return_value).toString()
-  return cipher_hex.toString("hex")
+  console.log('Result: ', result)
+
+  return result
+}
+
+const demo_eigencall_compare_cipher_plain = async (contract, cipher, num) => {
+  console.log(
+    'Going to call `demo_compare_cipher_plain` which calls the `EigenCallLibcary.demo_compareCipherPlain` with: ',
+    cipher,
+    ', ',
+    num
+  )
+
+  var result = await contract.demo_compareCipherPlain(cipher, num, {
+    gasPrice: 0,
+    gasLimit: 250000,
+  })
+
+  return result
 }
 
 function ecies_encrypt(public_key, num) {
@@ -157,138 +152,208 @@ function ecies_encrypt(public_key, num) {
     symmetricCypherName: 'aes-256-gcm',
     keyFormat: 'uncompressed',
     s1: null, // optional shared information1
-    s2: null // optional shared information2
+    s2: null, // optional shared information2
   }
-  let msg = (new Uint64BE(num)).toBuffer()
-  return ecies.encrypt(public_key, msg, options);
+  let msg = new Uint64BE(num).toBuffer()
+  return ecies.encrypt(public_key, msg, options).toString('hex')
 }
 
 const main = async () => {
   await eigenLog('Simple eigenCall demo')
 
   const res = await fetch(process.env['PKCS'] + '/store?digest=1', {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(response => response.json())
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then(response => response.json())
 
   expect(res.errno).to.equal(0)
 
   const public_key = res.data.public_key
 
-  console.log("Public key get from pkcs: ", public_key)
+  console.log('Public key get from pkcs: ', public_key)
 
-  expect(public_key).not.equal("")
+  expect(public_key).not.equal('')
 
-  let keyPair = ec.keyFromPublic(public_key, "hex");
-  let publicKey = keyPair.getPublic();
+  let keyPair = ec.keyFromPublic(public_key, 'hex')
+  let publicKey = keyPair.getPublic()
 
-  console.log("----------------------------------------------------")
+  console.log('----------------------------------------------------')
 
   const l2Wallet = (await hre.ethers.getSigners())[0]
   console.log('Your wallet address:', l2Wallet.address)
-
-  const L2EigencallDemo = await (
-    await ethers.getContractFactory('EigencallDemo')
+  /////////////////////////////////////////////////////////////////////////
+  var L2EigenCallLibrary = await (
+    await ethers.getContractFactory('EigenCallLibrary')
   ).connect(l2Wallet)
-  console.log('Deploying EigencallDemo contract to L2')
-  const l2eigencalldemo = await L2EigencallDemo.deploy({gasLimit: 250000})
-  await l2eigencalldemo.deployed()
-  console.log(`EigencallDemo contract is deployed to ${l2eigencalldemo.address}`)
+  L2EigenCallLibrary = await L2EigenCallLibrary.deploy()
+  await L2EigenCallLibrary.deployed()
+  console.log(
+    'EigenCallLibrary is deployed at address:',
+    L2EigenCallLibrary.address
+  )
 
-  ////////////////////////////////////////////////////////////////////////////////////
-  // 'encrypt' test
-  var num = 12121212121212121211
-  var cipher = ecies_encrypt(publicKey, num)
+  var L2EigenCallLibraryUseDemo = await (
+    await ethers.getContractFactory('EigenCallLibraryUseDemo', {
+      libraries: {
+        EigenCallLibrary: L2EigenCallLibrary.address,
+      },
+    })
+  ).connect(l2Wallet)
 
-  // 'decrypt' test
-  console.log("Going to 'decrypt' ", cipher)
-  var decrypt_number = await decrypt(l2eigencalldemo, cipher)
-  console.log("Success!", decrypt_number)
-
-  expect(decrypt_number).to.equal(num)
-  console.log(`${num} -> encrypt -> decrypt is still ${num}`)
-  ////////////////////////////////////////////////////////////////////////////////////
-
-  ////////////////////////////////////////////////////////////////////////////////////
-  // Self 'encrypt' and then 'decrypt' test
+  console.log('Deploying EigenCallLibraryUseDemo contract to L2')
+  L2EigenCallLibraryUseDemo = await L2EigenCallLibraryUseDemo.deploy({
+    gasLimit: 25000000,
+  })
+  await L2EigenCallLibraryUseDemo.deployed()
+  console.log(
+    `EigencallDemo contract is deployed to ${L2EigenCallLibraryUseDemo.address}`
+  )
+  console.log('----------------------------------------------------')
   var num = 123
-  console.log("Going to 'encrypt' ", num)
-  var cipher = await encrypt(l2eigencalldemo, num)
-  console.log("Success!")
+  var cipher_num = await demo_eigencall_encrypt(L2EigenCallLibraryUseDemo, num)
 
-  // 'decrypt' test
-  console.log("Going to 'decrypt' ", cipher)
-  var decrypt_number = await decrypt(l2eigencalldemo, cipher)
-  console.log("Success!")
+  console.log(`${num} is encrypted as '${cipher_num}'`)
+  console.log('----------------------------------------------------')
 
-  expect(decrypt_number).to.equal(num)
-  console.log(`${num} -> encrypt -> decrypt is still ${num}`)
-  ////////////////////////////////////////////////////////////////////////////////////
+  var num = 100
+  var cipher_num = ecies_encrypt(publicKey, num)
+  console.log(`Going to decrypt '${cipher_num}'`)
 
-  ////////////////////////////////////////////////////////////////////////////////////
-  // 'add_cipher_cipher' test
+  var decrypted_num = await demo_eigencall_decrypt(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(cipher_num)
+  )
+
+  console.log(`${cipher_num} is decrypted as '${decrypted_num}'`)
+  console.log('----------------------------------------------------')
+
   var num1 = 100
+  var cipher1_num = ecies_encrypt(publicKey, num1)
+
   var num2 = 1
+  var cipher2_num = ecies_encrypt(publicKey, num2)
 
-  console.log(`Going to 'add_cipher_cipher' ${num1}, ${num2}`)
-  var cipher1 = ecies_encrypt(publicKey, num1)
-  var cipher2 = ecies_encrypt(publicKey, num2)
+  var add_cipher_cipher_result = await demo_eigencall_add_cipher_cipher(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(cipher1_num),
+    Buffer.from(cipher2_num)
+  )
 
-  var result_cipher = await add_cipher_cipher(l2eigencalldemo, cipher1, cipher2)
-  var result_number = await decrypt(l2eigencalldemo, result_cipher)
+  console.log(
+    `Add 2 ciphers: ${cipher1_num}, ${cipher2_num} '${add_cipher_cipher_result}'`
+  )
 
-  expect(result_number).to.equal(num1 + num2)
-  console.log(`add_cipher_cipher ${num1} ${num2} is ${num1 + num2}`)
-  ////////////////////////////////////////////////////////////////////////////////////
+  var decrypted_num = await demo_eigencall_decrypt(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(add_cipher_cipher_result)
+  )
+  console.log(`And the result is the cipher of '${decrypted_num}'`)
 
-  ////////////////////////////////////////////////////////////////////////////////////
-  // 'add_cipher_plain' test
+  console.log('----------------------------------------------------')
+
+  var cipher_num = ecies_encrypt(publicKey, 100)
+
+  var num = 1
+
+  var add_cipher_plain_result = await demo_eigencall_add_cipher_plain(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(cipher_num),
+    num
+  )
+
+  console.log(
+    `Add cipher with a number: ${cipher_num}, ${num} '${add_cipher_plain_result}'`
+  )
+
+  var decrypted_num = await demo_eigencall_decrypt(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(add_cipher_plain_result)
+  )
+  console.log(`And the result is the cipher of '${decrypted_num}'`)
+
+  console.log('----------------------------------------------------')
+
   var num1 = 100
+  var cipher1_num = ecies_encrypt(publicKey, num1)
+
   var num2 = 1
+  var cipher2_num = ecies_encrypt(publicKey, num2)
 
-  console.log(`Going to 'add_cipher_plain' ${num1}, ${num2}`)
-  var cipher1 = ecies_encrypt(publicKey, num1)
+  var sub_cipher_cipher_result = await demo_eigencall_sub_cipher_cipher(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(cipher1_num),
+    Buffer.from(cipher2_num)
+  )
 
-  var result_cipher = await add_cipher_plain(l2eigencalldemo, cipher1, num2)
-  var result_number = await decrypt(l2eigencalldemo, result_cipher)
+  console.log(
+    `Sub 2 ciphers: ${cipher1_num}, ${cipher2_num} '${sub_cipher_cipher_result}'`
+  )
 
-  expect(result_number).to.equal(num1 + num2)
-  console.log(`add_cipher_plain ${num1} ${num2} is ${num1 + num2}`)
-  ////////////////////////////////////////////////////////////////////////////////////
+  var decrypted_num = await demo_eigencall_decrypt(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(sub_cipher_cipher_result)
+  )
+  console.log(`And the result is the cipher of '${decrypted_num}'`)
 
-  ////////////////////////////////////////////////////////////////////////////////////
-  // 'sub_cipher_cipher' test
+  console.log('----------------------------------------------------')
+
+  var cipher_num = ecies_encrypt(publicKey, 100)
+
+  var num = 1
+
+  var sub_cipher_plain_result = await demo_eigencall_sub_cipher_plain(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(cipher_num),
+    num
+  )
+
+  console.log(
+    `Sub cipher with a number: ${cipher_num}, ${num} '${sub_cipher_plain_result}'`
+  )
+
+  var decrypted_num = await demo_eigencall_decrypt(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(sub_cipher_plain_result)
+  )
+  console.log(`And the result is the cipher of '${decrypted_num}'`)
+
+  console.log('----------------------------------------------------')
+
   var num1 = 100
-  var num2 = 1
+  var cipher1_num = ecies_encrypt(publicKey, num1)
 
-  console.log(`Going to 'sub_cipher_cipher' ${num1}, ${num2}`)
-  var cipher1 = ecies_encrypt(publicKey, num1)
-  var cipher2 = ecies_encrypt(publicKey, num2)
+  var num2 = 101
+  var cipher2_num = ecies_encrypt(publicKey, num2)
 
-  var result_cipher = await sub_cipher_cipher(l2eigencalldemo, cipher1, cipher2)
-  var result_number = await decrypt(l2eigencalldemo, result_cipher)
+  var compare_cipher_cipher_result = await demo_eigencall_compare_cipher_cipher(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(cipher1_num),
+    Buffer.from(cipher2_num)
+  )
 
-  expect(result_number).to.equal(num1 - num2)
-  console.log(`sub_cipher_cipher ${num1} ${num2} is ${num1 - num2}`)
-  ////////////////////////////////////////////////////////////////////////////////////
+  console.log(
+    `Compare 2 ciphers: ${cipher1_num}, ${cipher2_num} '${compare_cipher_cipher_result}'`
+  )
 
-  ////////////////////////////////////////////////////////////////////////////////////
-  // 'sub_cipher_plain' test
-  var num1 = 100
-  var num2 = 1
+  console.log('----------------------------------------------------')
 
-  console.log(`Going to 'sub_cipher_plain' ${num1}, ${num2}`)
-  var cipher1 = ecies_encrypt(publicKey, num1)
+  var cipher_num = ecies_encrypt(publicKey, 100)
 
-  var result_cipher = await sub_cipher_plain(l2eigencalldemo, cipher1, num2)
-  var result_number = await decrypt(l2eigencalldemo, result_cipher)
+  var num = 101
 
-  expect(result_number).to.equal(num1 - num2)
-  console.log(`sub_cipher_plain ${num1} ${num2} is ${num1 - num2}`)
-  ////////////////////////////////////////////////////////////////////////////////////
+  var compare_cipher_plain_result = await demo_eigencall_compare_cipher_plain(
+    L2EigenCallLibraryUseDemo,
+    Buffer.from(cipher_num),
+    num
+  )
 
-  console.log("All test success!")
+  console.log(
+    `Compare cipher with a number: ${cipher_num}, ${num} '${compare_cipher_plain_result}'`
+  )
+
+  console.log('----------------------------------------------------')
 }
 
 main()
