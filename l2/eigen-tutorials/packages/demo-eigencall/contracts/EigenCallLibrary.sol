@@ -113,7 +113,7 @@ library EigenCallLibrary {
     /**
      * @dev Add a cipher to a plain number
      * @param cipher The cipher
-     * @param plain The plian number
+     * @param plain The plain number
      * @return The decrypted result.
      */
     function addCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {
@@ -175,6 +175,20 @@ library EigenCallLibrary {
         } else {
             return 0;
         }
+    }
+
+    /**
+     * @dev Re-encrypt a cipher with a secret
+     * @param secret The secret we want to use to re-encrypt
+     * @param cipher The cipher number
+     * @return The decrypted result.
+     */
+    function reEncrypt(bytes memory secret, bytes memory cipher)
+        public
+        pure
+        returns (bytes memory)
+    {
+        return _call_eigen_call("re_encrypt2", secret, cipher, "");
     }
 
     /**
