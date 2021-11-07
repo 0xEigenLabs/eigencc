@@ -178,20 +178,6 @@ library EigenCallLibrary {
     }
 
     /**
-     * @dev Re-encrypt a cipher with a secret
-     * @param secret The secret we want to use to re-encrypt
-     * @param cipher The cipher number
-     * @return The decrypted result.
-     */
-    function reEncrypt(bytes memory secret, bytes memory cipher)
-        public
-        pure
-        returns (bytes memory)
-    {
-        return _call_eigen_call("re_encrypt2", secret, cipher, "");
-    }
-
-    /**
      * @dev Compare a cipher with a plain number
      * @param cipher The cipher
      * @param plain The plain number
@@ -218,5 +204,35 @@ library EigenCallLibrary {
         } else {
             return 0;
         }
+    }
+
+    /**
+     * @dev Re-encrypt a cipher with a secret
+     * @param secret The secret we want to use to re-encrypt
+     * @param cipher The cipher number
+     * @return The decrypted result.
+     */
+    function reEncrypt(bytes memory secret, bytes memory cipher)
+        public
+        pure
+        returns (bytes memory)
+    {
+        return _call_eigen_call("re_encrypt2", secret, cipher, "");
+    }
+
+    /**
+     * @dev A utility function which is used for copying bytes
+     * @param src The source bytes we want to copy
+     * @return A new bytes which are equal to src
+     */
+    function copyBytes(bytes memory src) public pure returns (bytes memory) {
+        bytes memory copy = new bytes(src.length);
+        uint256 max = src.length + 31;
+        for (uint256 i = 32; i <= max; i += 32) {
+            assembly {
+                mstore(add(copy, i), mload(add(src, i)))
+            }
+        }
+        return copy;
     }
 }
