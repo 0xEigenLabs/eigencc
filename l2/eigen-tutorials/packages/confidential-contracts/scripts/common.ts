@@ -70,7 +70,7 @@ export const deployL1AndL2 = async (bridge: Bridge, l1TestWallet: Wallet, l2Test
     console.log("L2 custom address", arbCustomToken.address,
         arbCustomToken.deployTransaction.hash);
 
-    await (1000000)
+    await await (10000)
     return { l1CustomToken: l1CustomToken.address, l2CustomToken: arbCustomToken.address }
 }
 
@@ -154,7 +154,7 @@ export const registerTokenOnL2 = async ( bridge: Bridge, l1TestWallet: Wallet, l
 export const registerToken721OnL2 = async ( bridge: Bridge, l1TestWallet: Wallet, l2TestWallet: Wallet, l1CustomTokenAddr: string, l2CustomTokenAddr: string) => {
     const l1CustomToken = TestCustomToken721L1__factory.connect(l1CustomTokenAddr, l1TestWallet);
     const arbCustomToken = TestArbCustomToken721__factory.connect(l2CustomTokenAddr, l2TestWallet);
-    console.log("registerTokenOnL2 on ", arbCustomToken.address);
+    console.log("registerToken721OnL2 on ", arbCustomToken.address);
     const registerRes = await l1CustomToken.registerTokenOnL2(
         arbCustomToken.address,
         BigNumber.from(599940),
@@ -239,13 +239,13 @@ export const deposit = async (bridge: Bridge, l1TestWallet: Wallet, l2TestWallet
     const tokenDepositData = (
         await bridge.getDepositTokenEventData(depositRec)
     )[0] as DepositTokenEventResult
-    console.log("token deposit data", tokenDepositData)
+    //console.log("token deposit data", tokenDepositData)
     const seqNum = tokenDepositData.seqNum
     const retryableReceipt = await bridge.waitForRetriableReceipt(seqNum)
     if (retryableReceipt.status != 1) {
         throw new Error("waitForTransaction failed")
     }
-    console.log("receipt", retryableReceipt);
+    //console.log("receipt", retryableReceipt);
 
     const afterBalance = await l1CustomToken.balanceOf(l1TestWallet.address);
     console.log("after balance in l1 token", afterBalance.toString());
@@ -269,6 +269,7 @@ export const deposit = async (bridge: Bridge, l1TestWallet: Wallet, l2TestWallet
 }
 
 export const depositERC721 = async (bridge: Bridge, l1TestWallet: Wallet, l2TestWallet: Wallet, l1CustomTokenAddr: string, tokenId: BigNumber) => {
+    console.log("depositERC721")
     let l1CustomToken = TestCustomToken721L1__factory.connect(l1CustomTokenAddr, l1TestWallet.provider);
     const initialBridgeTokenBalance = await l1CustomToken.balanceOf(bridge.ethERC20Bridge.address);
     console.log("balance in l1 token", initialBridgeTokenBalance.toString());
