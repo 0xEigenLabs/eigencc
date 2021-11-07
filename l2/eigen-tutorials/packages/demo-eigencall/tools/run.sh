@@ -23,5 +23,4 @@ pub_key=`./teesdk_util 2> /dev/null`
 
 echo $pub_key
 
-# Copy the print public key, and update it with:
-# curl -XPOST -H "Content-Type:application/json"  --url "127.0.0.1:3000" -d "{\"digest\":\"1\", \"public_key\": \"$pub_key\"}"
+curl -XPOST -H "Content-Type:application/json"  --url "host.docker.internal:3000/store" -d "{\"digest\":\"1\", \"public_key\": \"$pub_key\"}"
