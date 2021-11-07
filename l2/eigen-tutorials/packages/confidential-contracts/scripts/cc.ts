@@ -27,17 +27,16 @@ import {
 } from 'arb-ts';
 
 import {
+    wait,
     approveToken,
     depositETH,
     deposit,
+    withdraw,
     registerTokenOnL2
 } from "./common"
 
 const deployments = require('../deployment.json');
 require('dotenv').config()
-const wait = async (i: number) => {
-    setTimeout(function() { console.log("Waiting") }, i);
-}
 
 requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC', 'PKCS'])
 
@@ -135,8 +134,7 @@ function ecies_encrypt(public_key: any, num: any) {
 const eigenCallDemo = async (
     arbCustomTokenAddr: string
 ) => {
-
-    console.log("Withdraw")
+    console.log("basic demo")
     const l2CustomToken = TestCCCustomToken__factory.connect(arbCustomTokenAddr, l2TestWallet)
     // Here is example how we encrypt and descrypt
     const value = 123;
@@ -208,9 +206,9 @@ const main = async () => {
 
   let amountDeposit = BigNumber.from(1200000)
   await deposit(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, amountDeposit)
-  console.log("deposit done cccc")
+  console.log("cc deposit done")
 
-  //await eigenCallDemo(tokenPair.l2CustomToken)
+  await eigenCallDemo(tokenPair.l2CustomToken)
 
   // generate ramdom secret
   let secret = crypto.randomBytes(32);
@@ -243,7 +241,8 @@ const main = async () => {
     gasPrice: 1,
     gasLimit: 25000,
   })
-  console.log("cipher transfer", transferTx?.toString(), hex2ascii(transferTx?.toString()));
+  console.log("cipher transfer", hex2ascii(transferTx?.toString(), "hex"),
+              hex2ascii(transferTx?.toString(), "hex"));
   let rec = await transferTx.wait(); 
   let event = rec.events.pop();
   console.log("events", event.args.from, event.args.to, event.args.value)
@@ -259,6 +258,12 @@ const main = async () => {
   balance = ecies.aes_dec(symmetricCypherName, secret, txt)
   console.log("get balance ", balance.toString())
   //expect(balance).to.eq(amount)
+  console.log("cc withdraw")
+  let amountWithdraw = BigNumber.from(120000)
+  await withdraw(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, 
+                 tokenPair.l2CustomToken, amountWithdraw)
+  console.log("cc withdraw done")
+
 }
 
 main()
