@@ -23,16 +23,16 @@ import "@openzeppelin/contracts/utils/Address.sol";
 import "../libraries/ClonableBeaconProxy.sol";
 import "../libraries/TokenAddressHandler.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+//import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+//import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 import "../arbitrum/IArbTokenBridge.sol";
 
 import "../../interfaces/IInbox.sol";
 
-//import "../../buddybridge/ethereum/L1Buddy.sol";
-
-import "../..//interfaces/IOutbox.sol";
+import "../../interfaces/IOutbox.sol";
 
 import "./IEthERC20Bridge.sol";
 
@@ -43,7 +43,6 @@ import "./IEthERC20Bridge.sol";
  * All messages to layer 2 use the inbox's createRetryableTicket method.
  */
 contract EthERC721Bridge is IEthERC20Bridge, TokenAddressHandler {
-    using SafeERC20 for IERC20;
     using Address for address;
 
     address internal constant USED_ADDRESS = address(0x01);
@@ -193,7 +192,7 @@ contract EthERC721Bridge is IEthERC20Bridge, TokenAddressHandler {
         redirectedExits[withdrawData] = USED_ADDRESS;
         address dest = exitAddress != address(0) ? exitAddress : initialDestination;
         // Unsafe external calls must occur below checks and effects
-        IERC20(erc20).safeTransfer(dest, amount);
+        IERC721(erc20).safeTransferFrom(msg.sender, dest, amount);
 
         emit WithdrawExecuted(initialDestination, dest, erc20, amount, exitNum);
     }
@@ -238,8 +237,8 @@ contract EthERC721Bridge is IEthERC20Bridge, TokenAddressHandler {
             // TODO: use OZ's ERC20Metadata once available
             // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC20/extensions/IERC20Metadata.sol
             deployData = abi.encode(
-                callStatic(erc20, ERC20.name.selector),
-                callStatic(erc20, ERC20.symbol.selector)
+                callStatic(erc20, ERC721.name.selector),
+                callStatic(erc20, ERC721.symbol.selector)
             );
         }
 
@@ -277,7 +276,7 @@ contract EthERC721Bridge is IEthERC20Bridge, TokenAddressHandler {
         uint256 gasPriceBid,
         bytes calldata callHookData
     ) external payable override returns (uint256 seqNum, uint256 depositCalldataLength) {
-        IERC20(erc20).safeTransferFrom(msg.sender, address(this), amount);
+        IERC721(erc20).safeTransferFrom(msg.sender, address(this), amount);
 
         bytes memory depositCalldata;
         {
