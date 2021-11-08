@@ -30,6 +30,7 @@ use num_bigint::{BigUint};
 pub struct OperatorWorker {
     worker_id: u32,
     func_name: String,
+    #[allow(dead_code)]
     input: Option<OperatorWorkerInput>,
 }
 
@@ -44,7 +45,6 @@ impl OperatorWorker {
 
     fn safe_encrypt(&mut self, result: Vec<u8>) -> Result<Vec<u8>> {
         // 4. Do ECIES encrypt
-        info!("safe encrypt");
         let s1 = vec![];
         let s2 = vec![];
         let key_pair = register_func::get_key_pair();
@@ -57,16 +57,15 @@ impl OperatorWorker {
             &s2,
             &result,
         ).map_err(|e| {
-            info!("safe_encrypt error, {:?}", e);
+            error!("safe_encrypt error, {:?}", e);
             Error::from(ErrorKind::CryptoError)
         })
     }
 
     fn safe_decrypt(&mut self, operand: &str) -> Result<Vec<u8>> {
-        info!("safe decrypt");
         let cipher_operand = hex::decode(&operand)
             .map_err(|e| {
-                info!("decode error, {:?}, error is {:?}", operand, e);
+                error!("decode error, {:?}, error is {:?}", operand, e);
                 Error::from(ErrorKind::DecodeError)
             })?;
         if cipher_operand.len() <= 0 {
@@ -82,7 +81,7 @@ impl OperatorWorker {
             &s1,
             &s2,
         ).map_err(|e| {
-            info!("safe_decrypt failed, {:?}", e);
+            error!("safe_decrypt failed, {:?}", e);
             Error::from(ErrorKind::CryptoError)
         })
     }
@@ -106,6 +105,7 @@ struct OperatorWorkerInput {
     op: OperatorKind,
     operand_1: String,
     operand_2: String,
+    #[allow(dead_code)]
     operand_3: String,
 }
 
@@ -124,7 +124,6 @@ impl Worker for OperatorWorker {
 
     fn prepare_input(&mut self, dynamic_input: Option<String>) -> Result<()> {
         let msg = dynamic_input.ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
-        info!("prepare_input {}", msg);
 
         // `args` should be "op|arity,,op1,op2,op3,..."
         // now `op` may be 'add' or 'sub'
@@ -134,7 +133,6 @@ impl Worker for OperatorWorker {
         if splited.len() < 2 {
             return Err(Error::from(ErrorKind::InvalidInputError));
         }
-        info!("splited len {}", splited.len());
 
         let arity = splited[0].chars().last().unwrap() as u32 - '0' as u32;
         let op = &splited[0][0..splited[0].len() - 1];
@@ -149,15 +147,15 @@ impl Worker for OperatorWorker {
             "re_encrypt" => OperatorKind::ReEncrypt,
             "encrypt" => OperatorKind::Encrypt,
             "decrypt" => OperatorKind::Decrypt,
-            _ => unreachable!()
+            _ => panic!("unknown op kind")
         };
 
         let operand_1 = splited[1].to_string();
         let mut operand_2 = "".to_string();
         let mut operand_3 = "".to_string();
-        if (arity == 2) {
+        if arity == 2 {
             operand_2 = splited[2].to_string();
-        } else if (arity == 3) {
+        } else if arity == 3 {
             operand_2 = splited[2].to_string();
             operand_3 = splited[3].to_string();
         }
@@ -177,7 +175,6 @@ impl Worker for OperatorWorker {
             .input
             .take()
             .ok_or_else(|| Error::from(ErrorKind::InvalidInputError))?;
-        info!("execute input ok");
 
         match input.op {
             OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher => {
@@ -193,7 +190,7 @@ impl Worker for OperatorWorker {
                     OperatorKind::AddCipherCipher => op1 + op2,
                     OperatorKind::SubCipherCipher if op1 >= op2 => (op1 - op2),
                     _ => {
-                        info!("Invalid CipherCipher {} - {}", op1, op2);
+                        error!("Invalid CipherCipher {} - {}", op1, op2);
                         return Err(Error::from(ErrorKind::Unknown))
                     }
                 };
@@ -215,7 +212,7 @@ impl Worker for OperatorWorker {
                     OperatorKind::AddCipherPlain => op1 + op2,
                     OperatorKind::SubCipherPlain if op1 >= op2 => op1 - op2,
                     _ => {
-                        info!("Invalid CipherPlain {} - {}", op1, op2);
+                        error!("Invalid CipherPlain {} - {}", op1, op2);
                         return Err(Error::from(ErrorKind::Unknown))
                     }
                 };
@@ -246,12 +243,12 @@ impl Worker for OperatorWorker {
 
                 // bytes -> bigint
                 // bigint -> string
-                let intMsg = BigUint::from_bytes_be(&msg[..]);
-                let strMsg = intMsg.to_str_radix(10);
-                info!("key = {:?}, {}, msg = {:?}", key, key.len(), strMsg);
-                let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&key, &strMsg.as_bytes())
+                let int_msg = BigUint::from_bytes_be(&msg[..]);
+                let str_msg = int_msg.to_str_radix(10);
+                info!("key = {:?}, {}, msg = {:?}", key, key.len(), str_msg);
+                let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&key, &str_msg.as_bytes())
                     .map_err(|e| {
-                        info!("aes_encrypt_less_safe, {:?}", e);
+                        error!("aes_encrypt_less_safe, {:?}", e);
                         Error::from(ErrorKind::CryptoError)
                     })?;
                 let result = hex::encode(&result);
@@ -270,17 +267,17 @@ impl Worker for OperatorWorker {
                         BigUint::parse_bytes(input.operand_2.as_bytes(), 10)
                             .ok_or_else(|| Error::from(ErrorKind::DecodeError))?
                     }
-                    _ => unreachable!(),
+                    _ => panic!("Unknown op kind"),
                 };
 
-                // Do compare FIXME: return an int
+                // Do compare
+                // TODO: return integer, instead of string
                 match op1.cmp(&op2) {
                     std::cmp::Ordering::Equal => Ok("0".to_string()),
                     std::cmp::Ordering::Less => Ok("-1".to_string()),
                     std::cmp::Ordering::Greater => Ok("1".to_string()),
                 }
             }
-            _ => unreachable!()
         }
     }
 }
