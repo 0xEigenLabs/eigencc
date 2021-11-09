@@ -23,14 +23,9 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "../arbitrum/IArbToken.sol";
 import "../libraries/aeERC20.sol";
 import "../arbitrum/ArbTokenBridge.sol";
-
-import "../../arbos/builtin/ArbSys.sol";
-import "../libraries/RLPEncode.sol";
-import "solidity-rlp/contracts/RLPReader.sol";
+import "../libraries/EigenCallLibrary.sol";
 
 contract TestCCCustomToken is aeERC20, IArbToken {
-    using RLPReader for RLPReader.RLPItem;
-    using RLPReader for bytes;
     using Strings for uint256;
 
     ArbTokenBridge public bridge;
@@ -60,26 +55,30 @@ contract TestCCCustomToken is aeERC20, IArbToken {
 
     function someWackyCustomStuff() public {}
 
-    function cipherBalanceOf(address account, bytes memory secret) public view returns (bytes memory) {
+    function cipherBalanceOf(address account, bytes memory secret)
+        public
+        view
+        returns (bytes memory)
+    {
         bytes memory balance = _cipher_balances[account];
         // re-encrypt by user's secret
-        return _call_eigen_call("re_encrypt2", secret, balance, "");
+        return EigenCallLibrary.reEncrypt(secret, balance);
         //return decrypt(balance);
     }
 
     function bridgeMint(address account, uint256 amount) external override onlyBridge {
         _mint(account, amount);
 
-        bytes memory cipher_hex = encrypt(amount);
-        _cipher_balances[account] = copy_bytes(cipher_hex);
+        bytes memory cipher_hex = EigenCallLibrary.encrypt(amount);
+        _cipher_balances[account] = EigenCallLibrary.copyBytes(cipher_hex);
     }
 
     function bridgeBurn(address account, uint256 amount) external override onlyBridge {
         _burn(account, amount);
 
         bytes memory cipher_hex_balance = _cipher_balances[account];
-        bytes memory cipher_hex = subCipherPlain(cipher_hex_balance, amount);
-        _cipher_balances[account] = copy_bytes(cipher_hex);
+        bytes memory cipher_hex = EigenCallLibrary.subCipherPlain(cipher_hex_balance, amount);
+        _cipher_balances[account] = EigenCallLibrary.copyBytes(cipher_hex);
     }
 
     function withdraw(address destination, uint256 amount) external override {
@@ -94,22 +93,19 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         require(_msgSender() != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        bytes[] memory list;
-        list = new bytes[](4);
-
         bytes memory sender_cipher_hex_balance = _cipher_balances[_msgSender()];
-        bytes memory sender_cipher_hex = subCipherCipher(
+        bytes memory sender_cipher_hex = EigenCallLibrary.subCipherCipher(
             sender_cipher_hex_balance,
             cipher_amount
         );
-        _cipher_balances[_msgSender()] = copy_bytes(sender_cipher_hex);
+        _cipher_balances[_msgSender()] = EigenCallLibrary.copyBytes(sender_cipher_hex);
 
         bytes memory recipient_cipher_hex_balance = _cipher_balances[recipient];
-        bytes memory recipient_cipher_hex = addCipherCipher(
+        bytes memory recipient_cipher_hex = EigenCallLibrary.addCipherCipher(
             recipient_cipher_hex_balance,
             cipher_amount
         );
-        _cipher_balances[recipient] = copy_bytes(recipient_cipher_hex);
+        _cipher_balances[recipient] = EigenCallLibrary.copyBytes(recipient_cipher_hex);
         emit TransferCipher(_msgSender(), recipient, cipher_amount);
         return true;
     }
@@ -122,19 +118,19 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        bytes[] memory list;
-        list = new bytes[](4);
-
         bytes memory sender_cipher_hex_balance = _cipher_balances[sender];
-        bytes memory sender_cipher_hex = subCipherCipher(sender_cipher_hex_balance, cipher_amount);
-        _cipher_balances[sender] = copy_bytes(sender_cipher_hex);
+        bytes memory sender_cipher_hex = EigenCallLibrary.subCipherCipher(
+            sender_cipher_hex_balance,
+            cipher_amount
+        );
+        _cipher_balances[sender] = EigenCallLibrary.copyBytes(sender_cipher_hex);
 
         bytes memory recipient_cipher_hex_balance = _cipher_balances[recipient];
-        bytes memory recipient_cipher_hex = addCipherCipher(
+        bytes memory recipient_cipher_hex = EigenCallLibrary.addCipherCipher(
             recipient_cipher_hex_balance,
             cipher_amount
         );
-        _cipher_balances[recipient] = copy_bytes(recipient_cipher_hex);
+        _cipher_balances[recipient] = EigenCallLibrary.copyBytes(recipient_cipher_hex);
         emit TransferCipher(sender, recipient, bytes(cipher_amount));
 
         return true;
@@ -146,19 +142,19 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         require(_msgSender() != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        bytes[] memory list;
-        list = new bytes[](4);
-
         bytes memory sender_cipher_hex_balance = _cipher_balances[_msgSender()];
-        bytes memory sender_cipher_hex = subCipherPlain(sender_cipher_hex_balance, amount);
-        _cipher_balances[_msgSender()] = copy_bytes(sender_cipher_hex);
+        bytes memory sender_cipher_hex = EigenCallLibrary.subCipherPlain(
+            sender_cipher_hex_balance,
+            amount
+        );
+        _cipher_balances[_msgSender()] = EigenCallLibrary.copyBytes(sender_cipher_hex);
 
         bytes memory recipient_cipher_hex_balance = _cipher_balances[recipient];
-        bytes memory recipient_cipher_hex = addCipherPlain(
+        bytes memory recipient_cipher_hex = EigenCallLibrary.addCipherPlain(
             recipient_cipher_hex_balance,
             amount
         );
-        _cipher_balances[recipient] = copy_bytes(recipient_cipher_hex);
+        _cipher_balances[recipient] = EigenCallLibrary.copyBytes(recipient_cipher_hex);
         emit TransferCipher(_msgSender(), recipient, bytes(amount.toString()));
         return true;
     }
@@ -173,145 +169,85 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        bytes[] memory list;
-        list = new bytes[](4);
-
         bytes memory sender_cipher_hex_balance = _cipher_balances[sender];
-        bytes memory sender_cipher_hex = subCipherPlain(sender_cipher_hex_balance, amount);
-        _cipher_balances[sender] = copy_bytes(sender_cipher_hex);
+        bytes memory sender_cipher_hex = EigenCallLibrary.subCipherPlain(
+            sender_cipher_hex_balance,
+            amount
+        );
+        _cipher_balances[sender] = EigenCallLibrary.copyBytes(sender_cipher_hex);
 
         bytes memory recipient_cipher_hex_balance = _cipher_balances[recipient];
-        bytes memory recipient_cipher_hex = addCipherPlain(
+        bytes memory recipient_cipher_hex = EigenCallLibrary.addCipherPlain(
             recipient_cipher_hex_balance,
             amount
         );
-        _cipher_balances[recipient] = copy_bytes(recipient_cipher_hex);
+        _cipher_balances[recipient] = EigenCallLibrary.copyBytes(recipient_cipher_hex);
         emit TransferCipher(sender, recipient, bytes(amount.toString()));
-
         return true;
     }
 
-    function _rlp_decode_as_bytes(bytes memory rlp_encoded) private pure returns (bytes memory) {
-        return rlp_encoded.toRlpItem().toBytes();
+    function demo_encrypt(uint256 plain) public pure returns (bytes memory) {
+        bytes memory output = EigenCallLibrary.encrypt(plain);
+        return output;
     }
 
-    function _call_eigen_call(
-        bytes memory arg1,
-        bytes memory arg2,
-        bytes memory arg3,
-        bytes memory arg4
-    ) private pure returns (bytes memory) {
-        // TODO: Now we use RLP encoding in `ecall`, it'd be better using `abi.encode`
-        //       to save gas
-        bytes[] memory list;
+    function demo_decrypt(bytes memory cipher) public pure returns (bytes memory) {
+        bytes memory output = EigenCallLibrary.decrypt(cipher);
 
-        list = new bytes[](4);
-
-        list[0] = RLPEncode.encodeBytes(arg1);
-        list[1] = RLPEncode.encodeBytes(arg2);
-        list[2] = RLPEncode.encodeBytes(arg3);
-        list[3] = RLPEncode.encodeBytes(arg4);
-        bytes memory input = RLPEncode.encodeList(list);
-
-        bytes memory result = ArbSys(address(100)).eigenCall(input);
-        require(_compare_bytes(result, RLPEncode.encodeBytes("")) != true, "Eigencall returns an empty string which means we encounter error" );
-        return _rlp_decode_as_bytes(result);
+        return output;
     }
 
-    function encrypt(uint256 plain) public pure returns (bytes memory) {
-        return _call_eigen_call("encrypt1", bytes(plain.toString()), "", "");
-    }
-
-    function decrypt(bytes memory cipher) public pure returns (bytes memory) {
-        return _call_eigen_call("decrypt1", cipher, "", "");
-    }
-
-    function addCipherCipher(bytes memory cipher1, bytes memory cipher2)
+    function demo_addCipherCipher(bytes memory cipher1, bytes memory cipher2)
         public
         pure
         returns (bytes memory)
     {
-        return _call_eigen_call("add_cipher_cipher2", cipher1, cipher2, "");
+        bytes memory output = EigenCallLibrary.addCipherCipher(cipher1, cipher2);
+        return output;
     }
 
-    function addCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {
-        return _call_eigen_call("add_cipher_plain2", cipher, bytes(plain.toString()), "");
-    }
-
-    function subCipherCipher(bytes memory cipher1, bytes memory cipher2)
+    function demo_addCipherPlain(bytes memory cipher, uint256 plain)
         public
         pure
         returns (bytes memory)
     {
-        return _call_eigen_call("sub_cipher_cipher2", cipher1, cipher2, "");
+        bytes memory output = EigenCallLibrary.addCipherPlain(cipher, plain);
+        return output;
     }
 
-    function subCipherPlain(bytes memory cipher, uint256 plain) public pure returns (bytes memory) {
-        return _call_eigen_call("sub_cipher_plain2", cipher, bytes(plain.toString()), "");
+    function demo_subCipherCipher(bytes memory cipher1, bytes memory cipher2)
+        public
+        pure
+        returns (bytes memory)
+    {
+        bytes memory output = EigenCallLibrary.subCipherCipher(cipher1, cipher2);
+        return output;
     }
 
-    function _compare_bytes(bytes memory a, bytes memory b) private pure returns (bool) {
-        return keccak256(a) == keccak256(b);
+    function demo_subCipherPlain(bytes memory cipher, uint256 plain)
+        public
+        pure
+        returns (bytes memory)
+    {
+        bytes memory output = EigenCallLibrary.subCipherPlain(cipher, plain);
+        return output;
     }
 
-    function compareCipherCipher(bytes memory cipher1, bytes memory cipher2)
+    function demo_compareCipherCipher(bytes memory cipher1, bytes memory cipher2)
         public
         pure
         returns (int256)
     {
-        bytes memory compare_result = _call_eigen_call(
-            "compare_cipher_cipher2",
-            cipher1,
-            cipher2,
-            ""
-        );
-        require(
-            _compare_bytes(compare_result, "0") ||
-                _compare_bytes(compare_result, "1") ||
-                _compare_bytes(compare_result, "-1"),
-            "compare result can only be -1, 0, or 1"
-        );
-
-        if (_compare_bytes(compare_result, "-1")) {
-            return -1;
-        } else if (_compare_bytes(compare_result, "1")) {
-            return 1;
-        } else {
-            return 0;
-        }
+        int256 result = EigenCallLibrary.compareCipherCipher(cipher1, cipher2);
+        return result;
     }
 
-    function compareCipherPlain(bytes memory cipher, uint256 plain) public pure returns (int256) {
-        bytes memory compare_result = _call_eigen_call(
-            "compare_cipher_plain2",
-            cipher,
-            bytes(plain.toString()),
-            ""
-        );
-        require(
-            _compare_bytes(compare_result, "0") ||
-                _compare_bytes(compare_result, "1") ||
-                _compare_bytes(compare_result, "-1"),
-            "compare result can only be -1, 0, or 1"
-        );
-
-        if (_compare_bytes(compare_result, "-1")) {
-            return -1;
-        } else if (_compare_bytes(compare_result, "1")) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    function copy_bytes(bytes memory _bytes) private pure returns (bytes memory) {
-        bytes memory copy = new bytes(_bytes.length);
-        uint256 max = _bytes.length + 31;
-        for (uint256 i = 32; i <= max; i += 32) {
-            assembly {
-                mstore(add(copy, i), mload(add(_bytes, i)))
-            }
-        }
-        return copy;
+    function demo_compareCipherPlain(bytes memory cipher, uint256 plain)
+        public
+        pure
+        returns (int256)
+    {
+        int256 result = EigenCallLibrary.compareCipherPlain(cipher, plain);
+        return result;
     }
 }
