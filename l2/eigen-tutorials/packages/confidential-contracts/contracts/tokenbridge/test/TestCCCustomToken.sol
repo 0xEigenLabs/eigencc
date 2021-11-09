@@ -93,9 +93,6 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         require(_msgSender() != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        bytes[] memory list;
-        list = new bytes[](4);
-
         bytes memory sender_cipher_hex_balance = _cipher_balances[_msgSender()];
         bytes memory sender_cipher_hex = EigenCallLibrary.subCipherCipher(
             sender_cipher_hex_balance,
@@ -121,9 +118,6 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        bytes[] memory list;
-        list = new bytes[](4);
-
         bytes memory sender_cipher_hex_balance = _cipher_balances[sender];
         bytes memory sender_cipher_hex = EigenCallLibrary.subCipherCipher(
             sender_cipher_hex_balance,
@@ -147,9 +141,6 @@ contract TestCCCustomToken is aeERC20, IArbToken {
 
         require(_msgSender() != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
-
-        bytes[] memory list;
-        list = new bytes[](4);
 
         bytes memory sender_cipher_hex_balance = _cipher_balances[_msgSender()];
         bytes memory sender_cipher_hex = EigenCallLibrary.subCipherPlain(
@@ -177,9 +168,6 @@ contract TestCCCustomToken is aeERC20, IArbToken {
 
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
-
-        bytes[] memory list;
-        list = new bytes[](4);
 
         bytes memory sender_cipher_hex_balance = _cipher_balances[sender];
         bytes memory sender_cipher_hex = EigenCallLibrary.subCipherPlain(
