@@ -9,6 +9,7 @@
 ```
 cp .env-sample .env
 yarn build
-yarn deploy
+yarn run cc
+# or yarn run erc20
 ```
 

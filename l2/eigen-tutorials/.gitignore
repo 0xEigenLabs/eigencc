@@ -5,5 +5,7 @@ packages/*/.DS_Store
 packages/*/artifacts/
 packages/*/cache/
 packages/*/build/
+packages/*/typechain/
 packages/*/node_modules/
 packages/*/.env
+packages/*/yarn.lock
