@@ -20,24 +20,26 @@ import { EigenCallLibrary } from '../typechain/EigenCallLibrary'
 import { EigenCallLibrary__factory } from '../typechain/factories/EigenCallLibrary__factory'
 
 import {
-  Bridge,
-  Inbox__factory,
-  L2ToL1EventResult,
-  DepositTokenEventResult,
-  ArbTokenBridge__factory,
-  EthERC20Bridge__factory,
-  OutgoingMessageState,
-} from 'arb-ts'
+    Bridge,
+    Inbox__factory,
+    L2ToL1EventResult,
+    DepositTokenEventResult,
+    ArbTokenBridge__factory,
+    EthERC20Bridge__factory,
+    OutgoingMessageState,
+} from 'arb-ts';
 
-import { approveToken, depositETH, deposit, registerTokenOnL2 } from './common'
+import {
+    wait,
+    approveToken,
+    depositETH,
+    deposit,
+    withdraw,
+    registerTokenOnL2
+} from "./common"
 
-const deployments = require('../deployment.json')
+const deployments = require('../deployment.json');
 require('dotenv').config()
-const wait = async (i: number) => {
-  setTimeout(function () {
-    console.log('Waiting')
-  }, i)
-}
 
 requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC', 'PKCS'])
 
@@ -268,14 +270,8 @@ const main = async () => {
   )
 
   let amountDeposit = BigNumber.from(1200000)
-  await deposit(
-    bridge,
-    l1TestWallet,
-    l2TestWallet,
-    tokenPair.l1CustomToken,
-    amountDeposit
-  )
-  console.log('deposit done cccc')
+  await deposit(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, amountDeposit)
+  console.log("cc deposit done")
 
   await eigenCallDemo(tokenPair.l2CustomToken)
 
@@ -311,24 +307,17 @@ const main = async () => {
   console.log('balance ', balance.length, balance.toString())
 
   //transfer
-  const amount = 100
-  let cipher_amount = ecies_encrypt(publicKey, amount).toString('hex')
-  let transferTx = await l2ccInstance.cipherTransfer(
-    receiver,
-    Buffer.from(cipher_amount),
-    {
-      gasPrice: 1,
-      gasLimit: 25000,
-    }
-  )
-  console.log(
-    'cipher transfer',
-    transferTx?.toString(),
-    hex2ascii(transferTx?.toString())
-  )
-  let rec = await transferTx.wait()
-  let event = rec.events.pop()
-  console.log('events', event.args.from, event.args.to, event.args.value)
+  const amount = 100;
+  let cipher_amount = ecies_encrypt(publicKey, amount).toString('hex');
+  let transferTx = await l2ccInstance.cipherTransfer(receiver, Buffer.from(cipher_amount), {
+    gasPrice: 1,
+    gasLimit: 25000,
+  })
+  console.log("cipher transfer", hex2ascii(transferTx?.toString(), "hex"),
+              hex2ascii(transferTx?.toString(), "hex"));
+  let rec = await transferTx.wait(); 
+  let event = rec.events.pop();
+  console.log("events", event.args.from, event.args.to, event.args.value)
 
   // balance
   tx = await l2ccInstance.cipherBalanceOf(receiver, Buffer.from(cipherSecret), {
@@ -341,6 +330,12 @@ const main = async () => {
   balance = ecies.aes_dec(symmetricCypherName, secret, txt)
   console.log('get balance ', balance.toString())
   //expect(balance).to.eq(amount)
+  console.log("cc withdraw")
+  let amountWithdraw = BigNumber.from(120000)
+  await withdraw(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, 
+                 tokenPair.l2CustomToken, amountWithdraw)
+  console.log("cc withdraw done")
+
 }
 
 main()

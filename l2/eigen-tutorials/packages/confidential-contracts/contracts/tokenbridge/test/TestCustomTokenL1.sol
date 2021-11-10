@@ -18,7 +18,7 @@ contract TestCustomTokenL1 is aeERC20, ICustomToken {
     }
 
     function mint() external {
-        _mint(msg.sender, 50000000);
+        _mint(msg.sender, 5000000000);
     }
 
     function transferFrom(

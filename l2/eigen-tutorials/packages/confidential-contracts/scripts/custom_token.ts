@@ -14,18 +14,13 @@ import { TestArbCustomToken } from "../typechain/TestArbCustomToken";
 import { TestCustomTokenL1__factory } from '../typechain/factories/TestCustomTokenL1__factory';
 import { TestArbCustomToken__factory } from '../typechain/factories/TestArbCustomToken__factory'
 
-const hex2ascii = require('hex2ascii')
-
 const MIN_APPROVAL = constants.MaxUint256
-
-const wait = async (i: number) => {
-    setTimeout(function() { console.log("Waiting") }, i);
-}
 
 require('dotenv').config()
 requireEnvVariables(['DEVNET_PRIVKEY', 'L2RPC', 'L1RPC'])
 
 import {
+    wait,
     approveToken,
     depositETH,
     deposit,
@@ -49,15 +44,6 @@ const bridge = new Bridge(
 )
 
 const main = async () => {	
-	/*
-    const inboxAddr1 = await bridge.ethERC20Bridge.inbox()
-    const receipt = await bridge.getL2Transaction(
-	    '0xa7e4b50494bebca56aaa6d44b01fe9c9f92e358481794b82f16e13ad0259357e')
-    
-    console.log(receipt)
-
-    return
-    */
 
     await depositETH(bridge, l1TestWallet, l2TestWallet, utils.parseEther("1.0"))
     console.log("depositETH done")
@@ -83,7 +69,7 @@ const main = async () => {
     */
     const l2CustomToken = TestArbCustomToken__factory.connect(tokenPair.l2CustomToken, l2TestWallet)
 
-    let amount = BigNumber.from(120000)
+    let amount = BigNumber.from(1200000)
     await deposit(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, amount)
     await withdraw(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, tokenPair.l2CustomToken, amount)
 }
