@@ -16,7 +16,9 @@
     "chai": "^4.3.4",
     "node-fetch": "^2.6.1",
     "elliptic": "^6.5.4",
-    "int64-buffer": "^1.0.1"
+    "int64-buffer": "^1.0.1",
+    "solidity-rlp": "^2.0.5",
+    "hex2ascii": "^0.0.3"
   },
   "dependencies": {
     "dotenv": "^8.2.0"
