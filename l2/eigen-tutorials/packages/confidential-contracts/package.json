@@ -6,8 +6,7 @@
     "build": "hardhat compile",
     "clean": "rm -rf artifacts cache typechain",
     "cc": "hardhat run scripts/cc.ts --network l2",
-    "erc20": "hardhat run scripts/custom_token.ts",
-    "erc721": "hardhat run scripts/custom_token_erc721.ts"
+    "erc20": "hardhat run scripts/custom_token.ts"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",

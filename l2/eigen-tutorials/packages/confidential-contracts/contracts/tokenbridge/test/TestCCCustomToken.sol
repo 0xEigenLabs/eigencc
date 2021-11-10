@@ -70,8 +70,8 @@ contract TestCCCustomToken is aeERC20, IArbToken {
         _mint(account, amount);
 
         bytes memory cipherBalance = _cipher_balances[account];
-        bytes memory cipher_hex = addCipherPlain(cipherBalance, amount);
-        _cipher_balances[account] = copy_bytes(cipher_hex);
+        bytes memory cipher_hex = EigenCallLibrary.addCipherPlain(cipherBalance, amount);
+        _cipher_balances[account] = EigenCallLibrary.copyBytes(cipher_hex);
     }
 
     function bridgeBurn(address account, uint256 amount) external override onlyBridge {
