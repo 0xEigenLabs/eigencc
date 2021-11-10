@@ -14,7 +14,7 @@ import { TestArbCustomToken } from "../typechain/TestArbCustomToken";
 import { TestCustomTokenL1__factory } from '../typechain/factories/TestCustomTokenL1__factory';
 import { TestArbCustomToken__factory } from '../typechain/factories/TestArbCustomToken__factory'
 
-const wait = async (i: number) => {
+export const wait = async (i: number) => {
     setTimeout(function() { console.log("Waiting") }, i);
 }
 
