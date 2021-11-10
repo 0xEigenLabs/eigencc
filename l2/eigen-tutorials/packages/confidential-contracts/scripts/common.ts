@@ -114,7 +114,7 @@ export const deposit = async (bridge: Bridge, l1TestWallet: Wallet, l2TestWallet
       .calculateL2TokenAddress(l1CustomToken.address)
       .then(([res]) => res)
     console.log("l2: ", l2TokenAddr)
-	
+
     const l2AddressHopefully = await bridge.arbTokenBridge.customL2Token(
     	l1CustomToken.address
     )
@@ -132,7 +132,7 @@ export const deposit = async (bridge: Bridge, l1TestWallet: Wallet, l2TestWallet
 		maxGas: BigNumber.from(maxGas),
 		gasPriceBid:BigNumber.from(1),
 		maxSubmissionPrice: BigNumber.from(1)
-	}, 
+	},
 	l1TestWallet.address,
         { gasLimit: 594949, gasPrice: l1GasPrice }
     );
@@ -151,7 +151,7 @@ export const deposit = async (bridge: Bridge, l1TestWallet: Wallet, l2TestWallet
     } else {
         console.log("deposit failed", initialBridgeTokenBalance.toString(),
                     tokenDepositAmount.toString(),
-                    finalBridgeTokenBalance.toString()) 
+                    finalBridgeTokenBalance.toString())
     }
 
     const tokenDepositData = (
@@ -253,13 +253,19 @@ export const withdraw = async (
         process.exit(-1)
     }
     */
-
-    const receipt = await bridge.triggerL2ToL1Transaction(
-        batchNumber,
-        indexInBatch
-    )
+    // NOTE: This process may last more than 30min ~ 50min, please be patient
+    let receipt
+    while (receipt === undefined) {
+        try {
+        receipt = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+        } catch (error) {
+        console.log(error)
+        receipt = undefined
+        }
+        wait(100000)
+    }
     if (receipt.status != 1) {
-        console.log("trigger failed")
+        console.log('trigger failed')
         process.exit(-1)
     }
 
@@ -295,30 +301,29 @@ export const depositETH = async(
     ethToL2DepositAmount: BigNumber) => {
     const res2 = await bridge.depositETH(ethToL2DepositAmount, l1TestWallet.address)
     const rec2 = await res2.wait();
-    console.log(rec2) 
+    console.log(rec2)
     if (rec2.status != 1) {
     	throw new Error("Deposit l1 wallet error")
     }
 
     let bridgeEthBalance = await l2TestWallet.provider.getBalance(deployments.ethERC20Bridge)
-    console.log("deployments.ethERC20Bridge balance: ", bridgeEthBalance.toString()) 
+    console.log("deployments.ethERC20Bridge balance: ", bridgeEthBalance.toString())
 
     if (bridgeEthBalance.gt(BigNumber.from(0))) {
         console.log("Skip deposit ethERC20Bridge")
     }
     /*
-    let balance = await getWalletBalance() 
+    let balance = await getWalletBalance()
     console.log(ethToL2DepositAmount.toString(), balance[1].toString())
     if (ethToL2DepositAmount.lt(balance[1])) {
     	return
     }
     */
 
-    const res = await bridge.depositETH(ethToL2DepositAmount, deployments.ethERC20Bridge)	
+    const res = await bridge.depositETH(ethToL2DepositAmount, deployments.ethERC20Bridge)
     const rec = await res.wait();
-    console.log(rec) 
+    console.log(rec)
     if (rec.status != 1) {
     	throw new Error("Deposit error")
     }
 }
-
