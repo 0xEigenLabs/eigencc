@@ -21,7 +21,7 @@ export const wait = async (i: number) => {
 const l1GasPrice = 1;
 const gasLimit = 9646610
 const maxGas = 9646610
-const userAddr = "0xD73EbFad38707CB2AB4D127A43A193Bc526F5151"
+const userAddr = "0x81183C9C61bdf79DB7330BBcda47Be30c0a85064"
 
 export const deployL1AndL2 = async (bridge: Bridge, l1TestWallet: Wallet, l2TestWallet: Wallet) => {
     let l1CustomToken: TestCustomTokenL1
@@ -65,7 +65,7 @@ export const deployL1AndL2 = async (bridge: Bridge, l1TestWallet: Wallet, l2Test
     console.log("L2 custom address", arbCustomToken.address,
         arbCustomToken.deployTransaction.hash);
 
-    await (1000000)
+    await wait(10000)
     return { l1CustomToken: l1CustomToken.address, l2CustomToken: arbCustomToken.address }
 }
 
@@ -326,4 +326,8 @@ export const depositETH = async(
     if (rec.status != 1) {
     	throw new Error("Deposit error")
     }
+    let balance = await getWalletBalance(bridge, l1TestWallet, l2TestWallet) 
+    console.log("after depositETH", balance[0].toString(), balance[1].toString())
+    let bridgeEthBalance2 = await l2TestWallet.provider.getBalance(deployments.ethERC20Bridge)
+    console.log("after deployments.ethERC20Bridge balance: ", bridgeEthBalance2.toString()) 
 }
