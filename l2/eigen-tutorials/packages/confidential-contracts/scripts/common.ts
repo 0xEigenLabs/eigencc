@@ -14,8 +14,12 @@ import { TestArbCustomToken } from "../typechain/TestArbCustomToken";
 import { TestCustomTokenL1__factory } from '../typechain/factories/TestCustomTokenL1__factory';
 import { TestArbCustomToken__factory } from '../typechain/factories/TestArbCustomToken__factory'
 
-export const wait = async (i: number) => {
-    setTimeout(function() { console.log("Waiting") }, i);
+//export const wait = async (i: number) => {
+//    setTimeout(function() { console.log("Waiting") }, i);
+//}
+
+export function wait(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
 }
 
 const l1GasPrice = 1;
@@ -257,12 +261,12 @@ export const withdraw = async (
     let receipt
     while (receipt === undefined) {
         try {
-        receipt = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
+            receipt = await bridge.triggerL2ToL1Transaction(batchNumber, indexInBatch)
         } catch (error) {
-        console.log(error)
-        receipt = undefined
+            console.log(error)
+            receipt = undefined
         }
-        wait(100000)
+        await wait(10000)
     }
     if (receipt.status != 1) {
         console.log('trigger failed')

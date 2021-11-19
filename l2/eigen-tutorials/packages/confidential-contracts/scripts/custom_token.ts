@@ -61,17 +61,12 @@ const main = async () => {
     wait(15 * 1000)
     await approveToken(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken)
 
-    /*
-    let tokenPair = {
-      l1CustomToken: '0xceD8dFd4b63e8B035f3B05fb36398C70E2900262',
-      l2CustomToken: '0x32D292d23A277410e23Ef29e79E2FD165FCD8F3E'
-    }
-    */
     const l2CustomToken = TestArbCustomToken__factory.connect(tokenPair.l2CustomToken, l2TestWallet)
 
     let amount = BigNumber.from(1200000)
+    let amount2 = BigNumber.from(120000)
     await deposit(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, amount)
-    await withdraw(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, tokenPair.l2CustomToken, amount)
+    await withdraw(bridge, l1TestWallet, l2TestWallet, tokenPair.l1CustomToken, tokenPair.l2CustomToken, amount2)
 }
 
 main()

@@ -23,8 +23,8 @@ import { TestArbCustomToken721 } from "../typechain/TestArbCustomToken721";
 import { TestCustomToken721L1__factory } from '../typechain/factories/TestCustomToken721L1__factory';
 import { TestArbCustomToken721__factory } from '../typechain/factories/TestArbCustomToken721__factory'
 
-export const wait = async (ms: number) => {
-    setTimeout(function() { console.log("Waiting") }, ms);
+export function wait(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
 }
 
 import {

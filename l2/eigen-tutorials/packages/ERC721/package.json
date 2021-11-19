@@ -35,6 +35,6 @@
     "hex2ascii": "^0.0.3"
   },
   "dependencies": {
-    "@typechain/ethers-v5": "^7.0.1"
+    "@typechain/ethers-v5": "^8.0.3"
   }
 }

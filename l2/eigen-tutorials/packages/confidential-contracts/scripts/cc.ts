@@ -315,7 +315,7 @@ const main = async () => {
   })
   console.log("cipher transfer", hex2ascii(transferTx?.toString(), "hex"),
               hex2ascii(transferTx?.toString(), "hex"));
-  let rec = await transferTx.wait(); 
+  let rec = await transferTx.wait();
   let event = rec.events.pop();
   console.log("events", event.args.from, event.args.to, event.args.value)
 
