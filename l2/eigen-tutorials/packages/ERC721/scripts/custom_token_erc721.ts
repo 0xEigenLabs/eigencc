@@ -89,6 +89,7 @@ const main = async () => {
     tokenPair.l1CustomToken,
     tokenId
   )
+  console.log('deposit done')
   await withdrawERC721(
     bridge,
     l1TestWallet,

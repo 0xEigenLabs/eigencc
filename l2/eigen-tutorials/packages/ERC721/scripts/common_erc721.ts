@@ -231,9 +231,10 @@ export class EigBridge {
   }
 
   public async getDepositTokenEventData(
+    l1TestWallet: Wallet,
     l1Transaction: providers.TransactionReceipt
   ) {
-    const factory = new EthERC721Bridge__factory()
+    const factory = new EthERC721Bridge__factory(l1TestWallet)
     const contract = factory.attach(this.arbTokenBridge.address)
     const iface = contract.interface
     const event = iface.getEvent('DepositToken')
@@ -429,7 +430,7 @@ export const depositERC721 = async (
   }
 
   const tokenDepositData = (
-    await bridge.getDepositTokenEventData(depositRec)
+    await bridge.getDepositTokenEventData(l1TestWallet, depositRec)
   )[0] as DepositTokenEventResult
   console.log('token deposit data', tokenDepositData)
   const seqNum = tokenDepositData.seqNum
@@ -553,8 +554,12 @@ export const withdrawERC721 = async (
          */
 
   let receipt
+  let retry_count = 0
   while (receipt === undefined) {
     try {
+      console.log(
+        `Going to try to call triggerL2ToL1Transaction(${batchNumber}, ${indexInBatch})`
+      )
       receipt = await bridge.bridge.triggerL2ToL1Transaction(
         batchNumber,
         indexInBatch
@@ -563,6 +568,8 @@ export const withdrawERC721 = async (
       console.log(error)
       receipt = undefined
     }
+    retry_count += 1
+    console.log(`Waiting for some seconds and retry...(${retry_count})`)
     await wait(100000)
   }
   if (receipt.status != 1) {
