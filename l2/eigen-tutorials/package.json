@@ -14,7 +14,8 @@
     "packages": [
       "packages/arb-shared-dependencies",
       "packages/demo-eigencall",
-      "packages/confidential-contracts"
+      "packages/confidential-contracts",
+      "packages/ERC721"
     ]
   }
 }
