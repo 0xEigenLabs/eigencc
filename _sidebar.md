@@ -9,6 +9,7 @@
 - EGIP
   - [EigenCALL Instruction](/docs/egip/00001.md)
   - [Confidential Contract](/docs/egip/00002.md)
+  - [Secret Recovery Protocol](/docs/egip/00003.md)
   
 - developer
   - [Eigen Call](/l2/eigen-tutorials/packages/demo-eigencall/README.md)
