@@ -22,3 +22,5 @@ mod register_func;
 pub use register_func::RegisterWorker;
 mod operators;
 pub use operators::OperatorWorker;
+mod kms;
+pub use kms::KmsWorker;
