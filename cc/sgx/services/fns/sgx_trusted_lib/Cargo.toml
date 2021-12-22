@@ -64,5 +64,7 @@ eigen_core = { path = "../../../eigen_core" }
 utils = { path = "../../../utils" }
 config = { path = "../../../config" }
 
-reqwest = { version = "0.10", features = ["json", "blocking"] }
+reqwest = { path = "../../../../../../third_party/crates-io/vendor/reqwest", features = ["json", "blocking"] }
 tokio = { path = "../../../../../../third_party/crates-io/vendor/tokio" }
+mime = { path = "../../../../../../third_party/crates-io/vendor/mime" }
+mime_guess = { path = "../../../../../../third_party/crates-io/vendor/mime_guess" }
