@@ -8,7 +8,6 @@ use std::str::FromStr;
 use utils;
 
 pub struct Mesatee {
-    // 暂时没有用上user的信息
     #[allow(dead_code)]
     user_id: String,
     #[allow(dead_code)]
