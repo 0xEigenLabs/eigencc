@@ -303,8 +303,8 @@ impl<'a> Client<'a> {
 
   pub fn list_cmk(&self) -> ListKeysResp {
     let pager = Pager {
-      Offset: 0,
-      Limit: 1,
+      offset: 0,
+      limit: 1,
     };
     let payload = serde_json::to_string(&pager).unwrap();
     let resp = self.send("ListKeys", &payload);

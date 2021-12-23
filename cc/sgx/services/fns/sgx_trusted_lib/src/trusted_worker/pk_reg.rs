@@ -120,6 +120,6 @@ pub fn get_kms_client_sk() -> String {
 }
 
 pub fn get_kms_client_region() -> String {
-    let key = "KMS_CLIENT_SK";
+    let key = "KMS_CLIENT_REGION";
     env::var(key).unwrap()
 }
