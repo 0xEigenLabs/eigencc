@@ -18,10 +18,7 @@
 // Insert std prelude in the top for the sgx feature
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
-use std::vec;
 use std::format;
-
-use crate::worker::{Worker, WorkerContext};
 
 use chrono::{DateTime, offset::Utc};
 
@@ -29,7 +26,7 @@ use ring::digest;
 use ring::hmac;
 use serde::{Deserialize, Serialize};
 
-use http_req::{request, tls, uri::Uri, response::Headers, request::Method};
+use http_req::{request, uri::Uri, response::Headers, request::Method};
 
 use std::time::SystemTime;
 

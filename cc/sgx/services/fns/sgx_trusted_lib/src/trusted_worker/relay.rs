@@ -18,9 +18,7 @@
 // Insert std prelude in the top for the sgx feature
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
-use std::vec;
 
-use crate::eigen_crypto::sign::ecdsa::KeyPair;
 use crate::trusted_worker::pk_reg;
 use crate::worker::{Worker, WorkerContext};
 use eigen_core::{Error, ErrorKind};
