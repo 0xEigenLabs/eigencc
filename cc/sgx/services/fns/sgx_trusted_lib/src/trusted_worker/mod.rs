@@ -18,7 +18,13 @@
 // Insert std prelude in the top for the sgx feature
 mod demo_func;
 pub use demo_func::EchoWorker;
-mod register_func;
-pub use register_func::RegisterWorker;
+mod pk_reg;
+pub use pk_reg::RegisterWorker;
 mod operators;
 pub use operators::OperatorWorker;
+mod relay;
+pub use relay::RelayWorker;
+
+
+mod local_ecies;
+mod kms;

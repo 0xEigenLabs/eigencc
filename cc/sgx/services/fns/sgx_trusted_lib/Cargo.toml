@@ -54,3 +54,5 @@ fns_proto            = { path = "../proto", optional = true }
 eigen_core         = { path = "../../../eigen_core" }
 utils       = { path = "../../../utils" }
 config      = { path = "../../../config" }
+
+http_req    = { version = "^0.7" }

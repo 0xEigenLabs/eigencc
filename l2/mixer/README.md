@@ -64,7 +64,9 @@ $ truffle migrate --reset
 $ export MIXER_ADDR=${mixer address from above}
 $ #generate the first parameter of withdraw and replace it in script/call_mixer.js.
 $ cd circuit && snarkjs generatecall
-$ yarn call_mixer
+$ yarn call_mixer d
+$ yarn call_mixer w
+
 ```
 
 ### How it work

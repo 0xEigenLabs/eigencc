@@ -45,7 +45,6 @@ log               = { git = "https://github.com/mesalock-linux/log-sgx" }
 lzw               = { git = "https://github.com/mesalock-linux/lzw-sgx" }
 num-bigint        = { git = "https://github.com/mesalock-linux/num-bigint-sgx" }
 num-traits        = { git = "https://github.com/mesalock-linux/num-traits-sgx" }
-#parity-wasm       = { git = "https://github.com/mesalock-linux/parity-wasm-sgx" }
 png               = { git = "https://github.com/mesalock-linux/image-png-sgx" }
 profiler_builtins = { git = "https://github.com/mesalock-linux/sgx-fake-profiler-builtins" }
 quick-error       = { git = "https://github.com/mesalock-linux/quick-error-sgx" }
@@ -59,8 +58,6 @@ serde_json        = { git = "https://github.com/mesalock-linux/serde-json-sgx" }
 tiff              = { git = "https://github.com/mesalock-linux/image-tiff-sgx" }
 toml              = { git = "https://github.com/mesalock-linux/toml-rs-sgx" }
 uuid              = { git = "https://github.com/mesalock-linux/uuid-sgx" }
-#wabt              = { git = "https://github.com/mesalock-linux/wabt-rs-sgx", branch = "v0.9-core" }
-#wasmi             = { git = "https://github.com/mesalock-linux/wasmi-sgx" }
 webpki            = { git = "https://github.com/mesalock-linux/webpki", branch = "mesalock_sgx" }
 webpki-roots      = { git = "https://github.com/mesalock-linux/webpki-roots", branch = "mesalock_sgx" }
 yasna             = { git = "https://github.com/mesalock-linux/yasna.rs-sgx" }
@@ -71,3 +68,5 @@ eigen_crypto 	  = { git = "https://github.com/ieigen/eigen-crypto", features = [
 rust-base58       = { git = "https://github.com/mesalock-linux/rust-base58-sgx" }
 rust-crypto       = { git = "https://github.com/mesalock-linux/rust-crypto-sgx" }
 gbdt = { package = "gbdt_sgx", git = "https://github.com/mesalock-linux/gbdt-rs" }
+http_req = { git = "https://github.com/mesalock-linux/http_req-sgx" }
+version_check = { path = "../../../third_party/crates-io/vendor/version_check" }

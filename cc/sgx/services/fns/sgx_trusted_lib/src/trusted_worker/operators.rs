@@ -18,14 +18,12 @@
 // Insert std prelude in the top for the sgx feature
 #[cfg(feature = "mesalock_sgx")]
 use std::prelude::v1::*;
-use std::vec;
 
-use crate::eigen_crypto::sign::ecdsa::KeyPair;
-use crate::trusted_worker::register_func;
 use crate::worker::{Worker, WorkerContext};
 use eigen_core::{Error, ErrorKind, Result};
 
 use num_bigint::{BigUint};
+use super::local_ecies;
 
 pub struct OperatorWorker {
     worker_id: u32,
@@ -34,6 +32,7 @@ pub struct OperatorWorker {
     input: Option<OperatorWorkerInput>,
 }
 
+
 impl OperatorWorker {
     pub fn new() -> Self {
         OperatorWorker {
@@ -41,49 +40,6 @@ impl OperatorWorker {
             func_name: "operator".to_string(),
             input: None,
         }
-    }
-
-    fn safe_encrypt(&mut self, result: Vec<u8>) -> Result<Vec<u8>> {
-        // 4. Do ECIES encrypt
-        let s1 = vec![];
-        let s2 = vec![];
-        let key_pair = register_func::get_key_pair();
-        let alg = &eigen_crypto::sign::ecdsa::ECDSA_P256_SHA256_ASN1;
-        let public_key =
-            eigen_crypto::sign::ecdsa::UnparsedPublicKey::new(alg, key_pair.public_key());
-        eigen_crypto::ec::suite_b::ecies::encrypt(
-            &public_key,
-            &s1,
-            &s2,
-            &result,
-        ).map_err(|e| {
-            error!("safe_encrypt error, {:?}", e);
-            Error::from(ErrorKind::CryptoError)
-        })
-    }
-
-    fn safe_decrypt(&mut self, operand: &str) -> Result<Vec<u8>> {
-        let cipher_operand = hex::decode(&operand)
-            .map_err(|e| {
-                error!("decode error, {:?}, error is {:?}", operand, e);
-                Error::from(ErrorKind::DecodeError)
-            })?;
-        if cipher_operand.len() <= 0 {
-            info!("safe decrypt: zero found");
-            return Ok(vec![]);
-        }
-        let key_pair = register_func::get_key_pair();
-        let s1 = vec![];
-        let s2 = vec![];
-        eigen_crypto::ec::suite_b::ecies::decrypt(
-            key_pair,
-            &cipher_operand,
-            &s1,
-            &s2,
-        ).map_err(|e| {
-            error!("safe_decrypt failed, {:?}", e);
-            Error::from(ErrorKind::CryptoError)
-        })
     }
 }
 
@@ -179,8 +135,8 @@ impl Worker for OperatorWorker {
         match input.op {
             OperatorKind::AddCipherCipher | OperatorKind::SubCipherCipher => {
                 // 1. Cipher is encoded as hex, should be decoded
-                let op1 = self.safe_decrypt(&input.operand_1)?;
-                let op2 = self.safe_decrypt(&input.operand_2)?;
+                let op1 = local_ecies::safe_decrypt(&input.operand_1)?;
+                let op2 = local_ecies::safe_decrypt(&input.operand_2)?;
                 // 2. convert to big number
                 let op1 = BigUint::from_bytes_be(&op1[..]);
                 let op2 = BigUint::from_bytes_be(&op2[..]);
@@ -195,14 +151,14 @@ impl Worker for OperatorWorker {
                     }
                 };
                 // 4. Do ECIES encrypt
-                let cipher = self.safe_encrypt(result.to_bytes_be())?;
+                let cipher = local_ecies::safe_encrypt(result.to_bytes_be())?;
                 // 5. Result is cipher, encode it as hex
                 let result = hex::encode(&cipher);
                 Ok(result)
             }
 
             OperatorKind::AddCipherPlain | OperatorKind::SubCipherPlain => {
-                let op1 = self.safe_decrypt(&input.operand_1)?;
+                let op1 = local_ecies::safe_decrypt(&input.operand_1)?;
                 let op1 = BigUint::from_bytes_be(&op1[..]);
 
                 let op2 = BigUint::parse_bytes(input.operand_2.as_bytes(), 10)
@@ -217,7 +173,7 @@ impl Worker for OperatorWorker {
                     }
                 };
 
-                let cipher = self.safe_encrypt(result.to_bytes_be())?;
+                let cipher = local_ecies::safe_encrypt(result.to_bytes_be())?;
                 let result = hex::encode(&cipher);
                 Ok(result)
             }
@@ -227,19 +183,19 @@ impl Worker for OperatorWorker {
                     .ok_or_else(|| Error::from(ErrorKind::DecodeError))?;
                 let op_bytes = op1.to_bytes_be();
 
-                let cipher = self.safe_encrypt(op_bytes)?;
+                let cipher = local_ecies::safe_encrypt(op_bytes)?;
                 let result = hex::encode(&cipher);
                 Ok(result)
             }
             OperatorKind::Decrypt => {
-                let plain = self.safe_decrypt(&input.operand_1)?;
+                let plain = local_ecies::safe_decrypt(&input.operand_1)?;
                 let b = BigUint::from_bytes_be(&plain[..]);
 
                 Ok(b.to_str_radix(10))
             }
             OperatorKind::ReEncrypt => {
-                let key = self.safe_decrypt(&input.operand_1)?;
-                let msg = self.safe_decrypt(&input.operand_2)?;
+                let key = local_ecies::safe_decrypt(&input.operand_1)?;
+                let msg = local_ecies::safe_decrypt(&input.operand_2)?;
 
                 // bytes -> bigint
                 // bigint -> string
@@ -255,12 +211,12 @@ impl Worker for OperatorWorker {
                 Ok(result)
             }
             OperatorKind::CompareCipherCipher | OperatorKind::CompareCipherPlain => {
-                let op1 = self.safe_decrypt(&input.operand_1)?;
+                let op1 = local_ecies::safe_decrypt(&input.operand_1)?;
                 let op1 = BigUint::from_bytes_be(&op1[..]);
 
                 let op2 = match input.op {
                     OperatorKind::CompareCipherCipher => {
-                        let op2 = self.safe_decrypt(&input.operand_2)?;
+                        let op2 = local_ecies::safe_decrypt(&input.operand_2)?;
                         BigUint::from_bytes_be(&op2[..])
                     }
                     OperatorKind::CompareCipherPlain => {
