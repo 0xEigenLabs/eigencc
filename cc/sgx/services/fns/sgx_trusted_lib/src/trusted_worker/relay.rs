@@ -37,7 +37,7 @@ impl RelayWorker {
   pub fn new() -> Self {
     RelayWorker {
       worker_id: 0,
-      func_name: "kms".to_string(),
+      func_name: "relay".to_string(),
       input: None,
     }
   }
@@ -74,13 +74,14 @@ impl Worker for RelayWorker {
     // `args` should be "op|data"
     // now `op` may be 'encrypt' or 'decrypt'
 
+    info!("{}", msg);
     let splited = msg.split("|").collect::<Vec<_>>();
 
     if splited.len() != 4 {
       return Err(Error::from(ErrorKind::InvalidInputError));
     }
 
-    let op = &splited[0][0..splited[0].len() - 1];
+    let op = &splited[0][0..splited[0].len()];
 
     let operation = match op {
       "encrypt" => RelayOperation::Encrypt,
@@ -117,29 +118,27 @@ impl Worker for RelayWorker {
 
     client.list_cmk();
 
-
     match input.op {
       RelayOperation::Encrypt => {
         let bc1 = safe_decrypt(&input.data)?;
-        let bcc1 = safe_decrypt(&input.data)?;
+        let bcc1 = safe_decrypt(&input.user_attr)?;
         let c1 = String::from_utf8_lossy(&bc1);
         let cc1 = String::from_utf8_lossy(&bcc1);
+        info!("cc1 {}", cc1);
 
         //base64 cipher
         let cipher_key = client.encrypt(&pk_reg::get_kms_key_id(), c1.to_string(), cc1.to_string());
-
         Ok(cipher_key.ciphertext_blob)
       }
       RelayOperation::Decrypt => {
-        let c2 =  safe_decrypt(&input.data).unwrap();
+        let c2 =  input.data;
         let cc1 = safe_decrypt(&input.user_attr).unwrap();
         let ccr = safe_decrypt(&input.temp_key).unwrap();
-        let c2 =  String::from_utf8_lossy(&c2);
         let cc1 = String::from_utf8_lossy(&cc1);
-        let ccr = String::from_utf8_lossy(&ccr);
+        info!("cc1 {}", cc1);
 
         let plain_key = client.decrypt(c2.to_string(), cc1.to_string());
-        let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&ccr.as_bytes(), &plain_key.plaintext.as_bytes())
+        let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&ccr, &plain_key.plaintext.as_bytes())
             .map_err(|e| {
                 error!("aes_encrypt_less_safe, {:?}", e);
                 Error::from(ErrorKind::CryptoError)
