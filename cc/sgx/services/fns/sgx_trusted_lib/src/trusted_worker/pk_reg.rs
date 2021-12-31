@@ -21,6 +21,7 @@ use std::prelude::v1::*;
 
 use std::str;
 use std::vec;
+use std::env;
 use crate::worker::{Worker, WorkerContext};
 use eigen_core::Result;
 
@@ -101,4 +102,24 @@ pub fn get_key_pair() -> &'static EcdsaKeyPair {
 
 pub fn get_aes_key() -> &'static Vec<u8> {
     &CACHED_AES_KEY
+}
+
+pub fn get_kms_key_id() -> String {
+    let key = "KMS_KEY_ID";
+    env::var(key).unwrap()
+}
+
+pub fn get_kms_client_id() -> String {
+    let key = "KMS_CLIENT_ID";
+    env::var(key).unwrap()
+}
+
+pub fn get_kms_client_sk() -> String {
+    let key = "KMS_CLIENT_SK";
+    env::var(key).unwrap()
+}
+
+pub fn get_kms_client_region() -> String {
+    let key = "KMS_CLIENT_REGION";
+    env::var(key).unwrap()
 }

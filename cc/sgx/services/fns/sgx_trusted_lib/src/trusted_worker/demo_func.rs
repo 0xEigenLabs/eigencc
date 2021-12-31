@@ -132,7 +132,7 @@ impl Worker for EchoWorker {
 
 	        // load model and do inference
 	        let model = GBDT::load_model("gbdt.model").expect("failed to load the model");
-	        let predicted: PredVec = model.predict(&test_dv);
+	        let _predicted: PredVec = model.predict(&test_dv);
 	    }
 	    Ok(input.msg + ", Eigen")
     }
