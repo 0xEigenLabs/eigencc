@@ -43,6 +43,7 @@ where
         return Err(Error::from(ErrorKind::MsgSizeLimitExceedError));
     }
     let send_vec = get_send_vec(&mut buff);
+    debug!("send vec {:?}", send_vec);
 
     sock.write_all(&send_vec)?;
     sock.flush()?;
@@ -69,6 +70,7 @@ where
     let mut recv_buf: Vec<u8> = vec![0u8; buf_len as usize];
 
     br.read_exact(&mut recv_buf)?;
+    debug!("receive buf {:?}", recv_buf);
 
     Ok(recv_buf)
 }

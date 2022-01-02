@@ -127,17 +127,17 @@ impl Worker for RelayWorker {
         info!("cc1 {}", cc1);
 
         //base64 cipher
-        let cipher_key = client.encrypt(&pk_reg::get_kms_key_id(), c1.to_string(), cc1.to_string());
+        let cipher_key = client.encrypt(&pk_reg::get_kms_key_id(), c1.to_string(), cc1.to_string())?;
         Ok(cipher_key.ciphertext_blob)
       }
       RelayOperation::Decrypt => {
         let c2 =  input.data;
-        let cc1 = safe_decrypt(&input.user_attr).unwrap();
-        let ccr = safe_decrypt(&input.temp_key).unwrap();
+        let cc1 = safe_decrypt(&input.user_attr)?;
+        let ccr = safe_decrypt(&input.temp_key)?;
         let cc1 = String::from_utf8_lossy(&cc1);
         info!("cc1 {}", cc1);
 
-        let plain_key = client.decrypt(c2.to_string(), cc1.to_string());
+        let plain_key = client.decrypt(c2.to_string(), cc1.to_string())?;
         let result = eigen_crypto::ec::suite_b::ecies::aes_encrypt_less_safe(&ccr, &plain_key.plaintext.as_bytes())
             .map_err(|e| {
                 error!("aes_encrypt_less_safe, {:?}", e);

@@ -29,6 +29,7 @@ use serde::{Deserialize, Serialize};
 use http_req::{request, uri::Uri, response::Headers, request::Method};
 
 use std::time::SystemTime;
+use eigen_core::{Error, ErrorKind, Result};
 
 //region: https://intl.cloud.tencent.com/document/product/1030/32174
 pub fn get_date() -> String {
@@ -236,8 +237,11 @@ impl<'a> Client<'a> {
     &self,
     action: &str,
     payload: &str,
-  ) -> Headers {
-    let now = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+  ) -> Result<Headers> {
+      let now = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).map_err(|e| {
+          error!("get system_time error, {:?}", e);
+          Error::from(ErrorKind::SystemTimeError)
+      })?.as_secs();
     let date = get_date();
     let SignedHeaders = "content-type;host";
     let CanonicalQueryString = "";
@@ -266,83 +270,89 @@ impl<'a> Client<'a> {
     headers.insert("X-TC-Version", self.version);
     headers.insert("Content-Length", payload.len().to_string().as_str());
     info!("{:?} {}", headers, payload.len());
-    headers
+    Ok(headers)
   }
 
-  fn send(&self, action:& str, payload: &str) -> Vec<u8> {
+  fn send(&self, action:& str, payload: &str) -> Result<Vec<u8>> {
       let endpoint = "https://".to_owned() + self.host;
       let mut buf= Vec::new();
-      let headers = self.add_common_header(action, payload);
-      let uri: Uri = endpoint.parse().unwrap();
+      let headers = self.add_common_header(action, payload)?;
+      let uri: Uri = endpoint.parse().map_err(|e| {
+          error!("endpoint parse, {:?}", e);
+          Error::from(ErrorKind::InvalidInputError)
+      })?;
       let mut client = request::Request::new(&uri);
       let res = client
           .method(Method::POST)
           .headers(headers)
           .body(payload.as_ref())
-          .send(&mut buf)
-          .unwrap();
-      info!("Response {:?}", String::from_utf8(buf.clone()));
-      buf
+          .send(&mut buf).map_err(|e| {
+              error!("call kms parse, {:?}", e);
+              Error::from(ErrorKind::InvalidHTTPRequest)
+          });
+      info!("Response {:?}", String::from_utf8_lossy(&buf));
+      Ok(buf)
   }
 
-  pub fn create_cmk(&self) {
+  pub fn create_cmk(&self) -> Result<()>{
     let req = CreateKeyReq {
       alias: "eigen_test_key_1",
       key_usage: Some("ENCRYPT_DECRYPT"),
       description: Some("test"),
       type_: 1,
     };
-    let payload = serde_json::to_string(&req).unwrap();
+    let payload = serde_json::to_string(&req)?;
     let resp_json = "{\"Response\":{\"KeyId\":\"5aa5a643-60d7-11ec-9699-da765df4a8a3\",\"Alias\":\"eigen_test_key_1\",\"CreateTime\":1639923859,\"Description\":\"test\",\"KeyState\":\"Enabled\",\"KeyUsage\":\"ENCRYPT_DECRYPT\",\"RequestId\":\"75fda37b-7d8d-40df-8bc4-5c9b0c518391\",\"TagCode\":0,\"TagMsg\":\"\"}}";
-    let resp: WrappedResponse<CreateKeyResp> = serde_json::from_str(&resp_json).unwrap();
+    let resp: WrappedResponse<CreateKeyResp> = serde_json::from_str(&resp_json)?;
     info!("{:?}", resp);
+    Ok(())
   }
 
-  pub fn list_cmk(&self) -> ListKeysResp {
+  pub fn list_cmk(&self) -> Result<ListKeysResp> {
     let pager = Pager {
       offset: 0,
       limit: 1,
     };
-    let payload = serde_json::to_string(&pager).unwrap();
-    let resp = self.send("ListKeys", &payload);
-    let resp_json = String::from_utf8(resp).unwrap();
-    let resp: WrappedResponse<ListKeysResp> = serde_json::from_str(&resp_json).unwrap();
-    resp.response
+    let payload = serde_json::to_string(&pager)?;
+    let resp = self.send("ListKeys", &payload)?;
+    let resp_json = String::from_utf8_lossy(&resp);
+    let resp: WrappedResponse<ListKeysResp> = serde_json::from_str(&resp_json)?;
+    Ok(resp.response)
   }
 
-  pub fn encrypt(&self, key_id: &str, plaintext: String, ua: String) -> EncryptResp {
+  pub fn encrypt(&self, key_id: &str, plaintext: String, ua: String) -> Result<EncryptResp> {
     let userAttr = UserAttr {
         user_attr: ua
     };
-    let res_json = serde_json::to_string(&userAttr).unwrap();
+    let res_json = serde_json::to_string(&userAttr)?;
     let req = EncryptReq {
       key_id: key_id.to_string(),
       plaintext: plaintext,
       //encryption_context: Some(String::from("{\"test\": \"abc\"}")),
       encryption_context: Some(res_json),
     };
-    let payload = serde_json::to_string(&req).unwrap();
-    let resp = self.send("Encrypt", &payload);
-    let resp_json = String::from_utf8(resp).unwrap();
-    let resp: WrappedResponse<EncryptResp> = serde_json::from_str(&resp_json).unwrap();
+    let payload = serde_json::to_string(&req)?;
+    let resp = self.send("Encrypt", &payload)?;
+    let resp_json = String::from_utf8_lossy(&resp);
+    let resp: WrappedResponse<EncryptResp> = serde_json::from_str(&resp_json)?;
     info!("{:?}", resp);
-    resp.response
+    Ok(resp.response)
   }
 
-  pub fn decrypt(&self, cipher_text_base64: String, ua: String) -> DecryptResp {
+  pub fn decrypt(&self, cipher_text_base64: String, ua: String) -> Result<DecryptResp> {
     let userAttr = UserAttr {
         user_attr: ua
     };
-    let res_json = serde_json::to_string(&userAttr).unwrap();
+    let res_json = serde_json::to_string(&userAttr)?;
     let req = DecryptReq {
       ciphertext_blob: cipher_text_base64,
       encryption_context: Some(res_json),
     };
-    let payload = serde_json::to_string(&req).unwrap();
-    let resp = self.send("Decrypt", &payload);
-    let resp_json = String::from_utf8(resp).unwrap();
-    let resp: WrappedResponse<DecryptResp> = serde_json::from_str(&resp_json).unwrap();
+    let payload = serde_json::to_string(&req)?;
+    let resp = self.send("Decrypt", &payload)?;
+    let resp_json = String::from_utf8_lossy(&resp);
+    let resp: WrappedResponse<DecryptResp> = serde_json::from_str(&resp_json)?;
     info!("{:?}", resp);
-    resp.response
+    Ok(resp.response)
   }
 }
