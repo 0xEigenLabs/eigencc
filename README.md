@@ -12,7 +12,7 @@
 
 ## Eigen Secret
 
-[Eigen Secret](https://github.com/ieigen/secret) is a cross-chain wallet for EigenRollup Chain and Ethereum.
+[Eigen Secret](https://github.com/ieigen/secret) is the new web3 user interface, including portfio managerment, social login, social recovery and multisig wallet
 
 ## About Eigen
 
