@@ -1,7 +1,0 @@
-export MESATEE_PROJECT_ROOT=/app/sgx
-export MESATEE_OUT_DIR=/app/sgx/build/intermediate
-export MESATEE_AUDITORS_DIR=/app/sgx/release/services/auditors
-export MESATEE_CFG_DIR=/app/sgx
-export MESATEE_BUILD_CFG_DIR=/app/sgx
-export RUST_LOG=info
-export RUST_BACKTRACE=1
