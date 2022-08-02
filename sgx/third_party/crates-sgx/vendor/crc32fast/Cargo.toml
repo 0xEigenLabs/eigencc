@@ -1,0 +1,32 @@
+[package]
+name = "crc32fast"
+version = "1.2.0"
+license = "MIT OR Apache-2.0"
+authors = [
+  "Sam Rijs <srijs@airpost.net>",
+  "Alex Crichton <alex@alexcrichton.com>"
+]
+description = "Fast, SIMD-accelerated CRC32 (IEEE) checksum computation"
+repository = "https://github.com/srijs/rust-crc32fast"
+readme = "README.md"
+keywords = ["checksum", "crc", "crc32", "simd", "fast"]
+exclude = ["/sgx/*",]
+
+[dependencies]
+cfg-if = "0.1"
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[dev-dependencies]
+#bencher = "0.1"
+#quickcheck = { version = "0.6", default-features = false }
+#rand = "0.4"
+
+[features]
+default = ["std", "mesalock_sgx", "nightly"]
+std = ["mesalock_sgx"]
+nightly = []
+mesalock_sgx = ["std", "sgx_tstd"]
+
+[[bench]]
+name = "bench"
+harness = false

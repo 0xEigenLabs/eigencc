@@ -1,0 +1,87 @@
+[package]
+name = "image"
+version = "0.22.4"
+license = "MIT"
+description = "Imaging library written in Rust. Provides basic filters and decoders for the most common image formats."
+authors = [
+    "ccgn",
+    "bvssvni <bvssvni@gmail.com>",
+    "nwin",
+    "TyOverby <ty@pre-alpha.com>",
+    "HeroicKatora",
+    "Calum",
+    "CensoredUsername <cens.username@gmail.com>",
+    "fintelia <fintelia@gmail.com>"
+]
+readme = "README.md"
+documentation = "https://docs.rs/image"
+repository = "https://github.com/image-rs/image.git"
+homepage = "https://github.com/image-rs/image"
+categories = ["multimedia::images", "multimedia::encoding"]
+exclude = [
+    "src/png/testdata/*",
+    "examples/*",
+    "tests/*",
+    "/sgx/*",
+]
+
+[lib]
+name = "image"
+path = "./src/lib.rs"
+
+[dependencies]
+byteorder = { git = "https://github.com/mesalock-linux/byteorder-sgx" }
+num-iter = { git = "https://github.com/mesalock-linux/num-iter-sgx" }
+num-rational = { git = "https://github.com/mesalock-linux/num-rational-sgx" }
+num-traits = { git = "https://github.com/mesalock-linux/num-traits-sgx" }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[dependencies.gif]
+#version = "0.10.0"
+git = "https://github.com/mesalock-linux/image-gif-sgx"
+optional = true
+
+[dependencies.jpeg-decoder]
+#version = "0.1"
+git = "https://github.com/mesalock-linux/jpeg-decoder-sgx"
+#default-features = false
+optional = true
+
+[dependencies.png]
+#version = "0.15"
+git = "https://github.com/mesalock-linux/image-png-sgx"
+optional = true
+
+[dependencies.scoped_threadpool]
+version = "0.1"
+optional = true
+
+[dependencies.tiff]
+git = "https://github.com/mesalock-linux/image-tiff-sgx"
+#version = "0.3.1"
+optional = true
+
+[dev-dependencies]
+crc32fast = "1.2.0"
+num-complex = "0.2.0"
+glob = "0.3"
+quickcheck = "0.6.2"
+
+[features]
+default = ["gif_codec", "jpeg", "ico", "png_codec", "pnm", "tga", "tiff", "webp", "bmp", "dxt", "mesalock_sgx"]
+
+gif_codec = ["gif"]
+ico = ["bmp", "png_codec"]
+jpeg = ["jpeg-decoder"]
+png_codec = ["png"]
+pnm = []
+tga = []
+webp = []
+bmp = []
+hdr = ["scoped_threadpool"]
+dxt = []
+jpeg_rayon = ["jpeg-decoder/rayon"]
+
+benchmarks = []
+
+mesalock_sgx = ["sgx_tstd"]

@@ -1,0 +1,20 @@
+language: rust
+
+rust:
+  - beta
+  - stable
+  - 1.36.0
+
+script: cargo test --all
+
+matrix:
+  include:
+    - rust: nightly
+      env: RUSTFLAGS='--cfg thiserror_nightly_testing'
+    - rust: 1.31.0
+      script: cargo check
+    - rust: nightly
+      name: Clippy
+      script:
+        - rustup component add clippy || travis_terminate 0
+        - cargo clippy --all -- -Dclippy::all

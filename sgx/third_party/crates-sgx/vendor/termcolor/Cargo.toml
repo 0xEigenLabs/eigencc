@@ -1,0 +1,28 @@
+[package]
+name = "termcolor"
+version = "1.0.5"  #:version
+authors = ["Andrew Gallant <jamslam@gmail.com>"]
+description = """
+A simple cross platform library for writing colored text to a terminal.
+"""
+documentation = "https://docs.rs/termcolor"
+homepage = "https://github.com/BurntSushi/termcolor"
+repository = "https://github.com/BurntSushi/termcolor"
+readme = "README.md"
+keywords = ["windows", "win", "color", "ansi", "console"]
+license = "Unlicense OR MIT"
+exclude = ["/.travis.yml", "/appveyor.yml", "/ci/**", "/sgx/*"]
+
+[lib]
+name = "termcolor"
+bench = false
+
+[features]
+default = ["mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd"]
+
+[target.'cfg(windows)'.dependencies]
+#wincolor = { version = "1", path = "wincolor" }
+
+[dependencies]
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }

@@ -1,0 +1,178 @@
+adler32: Zlib
+aho-corasick: Unlicense/MIT
+anyhow: MIT OR Apache-2.0
+array_tool: MIT OR Apache-2.0
+assert_matches: MIT/Apache-2.0
+autocfg-0.1.7: Apache-2.0/MIT
+autocfg: Apache-2.0 OR MIT
+base64: MIT/Apache-2.0
+bincode: MIT
+bitflags: MIT/Apache-2.0
+bit-vec: MIT/Apache-2.0
+block-buffer: MIT OR Apache-2.0
+block-padding: MIT OR Apache-2.0
+byteorder: Unlicense OR MIT
+bytes: MIT
+byte-tools: MIT OR Apache-2.0
+cc: MIT/Apache-2.0
+cfg-if-0.1.10: MIT/Apache-2.0
+cfg-if: MIT/Apache-2.0
+chrono: MIT/Apache-2.0
+color_quant: MIT
+crc32fast: MIT OR Apache-2.0
+crc: MIT OR Apache-2.0
+ctor: Apache-2.0 OR MIT
+deflate: MIT/Apache-2.0
+digest: MIT OR Apache-2.0
+either: MIT/Apache-2.0
+env_logger: MIT/Apache-2.0
+erased-serde: MIT OR Apache-2.0
+fake-simd: MIT/Apache-2.0
+fnv: Apache-2.0 / MIT
+gbdt: Apache-2.0
+generic-array: MIT
+getrandom: MIT OR Apache-2.0
+ghost: MIT OR Apache-2.0
+gif: MIT/Apache-2.0
+gzip-header: MIT/Apache-2.0
+half: MIT/Apache-2.0
+hashbrown: Apache-2.0/MIT
+hashbrown_tstd: Apache-2.0/MIT
+heapsize: MIT/Apache-2.0
+hex: MIT OR Apache-2.0
+httparse: MIT/Apache-2.0
+http: MIT/Apache-2.0
+humantime: MIT/Apache-2.0
+idna: MIT/Apache-2.0
+image: MIT
+inflate: MIT
+integer-encoding: see license file at integer-encoding/LICENSE
+inventory-0.1.5: MIT OR Apache-2.0
+inventory-impl-0.1.5: MIT OR Apache-2.0
+inventory-impl: MIT OR Apache-2.0
+inventory: MIT OR Apache-2.0
+iovec: MIT/Apache-2.0
+itertools-0.8.2: MIT/Apache-2.0
+itertools: MIT/Apache-2.0
+itoa: MIT OR Apache-2.0
+jpeg-decoder: MIT / Apache-2.0
+jsonwebtoken: MIT
+lazy_static: MIT/Apache-2.0
+libc: MIT OR Apache-2.0
+linked-hash-map: MIT/Apache-2.0
+log: MIT OR Apache-2.0
+lzw: MIT/Apache-2.0
+matches: MIT
+matrixmultiply: MIT/Apache-2.0
+md5: Apache-2.0/MIT
+memchr: Unlicense/MIT
+memory_units: MPL-2.0
+miniz_oxide: MIT
+mio: MIT
+net2: MIT/Apache-2.0
+num-bigint: MIT/Apache-2.0
+num-complex: MIT/Apache-2.0
+num-integer: MIT/Apache-2.0
+num-iter: MIT/Apache-2.0
+num: MIT/Apache-2.0
+num-rational: MIT/Apache-2.0
+num-traits: MIT/Apache-2.0
+once_cell: MIT OR Apache-2.0
+opaque-debug: MIT OR Apache-2.0
+parity-wasm: MIT/Apache-2.0
+pem: MIT
+percent-encoding: MIT/Apache-2.0
+png: MIT OR Apache-2.0
+ppv-lite86: MIT/Apache-2.0
+proc-macro2-0.4.30: MIT/Apache-2.0
+proc-macro2: MIT OR Apache-2.0
+profiler_builtins: License not found
+prost: Apache-2.0
+prost-derive: Apache-2.0
+quick-error: MIT/Apache-2.0
+quote-0.3.15: MIT/Apache-2.0
+quote-0.6.13: MIT OR Apache-2.0
+quote: MIT OR Apache-2.0
+rand_chacha: MIT OR Apache-2.0
+rand_core-0.4.2: MIT/Apache-2.0
+rand_core: MIT OR Apache-2.0
+rand: MIT OR Apache-2.0
+rawpointer: MIT/Apache-2.0
+rdrand: ISC
+regex: MIT OR Apache-2.0
+regex-syntax: MIT/Apache-2.0
+ring: see license file at ring/LICENSE
+rulinalg: MIT
+rustface: BSD-2-Clause
+rustls: Apache-2.0/ISC/MIT
+rusty-machine: MIT
+ryu: Apache-2.0 OR BSL-1.0
+sct: Apache-2.0/ISC/MIT
+serde-big-array: MIT OR Apache-2.0
+serde_cbor: MIT/Apache-2.0
+serde_derive: MIT OR Apache-2.0
+serde_json: MIT OR Apache-2.0
+serde: MIT OR Apache-2.0
+sgx_align_struct_attribute: see license file at sgx_align_struct_attribute/LICENSE
+sgx_alloc: see license file at sgx_alloc/LICENSE
+sgx_backtrace: see license file at sgx_backtrace/LICENSE
+sgx_backtrace_sys: see license file at sgx_backtrace_sys/LICENSE
+sgx_build_helper: see license file at sgx_build_helper/LICENSE
+sgx_cov: see license file at sgx_cov/LICENSE
+sgx_crypto_helper: see license file at sgx_crypto_helper/LICENSE
+sgx_demangle: see license file at sgx_demangle/LICENSE
+sgx_libc: see license file at sgx_libc/LICENSE
+sgx_rand_derive: see license file at sgx_rand_derive/LICENSE
+sgx_rand: see license file at sgx_rand/LICENSE
+sgx_serialize_derive_internals: see license file at sgx_serialize_derive_internals/LICENSE
+sgx_serialize_derive: see license file at sgx_serialize_derive/LICENSE
+sgx_serialize: see license file at sgx_serialize/LICENSE
+sgx_tcrypto_helper: see license file at sgx_tcrypto_helper/LICENSE
+sgx_tcrypto: see license file at sgx_tcrypto/LICENSE
+sgx_tdh: see license file at sgx_tdh/LICENSE
+sgx_tkey_exchange: see license file at sgx_tkey_exchange/LICENSE
+sgx_tprotected_fs: see license file at sgx_tprotected_fs/LICENSE
+sgx_trts: see license file at sgx_trts/LICENSE
+sgx_tseal: see license file at sgx_tseal/LICENSE
+sgx_tse: see license file at sgx_tse/LICENSE
+sgx_tstd: see license file at sgx_tstd/LICENSE
+sgx_tunittest: see license file at sgx_tunittest/LICENSE
+sgx_types: see license file at sgx_types/LICENSE
+sgx_unwind: see license file at sgx_unwind/LICENSE
+sgx_urts: see license file at sgx_urts/LICENSE
+sha1: BSD-3-Clause
+sha-1: MIT OR Apache-2.0
+sha2: MIT OR Apache-2.0
+simple_asn1: ISC
+slab: MIT
+smallvec: MIT/Apache-2.0
+snap: BSD-3-Clause
+spin: MIT
+syn-0.11.11: MIT/Apache-2.0
+syn-0.15.44: MIT OR Apache-2.0
+syn: MIT OR Apache-2.0
+synom: MIT/Apache-2.0
+termcolor: Unlicense OR MIT
+thiserror-impl: MIT OR Apache-2.0
+thiserror: MIT OR Apache-2.0
+thread_local: Apache-2.0/MIT
+threadpool: MIT/Apache-2.0
+tiff: MIT
+toml: MIT/Apache-2.0
+typenum: MIT OR Apache-2.0
+typetag-impl: MIT OR Apache-2.0
+typetag: MIT OR Apache-2.0
+unicode-bidi: MIT / Apache-2.0
+unicode-normalization: MIT/Apache-2.0
+unicode-xid-0.0.4: MIT/Apache-2.0
+unicode-xid-0.1.0: MIT/Apache-2.0
+unicode-xid: MIT OR Apache-2.0
+untrusted: ISC
+url: MIT/Apache-2.0
+uuid: Apache-2.0 OR MIT
+wabt: Apache-2.0
+wasmi: MIT/Apache-2.0
+wasmi-validation: MIT/Apache-2.0
+webpki-roots: MPL-2.0
+webpki: see license file at webpki/LICENSE
+yasna: MIT/Apache-2.0

@@ -1,0 +1,19 @@
+[package]
+name = "thiserror-impl"
+version = "1.0.9"
+authors = ["David Tolnay <dtolnay@gmail.com>"]
+edition = "2018"
+license = "MIT OR Apache-2.0"
+description = "Implementation detail of the `thiserror` crate"
+repository = "https://github.com/dtolnay/thiserror"
+
+[lib]
+proc-macro = true
+
+[badges]
+travis-ci = { repository = "dtolnay/thiserror" }
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = "1.0.11"

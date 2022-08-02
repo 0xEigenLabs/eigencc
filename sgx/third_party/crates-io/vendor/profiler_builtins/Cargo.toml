@@ -1,0 +1,13 @@
+[package]
+name = "profiler_builtins"
+version = "0.1.0"
+authors = ["Yu Ding <dingelish@gmail.com>"]
+edition = "2018"
+
+[lib]
+name = "profiler_builtins"
+path = "src/lib.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]

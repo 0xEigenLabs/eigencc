@@ -1,0 +1,60 @@
+[package]
+
+name          = "mio"
+# When releasing to crates.io:
+# - Update html_root_url.
+# - Update CHANGELOG.md.
+# - Update doc URL.
+# - Create git tag
+version       = "0.6.21"
+license       = "MIT"
+authors       = ["Carl Lerche <me@carllerche.com>"]
+description   = "Lightweight non-blocking IO"
+documentation = "https://docs.rs/mio/0.6.21/mio/"
+homepage      = "https://github.com/carllerche/mio"
+repository    = "https://github.com/carllerche/mio"
+readme        = "README.md"
+keywords      = ["io", "async", "non-blocking"]
+categories    = ["asynchronous"]
+exclude       = [
+  ".gitignore",
+  ".travis.yml",
+  "deploy.sh",
+]
+
+[features]
+with-deprecated = []
+default = ["mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd", "sgx_trts", "sgx_libc"]
+
+[dependencies]
+log = { git = "https://github.com/mesalock-linux/log-sgx" }
+slab = { git = "https://github.com/mesalock-linux/slab-sgx" }
+net2 = { git = "https://github.com/mesalock-linux/net2-rs-sgx" }
+iovec = { git = "https://github.com/mesalock-linux/iovec-sgx" }
+
+[target.'cfg(not(all(target_env = "sgx", target_vendor = "mesalock")))'.dependencies]
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", features = ["net"], optional = true}
+sgx_libc = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+sgx_trts = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+#[target.'cfg(target_os = "fuchsia")'.dependencies]
+#fuchsia-zircon = "0.3.2"
+#fuchsia-zircon-sys = "0.3.2"
+
+#[target.'cfg(unix)'.dependencies]
+#libc   = "0.2.42"
+
+#[target.'cfg(windows)'.dependencies]
+#winapi = "0.2.6"
+#miow   = "0.2.1"
+#kernel32-sys = "0.2"
+
+[dev-dependencies]
+#env_logger = { version = "0.4.0", default-features = false }
+#tempdir    = "0.3.4"
+#bytes      = "0.3.0"
+
+[[test]]
+name = "test"
+path = "test/mod.rs"

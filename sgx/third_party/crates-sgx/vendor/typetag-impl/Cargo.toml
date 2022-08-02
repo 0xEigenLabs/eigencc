@@ -1,0 +1,17 @@
+[package]
+name = "typetag-impl"
+version = "0.1.4"
+authors = ["David Tolnay <dtolnay@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Implementation detail of the typetag crate"
+repository = "https://github.com/dtolnay/typetag"
+documentation = "https://docs.rs/typetag"
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = { version = "1.0", features = ["full"] }

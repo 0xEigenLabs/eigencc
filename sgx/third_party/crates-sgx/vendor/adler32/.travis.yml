@@ -1,0 +1,11 @@
+language: rust
+rust:
+  - 1.17.0
+  - 1.31.0
+  - stable
+  - nightly
+sudo: false
+script: |
+  cargo build --verbose && \
+  cargo test --verbose && \
+  cargo doc

@@ -1,0 +1,39 @@
+[package]
+name = "rustface"
+description = "Face detection library, based on the C++ SeetaFace engine."
+version = "0.1.2"
+repository = "https://github.com/atomashpolskiy/rustface"
+readme = "README.md"
+keywords = ["face", "detection"]
+categories = ["multimedia::images", "science"]
+authors = ["Andrei Tomashpolskiy <nordmann89@gmail.com>"]
+license = "BSD-2-Clause"
+exclude = [
+    "assets/*",
+]
+
+[features]
+default = ["mesalock_sgx"]
+mesalock_sgx = [
+  "sgx_tstd",
+]
+include_default_model = [ ]
+
+[dependencies]
+num = { git = "https://github.com/mesalock-linux/num-sgx" }
+byteorder = { git = "https://github.com/mesalock-linux/byteorder-sgx" }
+serde = { git = "https://github.com/mesalock-linux/serde-sgx", features = ["derive"] }
+serde_json = { git = "https://github.com/mesalock-linux/serde-json-sgx" }
+sgx_tstd = { git = "https://github.com/apache/teaclave-sgx-sdk", rev = "v1.1.3", optional = true }
+
+# [dev-dependencies]
+image = { git = "https://github.com/mesalock-linux/image-sgx" }
+# imageproc = "0.18.0"
+# criterion = "0.2.4"
+
+# [[bench]]
+# name = "benchmarks"
+# harness = false
+
+# [profile.release]
+# lto = true

@@ -1,0 +1,46 @@
+[package]
+
+name = "bytes"
+# When releasing to crates.io:
+# - Update html_root_url.
+# - Update CHANGELOG.md.
+# - Update doc URL.
+# - Create "v0.5.x" git tag.
+version = "0.5.4"
+license = "MIT"
+authors = [
+    "Carl Lerche <me@carllerche.com>",
+    "Sean McArthur <sean@seanmonstar.com>",
+]
+exclude = [
+    ".gitignore",
+    ".travis.yml",
+    "deploy.sh",
+    "bench/**/*",
+    "test/**/*",
+    "/sgx/*",
+]
+description = "Types and traits for working with bytes"
+documentation = "https://docs.rs/bytes"
+repository = "https://github.com/tokio-rs/bytes"
+readme = "README.md"
+keywords = ["buffers", "zero-copy", "io"]
+categories = ["network-programming", "data-structures"]
+edition = "2018"
+
+[features]
+default = ["std", "mesalock_sgx"]
+std = ["mesalock_sgx"]
+mesalock_sgx = ["std", "sgx_tstd"]
+
+[dev-dependencies]
+#serde_test = "1.0"
+
+# loom is currently not compiling on windows.
+# See: https://github.com/Xudong-Huang/generator-rs/issues/19
+[target.'cfg(not(windows))'.dev-dependencies]
+#loom = "0.2.13"
+
+[dependencies]
+serde = { version = "1.0", git = "https://github.com/mesalock-linux/serde-sgx", optional = true }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }

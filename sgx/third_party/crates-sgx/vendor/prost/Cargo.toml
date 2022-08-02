@@ -1,0 +1,61 @@
+[package]
+name = "prost"
+version = "0.6.1"
+authors = ["Dan Burkert <dan@danburkert.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/danburkert/prost"
+documentation = "https://docs.rs/prost"
+readme = "README.md"
+description = "A Protocol Buffers implementation for the Rust Language."
+keywords = ["protobuf", "serialization"]
+categories = ["encoding"]
+edition = "2018"
+exclude = [
+  # The fuzz crate can't be compiled or tested without the 'cargo fuzz' command,
+  # so exclude it from normal builds.
+  "fuzz",
+  "/sgx/*",
+]
+
+[badges]
+travis-ci = { repository = "danburkert/prost" }
+appveyor = { repository = "danburkert/prost" }
+
+#[workspace]
+#members = [
+#  "conformance",
+#  "prost-build",
+#  "prost-derive",
+#  "prost-types",
+#  "protobuf",
+#  "tests",
+#  "tests-2015",
+#]
+
+[lib]
+# https://bheisler.github.io/criterion.rs/book/faq.html#cargo-bench-gives-unrecognized-option-errors-for-valid-command-line-options
+bench = false
+
+[features]
+default = ["prost-derive", "mesalock_sgx"]
+no-recursion-limit = []
+mesalock_sgx = ["sgx_tstd"]
+
+[dependencies]
+bytes = { git = "https://github.com/mesalock-linux/bytes-sgx" }
+prost-derive = { version = "0.6.1", path = "prost-derive", optional = true }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[dev-dependencies]
+#criterion = "0.3"
+#env_logger = { version = "0.7", default-features = false }
+#log = "0.4"
+#quickcheck = "0.9"
+#rand = "0.7"
+
+[profile.bench]
+debug = true
+
+#[[bench]]
+#name = "varint"
+#harness = false

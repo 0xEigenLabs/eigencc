@@ -1,0 +1,24 @@
+[package]
+name = "gzip-header"
+version = "0.3.0"
+license = "MIT/Apache-2.0"
+authors = ["oyvindln <oyvindln@users.noreply.github.com>"]
+readme = "README.md"
+keywords = ["gzip", "compression"]
+repository = "https://github.com/oyvindln/gzip-header"
+homepage = "https://github.com/oyvindln/gzip-header"
+documentation = "https://docs.rs/gzip-header/"
+description = """
+A crate for decoding and encoding the header part of gzip files based on the gzip header
+ implementation in the flate2 crate.
+"""
+categories = ["compression"]
+exclude = ["/sgx/*"]
+
+[dependencies]
+crc32fast = { git = "https://github.com/mesalock-linux/rust-crc32fast-sgx" }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[features]
+default = ["mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd"]

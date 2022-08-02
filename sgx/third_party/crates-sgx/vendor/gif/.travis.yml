@@ -1,0 +1,10 @@
+language: rust
+rust:
+  - 1.24.1
+  - stable
+  - nightly
+env:
+  matrix:
+    - FEATURES=''
+    - FEATURES='c_api'
+script: cargo test -v --features="$FEATURES"

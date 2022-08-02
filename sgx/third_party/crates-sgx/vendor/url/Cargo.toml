@@ -1,0 +1,52 @@
+[package]
+
+name = "url"
+# When updating version, also modify html_root_url in the lib.rs
+version = "2.1.1"
+authors = ["The rust-url developers"]
+
+description = "URL library for Rust, based on the WHATWG URL Standard"
+documentation = "https://docs.rs/url"
+repository = "https://github.com/servo/rust-url"
+readme = "README.md"
+keywords = ["url", "parser"]
+categories = ["parser-implementations", "web-programming", "encoding"]
+license = "MIT/Apache-2.0"
+
+[badges]
+travis-ci = { repository = "servo/rust-url" }
+appveyor = { repository = "Manishearth/rust-url" }
+
+[workspace]
+members = [".", "idna", "percent_encoding", "data-url"]
+
+[[test]]
+name = "unit"
+
+[[test]]
+name = "data"
+harness = false
+
+[lib]
+test = false
+
+[dev-dependencies]
+#rustc-test = "0.3"
+#serde_json = "1.0"
+
+bencher = "0.1"
+
+[dependencies]
+idna = { version = "0.2.0", path = "./idna" }
+matches = { git = "https://github.com/mesalock-linux/rust-std-candidates-sgx" }
+percent-encoding = { version = "2.1.0", path = "./percent_encoding" }
+serde = { git = "https://github.com/mesalock-linux/serde-sgx", version = "1.0", optional = true, features = ["derive"]}
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[[bench]]
+name = "parse_url"
+harness = false
+
+[features]
+default = ["mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd"]

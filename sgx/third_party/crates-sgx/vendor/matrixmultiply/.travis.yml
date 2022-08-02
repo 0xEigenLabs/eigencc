@@ -1,0 +1,70 @@
+os: linux
+language: rust
+sudo: yes
+dist: trusty
+
+matrix:
+  include:
+    - rust: 1.28.0
+      env:
+        TARGET=x86_64-unknown-linux-gnu
+    - rust: stable
+      env:
+        TARGET=x86_64-unknown-linux-gnu
+    - rust: stable
+      env:
+        TARGET=i686-unknown-linux-gnu
+    - rust: beta
+      env:
+        TARGET=x86_64-unknown-linux-gnu
+    - rust: nightly
+      env:
+        TARGET=x86_64-unknown-linux-gnu
+        MMTEST_FEATURE=fma
+    - rust: nightly
+      env:
+        TARGET=x86_64-unknown-linux-gnu
+        MMTEST_FEATURE=sse2
+        MMTEST_ENSUREFEATURE=1
+    - rust: nightly
+      env:
+        TARGET=x86_64-unknown-linux-gnu
+        MMTEST_FEATURE=avx
+        MMTEST_ENSUREFEATURE=1
+    - rust: nightly
+      env:
+        TARGET=aarch64-unknown-linux-gnu
+        BUILD_ONLY=1
+env:
+  global:
+    - HOST=x86_64-unknown-linux-gnu
+
+addons:
+  apt:
+    packages:
+      # needed for i686-unknown-linux-gnu target
+      - gcc-multilib
+install:
+  # "rustup error: cannot re-add" without this conditional check
+- if [[ $HOST != $TARGET ]]; then rustup target add $TARGET; fi
+
+# the main build
+script:
+  - |
+      set -e &&
+      set -v &&
+      rustc --print cfg -Ctarget-cpu=native &&
+      cargo build -v --target=$TARGET && (
+      if [ -n "$BUILD_ONLY" ]; then
+        cargo check --tests -v --target=$TARGET &&
+        cargo doc -v --target=$TARGET
+      else
+        cargo test -v --target=$TARGET &&
+        cargo test -v --release --target=$TARGET &&
+        cargo doc -v --target=$TARGET &&
+        cargo bench -v --target=$TARGET
+      fi)
+
+branches:
+  only:
+    - master

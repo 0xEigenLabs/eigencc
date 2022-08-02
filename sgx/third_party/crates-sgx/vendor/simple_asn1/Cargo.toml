@@ -1,0 +1,24 @@
+[package]
+name = "simple_asn1"
+version = "0.5.0"
+authors = ["Adam Wick <awick@uhsure.com>"]
+description = "A simple DER/ASN.1 encoding/decoding library."
+categories = ["encoding"]
+keywords = ["ASN1","encoding","DER"]
+license = "ISC"
+repository = "https://github.com/acw/simple_asn1"
+edition = "2018"
+
+[dependencies]
+chrono = { git = "https://github.com/mesalock-linux/chrono-sgx" }
+num-bigint = { git = "https://github.com/mesalock-linux/num-bigint-sgx" }
+num-traits = { git = "https://github.com/mesalock-linux/num-traits-sgx" }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[dev-dependencies]
+#quickcheck = "0.9"
+#rand = "0.7"
+
+[features]
+default = ["mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd"]

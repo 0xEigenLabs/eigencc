@@ -1,0 +1,31 @@
+[package]
+name = "rusty-machine"
+version = "0.5.4"
+authors = ["AtheMathmo"]
+
+description = "A machine learning library."
+repository = "https://github.com/AtheMathmo/rusty-machine"
+documentation = "https://AtheMathmo.github.io/rusty-machine/"
+keywords = ["machine","learning","stats","data","machine-learning"]
+categories = ["science"]
+readme = "README.md"
+license = "MIT"
+exclude = ["/sgx/*"]
+
+[features]
+default = ["mesalock_sgx", "fallback"]
+mesalock_sgx = ["sgx_tstd", "sgx_rand", "rulinalg/mesalock_sgx"]
+stats = []
+datasets = []
+fma = ["rulinalg/fma"]
+avx = ["rulinalg/avx"]
+sse = ["rulinalg/sse"]
+fallback = ["rulinalg/fallback"]
+
+[dependencies]
+num = { git = "https://github.com/mesalock-linux/num-sgx" }
+sgx_rand = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+rulinalg = { git = "https://github.com/mesalock-linux/rulinalg-sgx", default-features = false, features = ["mesalock_sgx"] }
+serde = { git = "https://github.com/mesalock-linux/serde-sgx" }
+serde_derive = { git = "https://github.com/mesalock-linux/serde-sgx" }

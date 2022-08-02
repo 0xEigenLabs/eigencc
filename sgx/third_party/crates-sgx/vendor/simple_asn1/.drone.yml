@@ -1,0 +1,101 @@
+kind: pipeline
+name: simple_asn1-sgx-xargo-1604-release
+
+steps:
+- name: release-compile
+  image: baiduxlab/sgx-rust:1604-1.1.3
+  commands:
+  - . /opt/sgxsdk/environment
+  - . /root/.cargo/env
+  - RUST_TARGET_PATH=`pwd` xargo build --target x86_64-unknown-linux-sgx --release
+
+---
+
+kind: pipeline
+name: simple_asn1-sgx-xargo-1604-debug
+
+steps:
+- name: debug-compile
+  image: baiduxlab/sgx-rust:1604-1.1.3
+  commands:
+  - . /opt/sgxsdk/environment
+  - . /root/.cargo/env
+  - RUST_TARGET_PATH=`pwd` xargo build --target x86_64-unknown-linux-sgx
+
+---
+
+kind: pipeline
+name: simple_asn1-sgx-xargo-1804-release
+
+steps:
+- name: release-compile
+  image: baiduxlab/sgx-rust:1804-1.1.3
+  commands:
+  - . /opt/sgxsdk/environment
+  - . /root/.cargo/env
+  - RUST_TARGET_PATH=`pwd` xargo build --target x86_64-unknown-linux-sgx --release
+
+---
+
+kind: pipeline
+name: simple_asn1-sgx-xargo-1804-debug
+
+steps:
+- name: debug-compile
+  image: baiduxlab/sgx-rust:1804-1.1.3
+  commands:
+  - . /opt/sgxsdk/environment
+  - . /root/.cargo/env
+  - RUST_TARGET_PATH=`pwd` xargo build --target x86_64-unknown-linux-sgx
+
+---
+
+kind: pipeline
+name: simple_asn1-sgx-1604-release
+
+steps:
+- name: release-compile
+  image: baiduxlab/sgx-rust:1604-1.1.3
+  commands:
+  - . /opt/sgxsdk/environment
+  - . /root/.cargo/env
+  - cargo build --release
+
+---
+
+kind: pipeline
+name: simple_asn1-sgx-1604-hw-debug
+
+steps:
+- name: debug-compile
+  image: baiduxlab/sgx-rust:1604-1.1.3
+  commands:
+  - . /opt/sgxsdk/environment
+  - . /root/.cargo/env
+  - cargo build
+
+---
+
+kind: pipeline
+name: simple_asn1-sgx-1804-release
+
+steps:
+- name: release-compile
+  image: baiduxlab/sgx-rust:1804-1.1.3
+  commands:
+  - . /opt/sgxsdk/environment
+  - . /root/.cargo/env
+  - cargo build --release
+
+---
+
+kind: pipeline
+name: simple_asn1-sgx-1804-debug
+
+steps:
+- name: debug-compile
+  image: baiduxlab/sgx-rust:1804-1.1.3
+  commands:
+  - . /opt/sgxsdk/environment
+  - . /root/.cargo/env
+  - cargo build

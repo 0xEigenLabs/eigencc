@@ -1,0 +1,48 @@
+[package]
+name = "yasna"
+version = "0.3.1"
+authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
+
+description = "ASN.1 library for Rust"
+documentation = "https://docs.rs/yasna"
+homepage = "https://github.com/qnighy/yasna.rs"
+repository = "https://github.com/qnighy/yasna.rs"
+readme = "README.md"
+keywords = ["parser", "serialization"]
+license = "MIT/Apache-2.0"
+include = [
+  "src/**/*.rs",
+  "Cargo.toml",
+]
+exclude = ["/sgx/*"]
+
+[features]
+default = ["mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd"]
+
+[package.metadata.docs.rs]
+features = ["num-bigint", "bit-vec", "chrono"]
+
+[dependencies]
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[dependencies.num-bigint]
+version = "0.2"
+optional = true
+git = "https://github.com/mesalock-linux/num-bigint-sgx"
+
+[dev-dependencies.num-traits]
+version = "0.2"
+git = "https://github.com/mesalock-linux/num-traits-sgx"
+#default-features = false
+
+[dependencies.bit-vec]
+version = "0.6.1"
+default-features = false
+#features = ["std"]
+optional = true
+
+[dependencies.chrono]
+version = "0.4"
+optional = true
+git = "https://github.com/mesalock-linux/chrono-sgx"

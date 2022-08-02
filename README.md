@@ -1,31 +1,75 @@
-# Eigen Network
+# EigenCC: Confidential Computation
 
-[Eigen Network](https://www.ieigen.com/) is an end-to-end privacy computation network for a better digital economy based on hybrid privacy computation protocols and AI federated machine learning. Eigen focuses on providing a cross-domain valuable data circulation network embedded with full paradigm computing engines and enables developers to build and ship privacy applications easily.
+## Intel SGX
 
-## EigenCC
+[Intel SGX](https://software.intel.com/content/www/us/en/develop/topics/software-guard-extensions.html) Enhance Your Code and Data Protection
 
-[EigenCC](https://github.com/ieigen/ieigen/tree/main/cc) Confidential Computation Framework.
+### Requirements
 
-## EigenRollup Chain
+Rust SGX SDK: 1.1.3
 
-[EigenRollup Chain](https://github.com/ieigen/ieigen/tree/main/l2) Optimistical Rollup Chain.
+Rust Version: rustup default nightly-2020-10-25
 
-## Eigen Secret
+### Compile
 
-[Eigen Secret](https://github.com/ieigen/secret) is the new web3 user interface, including portfio managerment, social login, social recovery and multisig wallet
+```
+$ git clone --recursive https://github.com/ieigen/eigencc.git  # if clone failed, use `git submodule update --init` to pull submodules
+$ cd sgx
+$ docker run --name fns --security-opt seccomp=unconfined --cap-add=SYS_PTRACE --net=host -v $(pwd):/app -w /app -it --entrypoint "" ieigen/fns:v3 bash
+$ rustup default nightly-2020-10-25
+$ mkdir -p build && cd build
+$ cmake .. && make # or use SIM mode: cmake .. -DSGX_SIM_MODE=on && make
+```
 
-## About Eigen
+Build $IMAGE image by [Dockerfile](https://github.com/ieigen/eigencc/blob/main/sgx/dcap/Dockerfile)
 
-[Eigen Network](https://www.ieigen.com/)
+you also can build it by docker:
+```
+docker build -t ieigen/dev:v1 -f fns.Dockerfile .
+```
 
-[Discord](https://discord.gg/CkzGRuKwWU)
+### Run
 
-[Twitter](https://twitter.com/Eigen_Network)
+use EPID:
 
-[Telegram](https://t.me/Eigen_Network)
+```
+$ cd /app/release/services
+$ export IAS_SPID=xxxx
+$ export IAS_KEY=xxx
+$ cd /app/release/services
+$ #the next step can be skipped if you use SIM mode
+$ LD_LIBRARY_PATH="/opt/intel/sgx-aesm-service/aesm:$LD_LIBRARY_PATH" /opt/intel/sgx-aesm-service/aesm/aesm_service
+$ ./fns
+```
 
-[Medium](https://medium.com/@iEigen)
+open another terminal,
 
-# We are hiring!
+```
+$ cd /app/release/examples
+$ ./quickstart echo -m 'Hello' -e enclave_info.toml
+[+] Invoke echo function
+Hello, Eigen
+```
 
-If you are interesting in privacy computing and blockchain, Welcome to join us!
+#### Run GBDT training
+
+```
+cd /app/release/examples
+./quickstart echo -e enclave_info.toml  -m Hello \
+    -t ../../../../data/agaricus-lepiota/test.txt \
+    -r ../../../../data/agaricus-lepiota/train.txt
+```
+
+then you can see the AUC of training from terminal of fns.
+
+### Develop an new confidential service
+
+[EigenCC Privacy Operators](https://github.com/ieigen/eigencc/blob/main/operators.md)
+
+## ARM TrustZone on FPGA
+
+TBD
+
+## Reference
+
+1. SGX check： https://www.intel.com/content/www/us/en/support/articles/000057420/software/intel-security-products.html

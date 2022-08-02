@@ -1,0 +1,22 @@
+[package]
+name = "thread_local"
+version = "1.0.0"
+authors = ["Amanieu d'Antras <amanieu@gmail.com>"]
+description = "Per-object thread-local storage"
+documentation = "https://amanieu.github.io/thread_local-rs/thread_local/index.html"
+license = "Apache-2.0/MIT"
+repository = "https://github.com/Amanieu/thread_local-rs"
+readme = "README.md"
+keywords = ["thread_local", "concurrent", "thread"]
+exclude = ["/sgx/*"]
+
+[badges]
+travis-ci = { repository = "Amanieu/thread_local-rs" }
+
+[features]
+default = ["mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd"]
+
+[dependencies]
+lazy_static = { version = "1.0", features = ["spin_no_std"] }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }

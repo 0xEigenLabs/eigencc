@@ -1,0 +1,24 @@
+[package]
+name = "miniz_oxide"
+authors = ["Frommi <daniil.liferenko@gmail.com>", "oyvindln <oyvindln@users.noreply.github.com>"]
+version = "0.3.5"
+license = "MIT"
+readme = "Readme.md"
+keywords = ["zlib", "miniz", "deflate", "encoding"]
+categories = ["compression"]
+repository = "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide"
+homepage = "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide"
+documentation = "https://docs.rs/miniz_oxide"
+description = "DEFLATE compression and decompression library rewritten in Rust based on miniz"
+edition = "2018"
+
+[lib]
+name = "miniz_oxide"
+
+[dependencies]
+adler32 = { git = "https://github.com/mesalock-linux/adler32-rs-sgx" }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[features]
+default = ["mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd"]

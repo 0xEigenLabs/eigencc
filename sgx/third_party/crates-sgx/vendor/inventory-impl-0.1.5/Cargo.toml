@@ -1,0 +1,19 @@
+[package]
+name = "inventory-impl"
+version = "0.1.5"
+authors = ["David Tolnay <dtolnay@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "Implementation of macros for the `inventory` crate"
+repository = "https://github.com/dtolnay/inventory"
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[badges]
+travis-ci = { repository = "dtolnay/inventory" }
+
+[dependencies]
+proc-macro2 = "1.0"
+quote = "1.0"
+syn = "1.0"

@@ -1,0 +1,53 @@
+[package]
+authors = ["The Rust Project Developers"]
+description = "Rational numbers implementation for Rust"
+documentation = "https://docs.rs/num-rational"
+homepage = "https://github.com/rust-num/num-rational"
+keywords = ["mathematics", "numerics", "fractions"]
+categories = ["algorithms", "data-structures", "science", "no-std"]
+license = "MIT/Apache-2.0"
+name = "num-rational"
+repository = "https://github.com/rust-num/num-rational"
+version = "0.2.2"
+readme = "README.md"
+build = "build.rs"
+exclude = ["/ci/*", "/.travis.yml", "/bors.toml", "/sgx/*"]
+
+[package.metadata.docs.rs]
+features = ["std", "bigint-std", "serde"]
+
+[dependencies]
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+
+[dependencies.num-bigint]
+optional = true
+#version = "0.2.0"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-bigint-sgx"
+
+[dependencies.num-integer]
+#version = "0.1.38"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-integer-sgx"
+
+[dependencies.num-traits]
+#version = "0.2.7"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-traits-sgx"
+
+[dependencies.serde]
+optional = true
+#version = "1.0.0"
+#default-features = false
+git = "https://github.com/mesalock-linux/serde-sgx"
+
+[features]
+default = ["bigint-std", "std", "mesalock_sgx", "i128"]
+i128 = ["num-integer/i128", "num-traits/i128"]
+std = ["mesalock_sgx", "num-integer/std", "num-traits/std", "num-integer/mesalock_sgx", "num-traits/mesalock_sgx"]
+bigint = ["num-bigint"]
+bigint-std = ["bigint", "num-bigint/std", "num-bigint/mesalock_sgx"]
+mesalock_sgx = ["sgx_tstd"]
+
+[build-dependencies]
+autocfg = "0.1.3"

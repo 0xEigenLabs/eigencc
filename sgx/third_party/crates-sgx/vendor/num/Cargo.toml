@@ -1,0 +1,96 @@
+[package]
+authors = ["The Rust Project Developers"]
+description = "A collection of numeric types and traits for Rust, including bigint,\ncomplex, rational, range iterators, generic integers, and more!\n"
+documentation = "https://docs.rs/num"
+homepage = "https://github.com/rust-num/num"
+keywords = ["mathematics", "numerics", "bignum"]
+categories = [ "algorithms", "data-structures", "science", "no-std" ]
+license = "MIT/Apache-2.0"
+repository = "https://github.com/rust-num/num"
+name = "num"
+version = "0.2.0"
+readme = "README.md"
+exclude = ["/ci/*", "/.travis.yml", "/bors.toml"]
+
+[package.metadata.docs.rs]
+features = ["std", "serde", "rand"]
+
+[badges]
+travis-ci = { repository = "rust-num/num" }
+
+[dependencies]
+
+[dependencies.num-bigint]
+optional = true # needs std
+#version = "0.2.0"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-bigint-sgx"
+
+[dependencies.num-complex]
+#version = "0.2.0"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-complex-sgx"
+
+[dependencies.num-integer]
+#version = "0.1.39"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-integer-sgx"
+
+[dependencies.num-iter]
+#version = "0.1.37"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-iter-sgx"
+
+[dependencies.num-rational]
+#version = "0.2.1"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-rational-sgx"
+
+[dependencies.num-traits]
+#version = "0.2.5"
+#default-features = false
+git = "https://github.com/mesalock-linux/num-traits-sgx"
+
+[dev-dependencies]
+
+[features]
+default = ["std", "mesalock_sgx", "i128"]
+
+mesalock_sgx = ["std"]
+
+std = [
+  "mesalock_sgx",
+  "num-bigint/std",
+  "num-complex/std",
+  "num-integer/std",
+  "num-iter/std",
+  "num-rational/std",
+  "num-rational/bigint",
+  "num-traits/std",
+  "num-bigint/mesalock_sgx",
+  "num-complex/mesalock_sgx",
+  "num-integer/mesalock_sgx",
+  "num-iter/mesalock_sgx",
+  "num-rational/mesalock_sgx",
+  "num-traits/mesalock_sgx",
+]
+
+i128 = [
+  "num-bigint/i128",
+  "num-complex/i128",
+  "num-integer/i128",
+  "num-iter/i128",
+  "num-rational/i128",
+  "num-traits/i128",
+]
+
+rand = [
+  #"num-bigint/rand", #num-bigint does not support rand v0.6
+  "num-complex/rand",
+]
+
+serde = [
+  "num-bigint/serde",
+  "num-complex/serde",
+  "num-rational/serde",
+]

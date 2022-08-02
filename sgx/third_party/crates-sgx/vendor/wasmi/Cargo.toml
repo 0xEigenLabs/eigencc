@@ -1,0 +1,65 @@
+[package]
+name = "wasmi"
+version = "0.6.2"
+authors = ["Nikolay Volf <nikvolf@gmail.com>", "Svyatoslav Nikolsky <svyatonik@yandex.ru>", "Sergey Pepyakin <s.pepyakin@gmail.com>"]
+license = "MIT/Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/paritytech/wasmi"
+documentation = "https://paritytech.github.io/wasmi/"
+description = "WebAssembly interpreter"
+keywords = ["wasm", "webassembly", "bytecode", "interpreter"]
+exclude = [ "/res/*", "/tests/*", "/fuzz/*", "/benches/*", "/sgx/*" ]
+
+[dependencies]
+wasmi-validation = { version = "0.3", path = "validation", default-features = false }
+parity-wasm = { version = "0.41.0", git = "https://github.com/mesalock-linux/parity-wasm-sgx", default-features = false }
+memory_units = "0.3.0"
+libm = { version = "0.1.2", optional = true }
+num-rational = { git = "https://github.com/mesalock-linux/num-rational-sgx" }
+num-traits = { git = "https://github.com/mesalock-linux/num-traits-sgx" }
+serde = { git = "https://github.com/mesalock-linux/serde-sgx", features = ["derive"] }
+typetag = { git = "https://github.com/mesalock-linux/typetag-sgx" }
+sgx_tstd = { rev = "v1.1.3", git = "https://github.com/apache/teaclave-sgx-sdk.git", optional = true }
+#libc = "0.2.58"
+#errno = { version = "0.2.4", optional = true }
+
+[dev-dependencies]
+#assert_matches = "1.1"
+#rand = "0.4.2"
+#wabt = "0.9"
+
+[features]
+default = ["std", "vec_memory", "mesalock_sgx"]
+# Disable for no_std support
+std = [
+    "wasmi-validation/mesalock_sgx",
+    "wasmi-validation/std",
+    "parity-wasm/mesalock_sgx",
+    "parity-wasm/std",
+    "num-rational/mesalock_sgx",
+    "num-rational/std",
+    "num-traits/mesalock_sgx",
+    "num-traits/std",
+]
+# Enable for no_std support
+core = [
+    # `core` doesn't support vec_memory
+    "vec_memory",
+    "wasmi-validation/core",
+    "libm"
+]
+# Enforce using the linear memory implementation based on `Vec` instead of
+# mmap on unix systems.
+#
+# Useful for tests and if you need to minimize unsafe usage at the cost of performance on some
+# workloads.
+vec_memory = []
+
+mesalock_sgx = ["sgx_tstd", "std"]
+
+[workspace]
+members = ["validation"]
+exclude = ["benches"]
+
+[http]
+sslVerify = false
