@@ -1,5 +1,0 @@
-version: "1"
-rules:
-  - base: master
-    upstream: BurntSushi:master
-    mergeMethod: none
