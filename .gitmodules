@@ -9,3 +9,12 @@
 	path = cc/sgx/third_party/crates-io
 	url = https://github.com/mesalock-linux/crates-io.git
 	ignore = dirty
+[submodule "sgx/third_party/crates-sgx"]
+	path = sgx/third_party/crates-sgx
+	url = https://github.com/mesalock-linux/crates-sgx.git
+[submodule "sgx/third_party/crates-io"]
+	path = sgx/third_party/crates-io
+	url = https://github.com/mesalock-linux/crates-io.git
+[submodule "sgx/third_party/rust-sgx-sdk"]
+	path = sgx/third_party/rust-sgx-sdk
+	url = https://github.com/baidu/rust-sgx-sdk.git
