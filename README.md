@@ -51,16 +51,6 @@ $ ./quickstart echo -m 'Hello' -e enclave_info.toml
 Hello, Eigen
 ```
 
-#### Run GBDT training
-
-```
-cd /app/release/examples
-./quickstart echo -e enclave_info.toml  -m Hello \
-    -t ../../../../data/agaricus-lepiota/test.txt \
-    -r ../../../../data/agaricus-lepiota/train.txt
-```
-
-then you can see the AUC of training from terminal of fns.
 
 ### Develop an new confidential service
 
